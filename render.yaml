@@ -12,5 +12,14 @@ services:
         value: 20
       - key: BOT_TOKEN
         sync: false
+  - type: static
+    name: speen-web
+    rootDir: apps/web
+    plan: free
+    buildCommand: npm ci --ignore-scripts && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://speen.onrender.com
 
 
