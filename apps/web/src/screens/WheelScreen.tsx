@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { apiInit, apiReward } from '../api/client';
 
-type Slice = { label: string; color: string; reward: number };
+type Slice = { label: string; color: string; reward: number; weight: number };
 
 const slices: Slice[] = [
-	{ label: '10 000', color: '#F4C430', reward: 10000 },
-	{ label: 'Emoji', color: '#F9D76B', reward: 0 },
-	{ label: '1', color: '#E84A5F', reward: 1 },
-	{ label: '1000 000', color: '#F4C430', reward: 1000000 },
-	{ label: 'Грусть', color: '#F9D76B', reward: 0 },
-	{ label: '1000', color: '#F4C430', reward: 1000 },
+	{ label: '1 Биткоин', color: '#E84A5F', reward: 0, weight: 1 },
+	{ label: '100 000 рупий', color: '#F4C430', reward: 100000, weight: 2 },
+	{ label: 'Эмодзи', color: '#F9D76B', reward: 0, weight: 8 },
+	{ label: '1 000 000 рупий', color: '#F4C430', reward: 1_000_000, weight: 1 },
+	{ label: 'Эмодзи', color: '#F9D76B', reward: 0, weight: 8 },
+	{ label: '10 000 рупий', color: '#F4C430', reward: 10_000, weight: 4 },
+	{ label: 'Эмодзи', color: '#F9D76B', reward: 0, weight: 8 },
+	{ label: '1 000 рупий', color: '#F4C430', reward: 1_000, weight: 6 },
 ];
 
 export default function WheelScreen() {
@@ -28,7 +30,7 @@ export default function WheelScreen() {
 	function spin() {
 		if (isSpinning || spinsLeft <= 0) return;
 		setIsSpinning(true);
-		const targetIndex = Math.floor(Math.random() * slices.length);
+    const targetIndex = pickWeightedIndex(slices.map(s => s.weight));
 		const sliceAngle = 360 / slices.length;
 		const extraTurns = 6 * 360; // 6 rounds for feel
 		const targetAngle = extraTurns + (360 - targetIndex * sliceAngle) + Math.random() * (sliceAngle * 0.8);
@@ -49,8 +51,8 @@ export default function WheelScreen() {
 	return (
 		<div style={{ display: 'grid', gap: 16 }}>
 			<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-				<Balance label="USDT" value={1000} />
-				<Balance label="Игровой" value={gameBalance} />
+                <Balance label="USDT" value={1000} />
+                <Balance label="Рупии" value={gameBalance} />
 			</div>
 			<div style={{ display: 'grid', placeItems: 'center' }}>
 				<div style={{ position: 'relative', width: 280, height: 280 }}>
@@ -67,7 +69,7 @@ export default function WheelScreen() {
 							return (
 								<g key={i}>
 									<path d={`M50 50 L ${x1} ${y1} A 50 50 0 ${large} 1 ${x2} ${y2} Z`} fill={slices[i].color} stroke="#0b3552" strokeWidth="0.5" />
-									<text x="50" y="50" fill="#052235" fontSize="6" textAnchor="middle" transform={`rotate(${(i + 0.5) * (360 / slices.length)} 50 50) translate(0 -30)`}>{slices[i].label}</text>
+                                    <text x="50" y="50" fill="#052235" fontSize="5" textAnchor="middle" transform={`rotate(${(i + 0.5) * (360 / slices.length)} 50 50) translate(0 -30)`}>{slices[i].label}</text>
 								</g>
 							);
 						})}
@@ -79,6 +81,16 @@ export default function WheelScreen() {
 			</button>
 		</div>
 	);
+}
+
+function pickWeightedIndex(weights: number[]): number {
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < weights.length; i++) {
+        if (r < weights[i]) return i;
+        r -= weights[i];
+    }
+    return weights.length - 1;
 }
 
 function Balance({ label, value }: { label: string; value: number }) {
