@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: speen-api
+    env: node
+    rootDir: apps/server
+    plan: free
+    buildCommand: npm ci --ignore-scripts && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: BOT_TOKEN
+        sync: false
+
+

@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+build/
+.turbo/
+
+# env
+.env
+apps/web/.env
+apps/server/.env
+
+# editor
+.DS_Store
+.vscode/
+
+# server data
+apps/server/data/
+
+
