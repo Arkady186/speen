@@ -80,6 +80,22 @@ app.post('/api/reward', (req, res) => {
   res.json(user);
 });
 
+// simple order endpoint
+app.post('/api/order', (req, res) => {
+  const schema = z.object({
+    userId: z.string(),
+    name: z.string().min(1),
+    phone: z.string().min(3),
+    address: z.string().min(3),
+    items: z.array(z.object({ sku: z.string(), title: z.string(), price: z.number(), qty: z.number().int().positive() })),
+    total: z.number().nonnegative(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
+  console.log('ORDER', parsed.data);
+  res.json({ ok: true });
+});
+
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`API listening on :${port}`);
