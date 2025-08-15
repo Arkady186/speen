@@ -23,11 +23,9 @@ export default function AppShell() {
 					<Outlet />
 				</main>
 				<nav style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: 12, background: '#07263c' }}>
-					<NavLink to="/" style={linkStyle(location.pathname === '/')}>Колесо</NavLink>
-					<NavLink to="/casino" style={linkStyle(location.pathname === '/casino')}>Рулетка</NavLink>
-					<NavLink to="/auction" style={linkStyle(location.pathname === '/auction')}>Аукцион</NavLink>
-					<NavLink to="/tasks" style={linkStyle(location.pathname === '/tasks')}>Задания</NavLink>
-					<NavLink to="/profile" style={linkStyle(location.pathname === '/profile')}>Профиль</NavLink>
+					<NavLink to="/shop" style={linkStyle(location.pathname === '/shop')}>Магазин</NavLink>
+					<NavLink to="/cart" style={linkStyle(location.pathname === '/cart')}>Корзина</NavLink>
+					<NavLink to="/checkout" style={linkStyle(location.pathname === '/checkout')}>Заказ</NavLink>
 				</nav>
 			</div>
 		</TonConnectUIProvider>
@@ -45,5 +43,7 @@ function linkStyle(active: boolean) {
 		fontWeight: 600,
 	};
 }
+
+
 
 
