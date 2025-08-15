@@ -46,3 +46,4 @@ const primary: React.CSSProperties = { background: '#48d597', color: '#05344f', 
 const ghost: React.CSSProperties = { background: 'transparent', color: '#fff', border: '1px solid #2a6e96', borderRadius: 10, padding: '10px 12px', fontWeight: 700, cursor: 'pointer' };
 
 
+

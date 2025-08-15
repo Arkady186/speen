@@ -23,7 +23,7 @@ export default function AppShell() {
 					<Outlet />
 				</main>
 				<nav style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: 12, background: '#07263c' }}>
-					<NavLink to="/shop" style={linkStyle(location.pathname === '/shop')}>Магазин</NavLink>
+					<NavLink to="/" style={linkStyle(location.pathname === '/' || location.pathname.startsWith('/dish'))}>Меню</NavLink>
 					<NavLink to="/cart" style={linkStyle(location.pathname === '/cart')}>Корзина</NavLink>
 					<NavLink to="/checkout" style={linkStyle(location.pathname === '/checkout')}>Заказ</NavLink>
 				</nav>
