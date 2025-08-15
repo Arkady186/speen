@@ -29,7 +29,9 @@ export default function CartScreen() {
 						<b>Итого</b>
 						<b>{total.toLocaleString('ru-RU')} ₽</b>
 					</div>
-					<button style={primary} onClick={() => nav('/checkout')}>Оформить заказ</button>
+					<div style={{ position: 'sticky', bottom: 0, background: '#0b3552', paddingTop: 8 }}>
+						<button style={primary} onClick={() => nav('/checkout')}>Оформить заказ</button>
+					</div>
 				</div>
 			)}
 		</div>

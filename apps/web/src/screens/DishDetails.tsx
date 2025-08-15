@@ -1,6 +1,7 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { findItem } from '../data/menu';
 import { useCart } from '../store/CartContext';
+import { IconBack } from '../components/icons';
 
 export default function DishDetails() {
 	const { slug } = useParams();
@@ -9,7 +10,10 @@ export default function DishDetails() {
 	if (!dish) return <div>Блюдо не найдено</div>;
 	return (
 		<div style={{ display: 'grid', gap: 12 }}>
-			<div style={{ height: 220, borderRadius: 14, backgroundImage: `url(${dish.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+			<div style={{ position: 'relative' }}>
+				<div style={{ height: 240, borderRadius: 14, backgroundImage: `url(${dish.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+				<Link to="/" style={{ position: 'absolute', top: 10, left: 10, background: '#0f3f61', borderRadius: 999, padding: 8, color: '#fff' }}><IconBack /></Link>
+			</div>
 			<h2 style={{ margin: 0 }}>{dish.title}</h2>
 			<p style={{ opacity: 0.85 }}>{dish.description}</p>
 			<div style={{ display: 'flex', gap: 12 }}>
@@ -18,7 +22,7 @@ export default function DishDetails() {
 				<Nut label="ж" value={dish.nutrition.fat} />
 				<Nut label="у" value={dish.nutrition.carbs} />
 			</div>
-			<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+			<div style={{ position: 'sticky', bottom: 12, display: 'flex', alignItems: 'center', gap: 12, background: '#0b3552', paddingTop: 8 }}>
 				<div style={{ fontSize: 24, fontWeight: 900, color: '#4de1a1' }}>{dish.price.toLocaleString('ru-RU')} ₽</div>
 				<button style={primary} onClick={() => addItem({ sku: dish.slug, title: dish.title, price: dish.price })}>В корзину</button>
 			</div>
