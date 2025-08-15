@@ -44,6 +44,7 @@ const chip: React.CSSProperties = { background: '#0f3f61', borderRadius: 20, pad
 const search: React.CSSProperties = { padding: '10px 12px', borderRadius: 12, border: '1px solid #2a6e96', background: '#07263c', color: '#fff' };
 const bannerRow: React.CSSProperties = { display: 'flex', gap: 10, overflowX: 'auto' };
 const banner: React.CSSProperties = { minWidth: 240, height: 120, borderRadius: 14, backgroundSize: 'cover', backgroundPosition: 'center' };
+const meta: React.CSSProperties = { display: 'flex', gap: 10, alignItems: 'center', opacity: 0.85, fontSize: 12 };
 const grid: React.CSSProperties = { display: 'grid', gap: 12 };
 const card: React.CSSProperties = { background: '#0f3f61', borderRadius: 14, padding: 12, display: 'grid', gap: 10, color: '#fff', textDecoration: 'none' };
 const pic: React.CSSProperties = { height: 140, borderRadius: 12, backgroundSize: 'cover', backgroundPosition: 'center' };
