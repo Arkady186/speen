@@ -22,10 +22,11 @@ export default function AppShell() {
 				<main style={{ flex: 1, padding: 12 }}>
 					<Outlet />
 				</main>
-				<nav style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: 12, background: '#07263c' }}>
+				<nav style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, padding: 12, background: '#07263c' }}>
 					<NavLink to="/" style={linkStyle(location.pathname === '/' || location.pathname.startsWith('/dish'))}>Меню</NavLink>
 					<NavLink to="/cart" style={linkStyle(location.pathname === '/cart')}>Корзина</NavLink>
 					<NavLink to="/checkout" style={linkStyle(location.pathname === '/checkout')}>Заказ</NavLink>
+					<NavLink to="/auth" style={linkStyle(location.pathname === '/auth')}>Профиль</NavLink>
 				</nav>
 			</div>
 		</TonConnectUIProvider>

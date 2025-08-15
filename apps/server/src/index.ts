@@ -37,7 +37,8 @@ const dbPath = join(dataDir, 'db.json');
 if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 if (!existsSync(dbPath)) writeFileSync(dbPath, JSON.stringify({ users: {} }, null, 2));
 
-type Db = { users: Record<string, { balance: number; spins: number }> };
+type User = { balance: number; spins: number; username?: string; password?: string };
+type Db = { users: Record<string, User> };
 
 function loadDb(): Db {
   return JSON.parse(readFileSync(dbPath, 'utf8')) as Db;
@@ -58,7 +59,7 @@ app.post('/api/init', (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
   const { userId } = parsed.data;
   const db = loadDb();
-  if (!db.users[userId]) db.users[userId] = { balance: 0, spins: 5 };
+  if (!db.users[userId]) db.users[userId] = { balance: 0, spins: 5 } as User;
   saveDb(db);
   res.json(db.users[userId]);
 });
@@ -73,11 +74,55 @@ app.post('/api/reward', (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
   const { userId, amount } = parsed.data;
   const db = loadDb();
-  const user = db.users[userId] ?? { balance: 0, spins: 5 };
+  const user = db.users[userId] ?? ({ balance: 0, spins: 5 } as User);
   user.balance += amount;
   db.users[userId] = user;
   saveDb(db);
   res.json(user);
+});
+
+// Telegram notify helpers
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '1408757717';
+async function sendTelegramMessage(chatId: string, text: string) {
+  if (!BOT_TOKEN) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    });
+  } catch (e) {
+    console.error('sendMessage fail', e);
+  }
+}
+
+// Registration
+app.post('/api/register', async (req, res) => {
+  const schema = z.object({ userId: z.string(), username: z.string().min(3), password: z.string().min(3) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
+  const { userId, username, password } = parsed.data;
+  const db = loadDb();
+  const user: User = db.users[userId] ?? ({ balance: 0, spins: 5 } as User);
+  user.username = username;
+  user.password = password; // demo only
+  db.users[userId] = user;
+  saveDb(db);
+  await sendTelegramMessage(userId, `✅ Регистрация успешна\nЛогин: <b>${username}</b>\nПароль: <b>${password}</b>`);
+  res.json({ ok: true });
+});
+
+// Login
+app.post('/api/login', (req, res) => {
+  const schema = z.object({ username: z.string(), password: z.string() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
+  const { username, password } = parsed.data;
+  const db = loadDb();
+  const match = Object.entries(db.users).find(([, u]) => u.username === username && u.password === password);
+  if (!match) return res.status(401).json({ error: 'invalid credentials' });
+  const [userId, user] = match;
+  res.json({ ok: true, userId, username: user.username });
 });
 
 // simple order endpoint
@@ -92,7 +137,11 @@ app.post('/api/order', (req, res) => {
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'bad payload' });
-  console.log('ORDER', parsed.data);
+  const order = parsed.data;
+  console.log('ORDER', order);
+  const summary = order.items.map(i => `${i.title} x${i.qty} — ${i.price * i.qty}₽`).join('\n');
+  sendTelegramMessage(order.userId, `🧾 Ваш заказ принят!\n${summary}\nИтого: <b>${order.total}₽</b>\nАдрес: ${order.address}`);
+  sendTelegramMessage(ADMIN_CHAT_ID, `📦 Новый заказ\nПользователь: ${order.userId}\nИмя: ${order.name}, Тел: ${order.phone}\n${summary}\nИтого: ${order.total}₽`);
   res.json({ ok: true });
 });
 

@@ -8,6 +8,7 @@ import RestaurantHome from './screens/RestaurantHome';
 import DishDetails from './screens/DishDetails';
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
+import AuthScreen from './screens/AuthScreen';
 import { CartProvider } from './store/CartContext';
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
 			{ path: 'dish/:slug', element: <DishDetails /> },
 			{ path: 'cart', element: <CartScreen /> },
 			{ path: 'checkout', element: <CheckoutScreen /> },
+            { path: 'auth', element: <AuthScreen /> },
 		],
 	},
 ]);
