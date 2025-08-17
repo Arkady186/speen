@@ -10,6 +10,7 @@ import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import AuthScreen from './screens/AuthScreen';
 import { CartProvider } from './store/CartContext';
+import { FavoritesProvider } from './store/FavoritesContext';
 
 const queryClient = new QueryClient();
 
@@ -30,9 +31,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
 		<QueryClientProvider client={queryClient}>
-			<CartProvider>
-				<RouterProvider router={router} />
-			</CartProvider>
+			<FavoritesProvider>
+				<CartProvider>
+					<RouterProvider router={router} />
+				</CartProvider>
+			</FavoritesProvider>
 		</QueryClientProvider>
 	</React.StrictMode>
 );

@@ -17,3 +17,7 @@ Speen TG Mini App (каркас)
 - Записать транзакции TON/USDT через TonConnect
 
 
+
+
+
+
