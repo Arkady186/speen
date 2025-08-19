@@ -11,12 +11,12 @@ const INNER_COLORS = [
 
 export function FortuneWheel({ size = 260 }: Props) {
     const rOuter = 100
-    const rOuterRing = 90   // толще жёлтый обод
-    const rOuterInner = 76  // синее кольцо чуть толще
-    const rInnerOuter = 62
+    const rOuterRing = 94
+    const rOuterInner = 78
+    const rInnerOuter = 64
     const rInnerInner = 26 // доводим до ступицы
     const rHub = 26
-    const strokeBlack = 6
+    const strokeBlack = 4
 
     function arcPath(r1: number, r2: number, start: number, end: number) {
         const toXY = (r: number, ang: number) => [r * Math.cos(ang), r * Math.sin(ang)]
@@ -32,21 +32,21 @@ export function FortuneWheel({ size = 260 }: Props) {
 
     return (
         <div style={{ width: size, height: size }}>
-            <svg viewBox={[-rOuter-8, -rOuter-8, (rOuter+8)*2, (rOuter+8)*2].join(' ')} width={size} height={size}>
+            <svg viewBox={[-rOuter-6, -rOuter-6, (rOuter+6)*2, (rOuter+6)*2].join(' ')} width={size} height={size}>
                 {/* outer black outline */}
                 <circle cx={0} cy={0} r={rOuter} fill="none" stroke="#000" strokeWidth={strokeBlack} />
                 {/* outer yellow donut (без радиальных разделителей) */}
-                <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={4} />
+                <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={1.5} />
 
                 {/* middle blue ring */}
-                <path d={arcPath(rOuterInner, rInnerOuter, 0, 2*Math.PI)} fill="#3aa0ff" stroke="#000" strokeWidth={3} />
+                <path d={arcPath(rOuterInner, rInnerOuter, 0, 2*Math.PI)} fill="#3aa0ff" stroke="#000" strokeWidth={1.5} />
 
                 {/* inner 12 slices ring */}
                 {Array.from({ length: 12 }).map((_, i) => {
                     const start = i * seg
                     const end = (i + 1) * seg
                     return (
-                        <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={3} />
+                        <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={1.5} />
                     )
                 })}
 
