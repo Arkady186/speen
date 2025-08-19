@@ -14,7 +14,7 @@ export function FortuneWheel({ size = 260 }: Props) {
     const rOuterRing = 94
     const rOuterInner = 78
     const rInnerOuter = 64
-    const rInnerInner = 46
+    const rInnerInner = 26 // доводим до ступицы, чтобы не было жёлтого кольца внутри
     const rHub = 26
     const strokeBlack = 4
 
@@ -33,9 +33,10 @@ export function FortuneWheel({ size = 260 }: Props) {
     return (
         <div style={{ width: size, height: size }}>
             <svg viewBox={[-rOuter-6, -rOuter-6, (rOuter+6)*2, (rOuter+6)*2].join(' ')} width={size} height={size}>
-                {/* outer yellow ring with black outline */}
-                <circle cx={0} cy={0} r={rOuter} fill="#f6e24d" stroke="#000" strokeWidth={strokeBlack} />
-                <circle cx={0} cy={0} r={rOuterRing} fill="none" stroke="#000" strokeWidth={strokeBlack} />
+                {/* outer black outline */}
+                <circle cx={0} cy={0} r={rOuter} fill="none" stroke="#000" strokeWidth={strokeBlack} />
+                {/* outer yellow donut */}
+                <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={1.5} />
 
                 {/* outer 12 slices ring */}
                 {Array.from({ length: 12 }).map((_, i) => {
@@ -45,6 +46,9 @@ export function FortuneWheel({ size = 260 }: Props) {
                         <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={OUTER_COLORS[i % OUTER_COLORS.length]} stroke="#000" strokeWidth={1.5} />
                     )
                 })}
+
+                {/* middle blue ring */}
+                <path d={arcPath(rOuterInner, rInnerOuter, 0, 2*Math.PI)} fill="#3aa0ff" stroke="#000" strokeWidth={1.5} />
 
                 {/* inner 12 slices ring */}
                 {Array.from({ length: 12 }).map((_, i) => {
