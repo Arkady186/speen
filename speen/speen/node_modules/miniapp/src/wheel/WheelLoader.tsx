@@ -18,7 +18,7 @@ function generateSlices(count: number) {
 	}))
 }
 
-export function WheelLoader() {
+export function WheelLoader({ onDone }: { onDone?: () => void }) {
 	const slices = React.useMemo(() => generateSlices(SLICE_COUNT), [])
 	const [userId, setUserId] = React.useState<string | null>(null)
 
@@ -33,7 +33,9 @@ export function WheelLoader() {
 				try { localStorage.setItem('speen_user_id', String(id)) } catch {}
 			}
 		} catch {}
-		// больше не редиректим по URL
+		// таймаут-фоллбек на случай, если событие animationend не сработает
+		const t = setTimeout(() => onDone?.(), 3500)
+		return () => clearTimeout(t)
 	}, [])
 
 	return (
@@ -41,7 +43,7 @@ export function WheelLoader() {
 			<div style={styles.wrapper}>
 				<div style={styles.glow} />
 				<div style={styles.ring} />
-				<div style={styles.wheelOnce}>
+				<div style={styles.wheelOnce} onAnimationEnd={() => onDone?.()}>
 					{slices.map((s) => (
 						<div
 							key={s.index}

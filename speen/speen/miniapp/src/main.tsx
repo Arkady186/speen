@@ -9,8 +9,7 @@ const root = createRoot(container)
 
 function App() {
 	const [loading, setLoading] = React.useState(true)
-	React.useEffect(() => { const t = setTimeout(() => setLoading(false), 3000); return () => clearTimeout(t) }, [])
-	return loading ? <WheelLoader /> : <GameScreen />
+	return loading ? <WheelLoader onDone={() => setLoading(false)} /> : <GameScreen />
 }
 
 root.render(
