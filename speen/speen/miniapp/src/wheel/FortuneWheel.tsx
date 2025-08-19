@@ -13,9 +13,9 @@ export function FortuneWheel({ size = 260 }: Props) {
     const rOuter = 100
     const rOuterRing = 92   // жёлтый обод
     const rOuterInner = 78  // внешний цветной круг внутренняя граница
-    const rInnerOuter = 62  // синее кольцо внутренняя граница
-    const rInnerInner = 30  // внутренние сегменты до почти ступицы
-    const rHub = 24         // ступица немного меньше, чтобы был чёрный кант
+    const rInnerOuter = 62  // граница внешней стороны внутреннего круга
+    const rInnerInner = 30  // внутренняя сторона внутреннего круга
+    const rHub = 30         // ступица вплотную к внутреннему кругу
     const strokeBlack = 6
 
     function arcPath(r1: number, r2: number, start: number, end: number) {
@@ -47,8 +47,8 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* middle blue ring */}
-                <path d={arcPath(rOuterInner, rInnerOuter, 0, 2*Math.PI)} fill="#3aa0ff" stroke="#000" strokeWidth={3} />
+                {/* разделительная окружность (без заливки) вместо синего кольца */}
+                <circle cx={0} cy={0} r={rInnerOuter} fill="none" stroke="#000" strokeWidth={3} />
 
                 {/* inner 12 slices ring */}
                 {Array.from({ length: 12 }).map((_, i) => {
