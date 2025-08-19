@@ -11,11 +11,11 @@ const INNER_COLORS = [
 
 export function FortuneWheel({ size = 260 }: Props) {
     const rOuter = 100
-    const rOuterRing = 90   // толще жёлтый обод
-    const rOuterInner = 76  // синее кольцо чуть толще
-    const rInnerOuter = 62
-    const rInnerInner = 26 // доводим до ступицы
-    const rHub = 26
+    const rOuterRing = 92   // жёлтый обод
+    const rOuterInner = 78  // внешний цветной круг внутренняя граница
+    const rInnerOuter = 62  // синее кольцо внутренняя граница
+    const rInnerInner = 30  // внутренние сегменты до почти ступицы
+    const rHub = 24         // ступица немного меньше, чтобы был чёрный кант
     const strokeBlack = 6
 
     function arcPath(r1: number, r2: number, start: number, end: number) {
@@ -38,6 +38,15 @@ export function FortuneWheel({ size = 260 }: Props) {
                 {/* outer yellow donut (без радиальных разделителей) */}
                 <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={4} />
 
+                {/* outer 12 colored ring (между жёлтым и синим) */}
+                {Array.from({ length: 12 }).map((_, i) => {
+                    const start = i * seg
+                    const end = (i + 1) * seg
+                    return (
+                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={OUTER_COLORS[i % OUTER_COLORS.length]} stroke="#000" strokeWidth={3} />
+                    )
+                })}
+
                 {/* middle blue ring */}
                 <path d={arcPath(rOuterInner, rInnerOuter, 0, 2*Math.PI)} fill="#3aa0ff" stroke="#000" strokeWidth={3} />
 
@@ -51,7 +60,7 @@ export function FortuneWheel({ size = 260 }: Props) {
                 })}
 
                 {/* hub */}
-                <circle cx={0} cy={0} r={rHub} fill="#e53935" stroke="#000" strokeWidth={2} />
+                <circle cx={0} cy={0} r={rHub} fill="#e53935" stroke="#000" strokeWidth={3} />
             </svg>
         </div>
     )
