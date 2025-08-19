@@ -7,24 +7,12 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/components/*": ["src/components/*"],
-      "@/screens/*": ["src/screens/*"],
-      "@/shared/*": ["src/shared/*"],
-      "@/api/*": ["src/api/*"]
-    }
+    "strict": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src"]
 }
-
-
-
-
-
 
