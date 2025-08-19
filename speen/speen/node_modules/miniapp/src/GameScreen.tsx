@@ -18,6 +18,7 @@ export function GameScreen() {
     React.useEffect(() => {
         try {
             const tg = (window as any).Telegram?.WebApp
+            tg?.ready?.()
             const u = tg?.initDataUnsafe?.user || parseUserFromInitDataString(tg?.initData)
             if (u) {
                 const uname = u.username || [u.first_name, u.last_name].filter(Boolean).join(' ')
