@@ -3,15 +3,28 @@ import React from 'react'
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
+    const [initials, setInitials] = React.useState<string>('')
+
+    function parseUserFromInitDataString(initData: string | undefined) {
+        if (!initData) return null
+        try {
+            const sp = new URLSearchParams(initData)
+            const userJson = sp.get('user')
+            if (!userJson) return null
+            return JSON.parse(userJson)
+        } catch { return null }
+    }
 
     React.useEffect(() => {
         try {
             const tg = (window as any).Telegram?.WebApp
-            const u = tg?.initDataUnsafe?.user
+            const u = tg?.initDataUnsafe?.user || parseUserFromInitDataString(tg?.initData)
             if (u) {
                 const uname = u.username || [u.first_name, u.last_name].filter(Boolean).join(' ')
                 setUsername(uname)
                 if (u.photo_url) setAvatarUrl(u.photo_url)
+                const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
+                setInitials(ini.toUpperCase())
             }
         } catch {}
     }, [])
@@ -20,7 +33,9 @@ export function GameScreen() {
         <div style={root}>
             <div style={topBar}>
                 <div style={leftUser}>
-                    <div style={{...avatar, backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined, backgroundSize:'cover', backgroundPosition:'center'}} />
+                    <div style={{...avatar, backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined, backgroundSize:'cover', backgroundPosition:'center'}}>
+                        {!avatarUrl && <span style={avatarText}>{initials || 'IG'}</span>}
+                    </div>
                     <div style={usernameStyle}>{username || 'Игрок'}</div>
                 </div>
                 <div style={balances}>
@@ -57,6 +72,7 @@ const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap
 
 const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68' }
 const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 800, textShadow:'0 1px 0 rgba(255,255,255,0.6)' }
+const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
 
