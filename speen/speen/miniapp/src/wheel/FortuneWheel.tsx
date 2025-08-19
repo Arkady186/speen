@@ -59,8 +59,8 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* hub */}
-                <circle cx={0} cy={0} r={rHub} fill="#e53935" stroke="#000" strokeWidth={3} />
+                {/* hub (blue with black contour) */}
+                <circle cx={0} cy={0} r={rHub} fill="#3aa0ff" stroke="#000" strokeWidth={3} />
             </svg>
         </div>
     )
