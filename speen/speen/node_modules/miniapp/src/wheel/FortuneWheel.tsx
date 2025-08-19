@@ -13,7 +13,7 @@ export function FortuneWheel({ size = 260 }: Props) {
     const rOuter = 100
     const rOuterRing = 92   // жёлтый обод
     const rOuterInner = 78  // внешний цветной круг внутренняя граница
-    const rInnerOuter = 62  // граница внешней стороны внутреннего круга
+    const rInnerOuter = 78  // совпадает с внутренней границей внешнего круга — без синего кольца
     const rInnerInner = 30  // внутренняя сторона внутреннего круга
     const rHub = 30         // ступица вплотную к внутреннему кругу
     const strokeBlack = 6
@@ -59,8 +59,8 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* hub (blue with black contour) */}
-                <circle cx={0} cy={0} r={rHub} fill="#3aa0ff" stroke="#000" strokeWidth={3} />
+                {/* hub: red with black contour */}
+                <circle cx={0} cy={0} r={rHub} fill="#e53935" stroke="#000" strokeWidth={3} />
             </svg>
         </div>
     )
