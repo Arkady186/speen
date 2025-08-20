@@ -32,6 +32,20 @@ const INNER_COLORS = [
     '#a3e635', // салатовый
 ]
 
+// Иконки во внутреннем кольце (по примеру: ракета, заряд, сердца, еда, монеты чаще)
+const INNER_ICONS = [
+    '💰', // 0 — монеты
+    '🚀', // 1 — ракета
+    '🔋', // 2 — заряд
+    '💰', // 3 — монеты
+    '❤️', // 4 — сердце
+    '💰', // 5 — монеты
+    '🍟', // 6 — еда
+    '💰', // 7 — монеты
+    '❤️', // 8 — сердце
+    '💰', // 9 — монеты
+]
+
 export function FortuneWheel({ size = 260 }: Props) {
     const rOuter = 100
     const rOuterRing = 92   // жёлтый обод
@@ -81,6 +95,28 @@ export function FortuneWheel({ size = 260 }: Props) {
                     const end = (i + 1) * segOuter
                     return (
                         <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={3} />
+                    )
+                })}
+
+                {/* иконки во внутреннем кольце */}
+                {Array.from({ length: 10 }).map((_, i) => {
+                    const angle = i * segOuter + segOuter / 2
+                    const rIcon = (rInnerInner + rInnerOuter) / 2
+                    const label = INNER_ICONS[i % INNER_ICONS.length]
+                    // Делаем иконку вертикальной: обратный поворот после translate
+                    return (
+                        <text
+                            key={`icon-${i}`}
+                            x={0}
+                            y={0}
+                            fontSize={16}
+                            fontWeight={700}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            transform={`rotate(${toDeg(angle)}) translate(${rIcon} 0) rotate(${-toDeg(angle)})`}
+                        >
+                            {label}
+                        </text>
                     )
                 })}
 
