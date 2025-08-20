@@ -32,18 +32,22 @@ const INNER_COLORS = [
     '#a3e635', // салатовый
 ]
 
-// Иконки во внутреннем кольце (по примеру: ракета, заряд, сердца, еда, монеты чаще)
-const INNER_ICONS = [
-    '💰', // 0 — монеты
-    '🚀', // 1 — ракета
-    '🔋', // 2 — заряд
-    '💰', // 3 — монеты
-    '❤️', // 4 — сердце
-    '💰', // 5 — монеты
-    '🍟', // 6 — еда
-    '💰', // 7 — монеты
-    '❤️', // 8 — сердце
-    '💰', // 9 — монеты
+// Путь к изображению монеты с буквой W. Положите файл в public/coin-w.png
+const COIN_W_SRC = '/coin-w.png'
+
+type InnerIcon = { type: 'coin' } | { type: 'emoji', value: string }
+// Иконки во внутреннем кольце (монеты чаще)
+const INNER_ICONS: InnerIcon[] = [
+    { type: 'coin' },        // 0 — монеты
+    { type: 'emoji', value: '🚀' }, // 1 — ракета
+    { type: 'emoji', value: '🔋' }, // 2 — заряд
+    { type: 'coin' },        // 3 — монеты
+    { type: 'emoji', value: '❤️' }, // 4 — сердце
+    { type: 'coin' },        // 5 — монеты
+    { type: 'emoji', value: '🍟' }, // 6 — еда
+    { type: 'coin' },        // 7 — монеты
+    { type: 'emoji', value: '❤️' }, // 8 — сердце
+    { type: 'coin' },        // 9 — монеты
 ]
 
 export function FortuneWheel({ size = 260 }: Props) {
@@ -102,21 +106,23 @@ export function FortuneWheel({ size = 260 }: Props) {
                 {Array.from({ length: 10 }).map((_, i) => {
                     const angle = i * segOuter + segOuter / 2
                     const rIcon = (rInnerInner + rInnerOuter) / 2
-                    const label = INNER_ICONS[i % INNER_ICONS.length]
-                    // Делаем иконку вертикальной: обратный поворот после translate
+                    const icon = INNER_ICONS[i % INNER_ICONS.length]
+                    const commonTransform = `rotate(${toDeg(angle)}) translate(${rIcon} 0) rotate(${-toDeg(angle)})`
+                    const coinSize = 22
                     return (
-                        <text
-                            key={`icon-${i}`}
-                            x={0}
-                            y={0}
-                            fontSize={16}
-                            fontWeight={700}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            transform={`rotate(${toDeg(angle)}) translate(${rIcon} 0) rotate(${-toDeg(angle)})`}
-                        >
-                            {label}
-                        </text>
+                        <g key={`icon-${i}`} transform={commonTransform}>
+                            {/* fallback: эмодзи на случай отсутствия файла */}
+                            {icon.type === 'emoji' && (
+                                <text x={0} y={0} fontSize={16} fontWeight={700} textAnchor="middle" dominantBaseline="middle">{icon.value}</text>
+                            )}
+                            {icon.type === 'coin' && (
+                                <>
+                                    {/* видимый запасной вариант: эмодзи под картинкой */}
+                                    <text x={0} y={0} fontSize={16} fontWeight={700} textAnchor="middle" dominantBaseline="middle">💰</text>
+                                    <image href={COIN_W_SRC} width={coinSize} height={coinSize} x={-coinSize/2} y={-coinSize/2} preserveAspectRatio="xMidYMid meet" />
+                                </>
+                            )}
+                        </g>
                     )
                 })}
 
