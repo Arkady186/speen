@@ -51,7 +51,9 @@ export function FortuneWheel({ size = 260 }: Props) {
         return `M ${x1} ${y1} A ${r1} ${r1} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${r2} ${r2} 0 ${large} 0 ${x4} ${y4} Z`
     }
 
-    const seg = (2 * Math.PI) / 12
+    // отдельные шаги угла: внешний круг (10 слотов) и внутренний (12 слотов)
+    const segOuter = (2 * Math.PI) / 10
+    const segInner = (2 * Math.PI) / 12
     const toDeg = (rad: number) => (rad * 180) / Math.PI
 
     return (
@@ -62,34 +64,33 @@ export function FortuneWheel({ size = 260 }: Props) {
                 {/* outer yellow donut (без радиальных разделителей) */}
                 <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={4} />
 
-                {/* outer colored ring: only slots 0..9 are filled, last two are empty */}
-                {Array.from({ length: 12 }).map((_, i) => {
-                    const start = i * seg
-                    const end = (i + 1) * seg
+                {/* внешнее кольцо: 10 цветных слотов */}
+                {Array.from({ length: 10 }).map((_, i) => {
+                    const start = i * segOuter
+                    const end = (i + 1) * segOuter
                     return (
-                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={i < 10 ? OUTER_COLORS[i % OUTER_COLORS.length] : '#f6e24d'} stroke="#000" strokeWidth={3} />
+                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={OUTER_COLORS[i % OUTER_COLORS.length]} stroke="#000" strokeWidth={3} />
                     )
                 })}
 
                 {/* разделительная окружность (без заливки) вместо синего кольца */}
                 <circle cx={0} cy={0} r={rInnerOuter} fill="none" stroke="#000" strokeWidth={3} />
 
-                {/* inner 12 slices ring */}
+                {/* внутреннее кольцо: 12 слотов */}
                 {Array.from({ length: 12 }).map((_, i) => {
-                    const start = i * seg
-                    const end = (i + 1) * seg
+                    const start = i * segInner
+                    const end = (i + 1) * segInner
                     return (
                         <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={3} />
                     )
                 })}
 
-                {/* числа 0–9 (строго), позиции 10 и 11 пустые */}
+                {/* числа 0–9 по 10 слотам */}
                 {(() => {
-                    const DIGITS = ['0','1','2','3','4','5','6','7','8','9','','']
+                    const DIGITS = ['0','1','2','3','4','5','6','7','8','9']
                     return DIGITS.map((label, i) => {
-                        const angle = i * seg + seg / 2
+                        const angle = i * segOuter + segOuter / 2
                         const rText = (rOuterInner + rOuterRing) / 2
-                        if (!label) return null
                         return (
                             <text key={`t-${i}`} x={0} y={0} fontSize={9} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
                                 {label}
