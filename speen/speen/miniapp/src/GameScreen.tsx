@@ -83,7 +83,7 @@ const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
 
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
-const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 70, left: '50%', transform:'translateX(-50%) scale(1.18)' }
+const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 10, left: '50%', transform:'translateX(-50%) scale(1.16)' }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, padding:12 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:16, padding:'14px 10px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
