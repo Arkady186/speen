@@ -83,15 +83,14 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* цифры 0–9 (без повторов). Два сектора оставляем без цифр */}
+                {/* числа 0–11, без пустых слотов */}
                 {(() => {
-                    const DIGITS = ['0','1','2','3','4','5','6','7','8','9','', '']
+                    const DIGITS = Array.from({length:12}, (_,i)=>String(i))
                     return DIGITS.map((label, i) => {
                         const angle = i * seg + seg / 2
                         const rText = (rOuterInner + rOuterRing) / 2
-                        if (!label) return null
                         return (
-                            <text key={`t-${i}`} x={0} y={0} fontSize={10} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
+                            <text key={`t-${i}`} x={0} y={0} fontSize={9} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
                                 {label}
                             </text>
                         )
