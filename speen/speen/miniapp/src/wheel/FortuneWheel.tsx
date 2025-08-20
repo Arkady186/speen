@@ -2,11 +2,34 @@ import React from 'react'
 
 type Props = { size?: number }
 
+// Палитры, приближённые к референсу (только цвета)
 const OUTER_COLORS = [
-    '#ff6b6b', '#ff9f43', '#ff6b6b', '#8b0f0f', '#ff6b6b', '#3b82f6', '#14b8a6', '#22c55e', '#22c55e', '#a3e635', '#fde047', '#a3e635'
+    '#b91c1c', // тёмно-красный
+    '#ef4444', // красный
+    '#f59e0b', // оранжевый
+    '#f97316', // ярко-оранжевый
+    '#fde047', // жёлтый
+    '#a3e635', // салатовый
+    '#22c55e', // зелёный
+    '#10b981', // зелёно-бирюзовый
+    '#06b6d4', // бирюзовый
+    '#3b82f6', // синий
+    '#7c3aed', // фиолетовый
+    '#d946ef', // пурпур
 ]
 const INNER_COLORS = [
-    '#3b82f6', '#7c3aed', '#ec4899', '#8b0f0f', '#ff6b6b', '#ff9f43', '#fde047', '#a3e635', '#22c55e', '#14b8a6', '#3b82f6', '#7c3aed'
+    '#84cc16', // светло-зелёный
+    '#22c55e', // зелёный
+    '#06b6d4', // бирюзовый
+    '#3b82f6', // синий
+    '#7c3aed', // фиолетовый
+    '#d946ef', // пурпур
+    '#ef4444', // красный
+    '#b91c1c', // тёмно-красный
+    '#f472b6', // розовый
+    '#f97316', // оранжевый
+    '#fde047', // жёлтый
+    '#a3e635', // салатовый
 ]
 
 export function FortuneWheel({ size = 260 }: Props) {
@@ -29,6 +52,7 @@ export function FortuneWheel({ size = 260 }: Props) {
     }
 
     const seg = (2 * Math.PI) / 12
+    const toDeg = (rad: number) => (rad * 180) / Math.PI
 
     return (
         <div style={{ width: size, height: size }}>
@@ -56,6 +80,18 @@ export function FortuneWheel({ size = 260 }: Props) {
                     const end = (i + 1) * seg
                     return (
                         <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={3} />
+                    )
+                })}
+
+                {/* цифры 0–9 на внешнем цветном кольце, чуть за чёрной окружностью */}
+                {Array.from({ length: 12 }).map((_, i) => {
+                    const angle = i * seg + seg / 2
+                    const rText = (rOuterInner + rOuterRing) / 2
+                    const label = String(i % 10)
+                    return (
+                        <text key={`t-${i}`} x={0} y={0} fontSize={10} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
+                            {label}
+                        </text>
                     )
                 })}
 
