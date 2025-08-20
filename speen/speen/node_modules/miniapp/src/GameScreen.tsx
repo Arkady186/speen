@@ -86,8 +86,8 @@ const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: '50%', transform:'translateX(-50%) scale(1.16)' }
 
-const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, padding:10 }
-const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:14, padding:'8px 8px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
-const navIcon: React.CSSProperties = { width: 34, height: 34, objectFit: 'contain' }
+const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
+const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
+const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
 
 
