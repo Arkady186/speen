@@ -67,7 +67,7 @@ export function FortuneWheel({ size = 260 }: Props) {
                     const start = i * seg
                     const end = (i + 1) * seg
                     return (
-                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={i < 10 ? OUTER_COLORS[i % OUTER_COLORS.length] : 'none'} stroke="#000" strokeWidth={3} />
+                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={i < 10 ? OUTER_COLORS[i % OUTER_COLORS.length] : '#f6e24d'} stroke="#000" strokeWidth={3} />
                     )
                 })}
 
