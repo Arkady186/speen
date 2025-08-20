@@ -51,9 +51,8 @@ export function FortuneWheel({ size = 260 }: Props) {
         return `M ${x1} ${y1} A ${r1} ${r1} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${r2} ${r2} 0 ${large} 0 ${x4} ${y4} Z`
     }
 
-    // отдельные шаги угла: внешний круг (10 слотов) и внутренний (12 слотов)
+    // шаг угла: оба кольца по 10 слотов, радиальные линии совпадают
     const segOuter = (2 * Math.PI) / 10
-    const segInner = (2 * Math.PI) / 12
     const toDeg = (rad: number) => (rad * 180) / Math.PI
 
     return (
@@ -76,10 +75,10 @@ export function FortuneWheel({ size = 260 }: Props) {
                 {/* разделительная окружность (без заливки) вместо синего кольца */}
                 <circle cx={0} cy={0} r={rInnerOuter} fill="none" stroke="#000" strokeWidth={3} />
 
-                {/* внутреннее кольцо: 12 слотов */}
-                {Array.from({ length: 12 }).map((_, i) => {
-                    const start = i * segInner
-                    const end = (i + 1) * segInner
+                {/* внутреннее кольцо: 10 слотов, синхронизировано с внешним */}
+                {Array.from({ length: 10 }).map((_, i) => {
+                    const start = i * segOuter
+                    const end = (i + 1) * segOuter
                     return (
                         <path key={`i-${i}`} d={arcPath(rInnerOuter, rInnerInner, start, end)} fill={INNER_COLORS[i % INNER_COLORS.length]} stroke="#000" strokeWidth={3} />
                     )
