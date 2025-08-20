@@ -51,9 +51,9 @@ export function GameScreen() {
                 </div>
             </div>
             <div style={bottomNav}>
-                <div style={navBtn}>Задания</div>
-                <div style={navBtn}>Банк</div>
-                <div style={navBtn}>Магазин</div>
+                <div style={navBtn}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
+                <div style={navBtn}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
+                <div style={navBtn}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
             </div>
         </div>
     )
@@ -88,5 +88,6 @@ const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: 
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, padding:12 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:16, padding:'14px 10px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
+const navIcon: React.CSSProperties = { width: 28, height: 28, objectFit: 'contain' }
 
 
