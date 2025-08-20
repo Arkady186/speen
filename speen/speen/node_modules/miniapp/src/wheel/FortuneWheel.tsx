@@ -62,12 +62,12 @@ export function FortuneWheel({ size = 260 }: Props) {
                 {/* outer yellow donut (без радиальных разделителей) */}
                 <path d={arcPath(rOuter, rOuterRing, 0, 2*Math.PI)} fill="#f6e24d" stroke="#000" strokeWidth={4} />
 
-                {/* outer 12 colored ring (между жёлтым и синим) */}
+                {/* outer colored ring: only slots 0..9 are filled, last two are empty */}
                 {Array.from({ length: 12 }).map((_, i) => {
                     const start = i * seg
                     const end = (i + 1) * seg
                     return (
-                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={OUTER_COLORS[i % OUTER_COLORS.length]} stroke="#000" strokeWidth={3} />
+                        <path key={`o-${i}`} d={arcPath(rOuterRing, rOuterInner, start, end)} fill={i < 10 ? OUTER_COLORS[i % OUTER_COLORS.length] : 'none'} stroke="#000" strokeWidth={3} />
                     )
                 })}
 
@@ -83,12 +83,13 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* числа 0–11, без пустых слотов */}
+                {/* числа 0–9 (строго), позиции 10 и 11 пустые */}
                 {(() => {
-                    const DIGITS = Array.from({length:12}, (_,i)=>String(i))
+                    const DIGITS = ['0','1','2','3','4','5','6','7','8','9','','']
                     return DIGITS.map((label, i) => {
                         const angle = i * seg + seg / 2
                         const rText = (rOuterInner + rOuterRing) / 2
+                        if (!label) return null
                         return (
                             <text key={`t-${i}`} x={0} y={0} fontSize={9} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
                                 {label}
