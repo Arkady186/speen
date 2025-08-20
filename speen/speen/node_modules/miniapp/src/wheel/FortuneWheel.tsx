@@ -83,17 +83,20 @@ export function FortuneWheel({ size = 260 }: Props) {
                     )
                 })}
 
-                {/* цифры 0–9 на внешнем цветном кольце, чуть за чёрной окружностью */}
-                {Array.from({ length: 12 }).map((_, i) => {
-                    const angle = i * seg + seg / 2
-                    const rText = (rOuterInner + rOuterRing) / 2
-                    const label = String(i % 10)
-                    return (
-                        <text key={`t-${i}`} x={0} y={0} fontSize={10} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
-                            {label}
-                        </text>
-                    )
-                })}
+                {/* цифры 0–9 (без повторов). Два сектора оставляем без цифр */}
+                {(() => {
+                    const DIGITS = ['0','1','2','3','4','5','6','7','8','9','', '']
+                    return DIGITS.map((label, i) => {
+                        const angle = i * seg + seg / 2
+                        const rText = (rOuterInner + rOuterRing) / 2
+                        if (!label) return null
+                        return (
+                            <text key={`t-${i}`} x={0} y={0} fontSize={10} fontWeight={900} fill="#000" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${toDeg(angle)}) translate(${rText} 0)`}>
+                                {label}
+                            </text>
+                        )
+                    })
+                })()}
 
                 {/* hub: red with black contour */}
                 <circle cx={0} cy={0} r={rHub} fill="#e53935" stroke="#000" strokeWidth={3} />
