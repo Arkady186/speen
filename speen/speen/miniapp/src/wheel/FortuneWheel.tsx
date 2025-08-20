@@ -103,21 +103,17 @@ export function FortuneWheel({ size = 260 }: Props) {
                 })}
 
                 {/* иконки во внутреннем кольце */}
-                {Array.from({ length: 10 }).map((_, i) => {
+                {INNER_ICONS.map((icon, i) => {
                     const angle = i * segOuter + segOuter / 2
                     const rIcon = (rInnerInner + rInnerOuter) / 2
-                    const icon = INNER_ICONS[i % INNER_ICONS.length]
                     const commonTransform = `rotate(${toDeg(angle)}) translate(${rIcon} 0) rotate(${-toDeg(angle)})`
                     const coinSize = 22
                     return (
                         <g key={`icon-${i}`} transform={commonTransform}>
-                            {/* fallback: эмодзи на случай отсутствия файла */}
-                            {icon.type === 'emoji' && (
+                            {icon.type === 'emoji' ? (
                                 <text x={0} y={0} fontSize={16} fontWeight={700} textAnchor="middle" dominantBaseline="middle">{icon.value}</text>
-                            )}
-                            {icon.type === 'coin' && (
+                            ) : (
                                 <>
-                                    {/* видимый запасной вариант: эмодзи под картинкой */}
                                     <text x={0} y={0} fontSize={16} fontWeight={700} textAnchor="middle" dominantBaseline="middle">💰</text>
                                     <image href={COIN_W_SRC} width={coinSize} height={coinSize} x={-coinSize/2} y={-coinSize/2} preserveAspectRatio="xMidYMid meet" />
                                 </>
