@@ -5,6 +5,7 @@ export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
+    const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
 
     function parseUserFromInitDataString(initData: string | undefined) {
         if (!initData) return null
@@ -51,10 +52,11 @@ export function GameScreen() {
                 </div>
             </div>
             <div style={bottomNav}>
-                <div style={navBtn}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
+                <div style={navBtn} onClick={() => setIsMenuOpen(true)}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
                 <div style={navBtn}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
                 <div style={navBtn}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
             </div>
+            <MenuOverlay open={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
         </div>
     )
 }
@@ -89,5 +91,86 @@ const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
+
+type MenuOverlayProps = { open: boolean, onClose: () => void }
+
+function MenuOverlay({ open, onClose }: MenuOverlayProps) {
+    return (
+        <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}} onClick={onClose}>
+            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}} onClick={e => e.stopPropagation()}>
+                <div style={sheetHandle} />
+                <div style={menuList}>
+                    {menuItems.map((item, idx) => (
+                        <div key={idx} style={menuCard}>
+                            <div style={menuIconWrap}>{item.icon}</div>
+                            <div style={menuTextWrap}>
+                                <div style={menuTitle}>{item.title}</div>
+                                {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                            </div>
+                            {item.badge && <div style={menuBadge}>{item.badge}</div>}
+                            <div style={arrowWrap}>
+                                <div style={arrowIcon}>›</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const overlay: React.CSSProperties = {
+    position:'fixed', left:0, right:0, top:0, bottom:0,
+    background:'rgba(5,20,50,0.45)',
+    transition:'opacity 220ms ease',
+    display:'grid', alignItems:'end',
+    zIndex: 50
+}
+
+const sheet: React.CSSProperties = {
+    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    boxShadow:'0 -8px 24px rgba(0,0,0,0.35), inset 0 0 0 3px #0b2f68',
+    padding: 12,
+    transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
+    maxHeight:'78vh',
+    overflowY:'auto'
+}
+
+const sheetHandle: React.CSSProperties = { width: 48, height: 5, borderRadius: 3, background:'#8cbcff', opacity:.85, margin:'6px auto 10px' }
+
+const menuList: React.CSSProperties = { display:'grid', gap:12 }
+
+const menuCard: React.CSSProperties = {
+    display:'grid',
+    gridTemplateColumns:'48px 1fr auto 24px',
+    alignItems:'center',
+    gap:10,
+    padding:'10px 12px',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderRadius:14,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)'
+}
+
+const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center' }
+
+const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:12 }
+
+const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
+
+const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'#1e4b95', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68' }
+const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
+
+const menuItems: Array<{ title: string, subtitle?: string, badge?: string, icon: React.ReactNode }> = [
+    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <span style={{fontSize:30}}>👛</span> },
+    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <span style={{fontSize:30}}>👥</span> },
+    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <span style={{fontSize:30}}>📝</span> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badge:'COMING SOON', icon: <span style={{fontSize:30}}>🛠️</span> },
+    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <span style={{fontSize:30}}>🛍️</span> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badge:'COMING SOON', icon: <span style={{fontSize:30}}>✈️</span> },
+]
 
 
