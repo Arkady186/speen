@@ -94,7 +94,7 @@ const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1f
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
 
-type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, icon: React.ReactNode }> }
+type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
 
 function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
     return (
@@ -104,12 +104,13 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                 <div style={menuList}>
                     {items.map((item, idx) => (
                         <div key={idx} style={menuCard}>
+                            {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                             <div style={menuIconWrap}>{item.icon}</div>
                             <div style={menuTextWrap}>
                                 <div style={menuTitle}>{item.title}</div>
                                 {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                             </div>
-                            {item.badge && <div style={menuBadge}>{item.badge}</div>}
+                            {/* text badge kept for potential reuse, but hidden by default */}
                             <div style={arrowWrap}>
                                 <div style={arrowIcon}>›</div>
                             </div>
@@ -152,7 +153,9 @@ const menuCard: React.CSSProperties = {
     padding:'10px 12px',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderRadius:14,
-    boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)'
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
+    position:'relative',
+    overflow:'visible'
 }
 
 const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center' }
@@ -165,22 +168,23 @@ const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', backgr
 
 const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'#1e4b95', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68' }
 const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
+const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-12, top:-14, width:96, pointerEvents:'none', zIndex:2 }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, icon: React.ReactNode }> = [
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
     { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <span style={{fontSize:30}}>👛</span> },
     { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <span style={{fontSize:30}}>👥</span> },
     { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <span style={{fontSize:30}}>📝</span> },
-    { title: 'Скоро', subtitle: 'Новые режимы', badge:'COMING SOON', icon: <span style={{fontSize:30}}>🛠️</span> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>🛠️</span> },
     { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <span style={{fontSize:30}}>🛍️</span> },
-    { title: 'Скоро', subtitle: 'Ещё функции', badge:'COMING SOON', icon: <span style={{fontSize:30}}>✈️</span> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>✈️</span> },
 ]
 
-const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, icon: React.ReactNode }> = [
+const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
     { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <span style={{fontSize:30}}>🛒</span> },
     { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <span style={{fontSize:30}}>💱</span> },
     { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <span style={{fontSize:30}}>📝</span> },
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <span style={{fontSize:30}}>📈</span> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badge:'COMING SOON', icon: <span style={{fontSize:30}}>📰</span> },
+    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>📰</span> },
 ]
 
 
