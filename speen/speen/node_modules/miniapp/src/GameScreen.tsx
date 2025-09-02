@@ -168,15 +168,15 @@ const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', backgr
 
 const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'#1e4b95', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68' }
 const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
-const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-12, top:-14, width:96, pointerEvents:'none', zIndex:2 }
+const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-12, bottom:-14, width:96, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
     { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <span style={{fontSize:30}}>👛</span> },
     { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <span style={{fontSize:30}}>👥</span> },
     { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <span style={{fontSize:30}}>📝</span> },
-    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>🛠️</span> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>🛠️</span> },
     { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <span style={{fontSize:30}}>🛍️</span> },
-    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>✈️</span> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>✈️</span> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
@@ -184,7 +184,7 @@ const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, 
     { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <span style={{fontSize:30}}>💱</span> },
     { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <span style={{fontSize:30}}>📝</span> },
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <span style={{fontSize:30}}>📈</span> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming-soon.svg', icon: <span style={{fontSize:30}}>📰</span> },
+    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>📰</span> },
 ]
 
 
