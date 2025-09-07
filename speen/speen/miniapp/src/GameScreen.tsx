@@ -63,13 +63,14 @@ export function GameScreen() {
             {(() => {
                 const navIconSize = Math.max(30, Math.min(42, Math.round(42 * uiScale)))
                 const navBtnPad = Math.max(4, Math.round(6 * uiScale))
-                const extra = 28
-                const contentPad = navIconSize + navBtnPad * 2 + extra
+                const navHeight = navIconSize + navBtnPad * 2 + 8
+                const contentPad = navHeight + 24
+                const wheelSize = Math.round(260 * Math.max(0.8, Math.min(1, uiScale)))
                 return (
                     <div style={{...content, paddingBottom: contentPad}}>
                         {view === 'game' && (
-                            <div style={wheelWrap}>
-                                <FortuneWheel size={260} />
+                            <div style={{...wheelWrap, bottom: contentPad}}>
+                                <FortuneWheel size={wheelSize} />
                             </div>
                         )}
                         {view === 'left' && (
