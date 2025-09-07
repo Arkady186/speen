@@ -60,24 +60,46 @@ export function GameScreen() {
                     <div style={balanceRow}><Coin /> <span style={{marginLeft: 6}}>B: 0</span></div>
                 </div>
             </div>
-            <div style={content}>
-                {view === 'game' && (
-                    <div style={wheelWrap}>
-                        <FortuneWheel size={260} />
+            {(() => {
+                const navIconSize = Math.max(30, Math.min(42, Math.round(42 * uiScale)))
+                const navBtnPad = Math.max(4, Math.round(6 * uiScale))
+                const extra = 28
+                const contentPad = navIconSize + navBtnPad * 2 + extra
+                return (
+                    <div style={{...content, paddingBottom: contentPad}}>
+                        {view === 'game' && (
+                            <div style={wheelWrap}>
+                                <FortuneWheel size={260} />
+                            </div>
+                        )}
+                        {view === 'left' && (
+                            <MenuScreen title="Задания и бонусы" items={menuItemsLeft} scale={uiScale} />
+                        )}
+                        {view === 'right' && (
+                            <MenuScreen title="Магазин и новости" items={menuItemsRight} scale={uiScale} />
+                        )}
                     </div>
-                )}
-                {view === 'left' && (
-                    <MenuScreen title="Задания и бонусы" items={menuItemsLeft} scale={uiScale} />
-                )}
-                {view === 'right' && (
-                    <MenuScreen title="Магазин и новости" items={menuItemsRight} scale={uiScale} />
-                )}
-            </div>
-            <div style={bottomNav}>
-                <div style={{...navBtn, ...(view === 'left' ? navBtnActive : undefined)}} onClick={() => setView('left')}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
-                <div style={{...navBtn, ...(view === 'game' ? navBtnActive : undefined)}} onClick={() => setView('game')}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
-                <div style={{...navBtn, ...(view === 'right' ? navBtnActive : undefined)}} onClick={() => setView('right')}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
-            </div>
+                )
+            })()}
+            {(() => {
+                const navIconSize = Math.max(30, Math.min(42, Math.round(42 * uiScale)))
+                const navBtnPad = Math.max(4, Math.round(6 * uiScale))
+                const navRadius = Math.max(8, Math.round(10 * uiScale))
+                const btnStyle: React.CSSProperties = { ...navBtn, padding: `${navBtnPad}px ${navBtnPad}px`, borderRadius: navRadius }
+                const bottomFixed: React.CSSProperties = { 
+                    ...bottomNav, position:'fixed', left:0, right:0, bottom:0, 
+                    paddingBottom: `calc(${navBtnPad + 2}px + env(safe-area-inset-bottom))`,
+                    background:'linear-gradient(180deg, rgba(8,35,80,0.00) 0%, rgba(8,35,80,0.35) 55%, rgba(8,35,80,0.55) 100%)',
+                    zIndex: 40
+                }
+                return (
+                    <div style={bottomFixed}>
+                        <div style={{...btnStyle, ...(view === 'left' ? navBtnActive : undefined)}} onClick={() => setView('left')}><img src="/zad.png" alt="Задания" style={{...navIcon, width: navIconSize, height: navIconSize}} /></div>
+                        <div style={{...btnStyle, ...(view === 'game' ? navBtnActive : undefined)}} onClick={() => setView('game')}><img src="/bank.png" alt="Банк" style={{...navIcon, width: navIconSize, height: navIconSize}} /></div>
+                        <div style={{...btnStyle, ...(view === 'right' ? navBtnActive : undefined)}} onClick={() => setView('right')}><img src="/shop.png" alt="Магазин" style={{...navIcon, width: navIconSize, height: navIconSize}} /></div>
+                    </div>
+                )
+            })()}
         </div>
     )
 }
