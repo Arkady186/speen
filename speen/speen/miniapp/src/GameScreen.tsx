@@ -1,5 +1,8 @@
 import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
+function PressIcon({ src, alt }: { src: string, alt: string }) {
+    return <img src={src} alt={alt} style={menuIconImg} onError={e => { (e.currentTarget as HTMLImageElement).src = '/coin-w.png' }} />
+}
 
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
@@ -196,7 +199,8 @@ const menuCard: React.CSSProperties = {
     overflow:'visible'
 }
 
-const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center', borderRadius:999, background:'linear-gradient(180deg, #5c95f0, #386dcc)', boxShadow:'inset 0 0 0 2px #0b2f68' }
+const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center', borderRadius:999, background:'linear-gradient(180deg, #5c95f0, #386dcc)', boxShadow:'inset 0 0 0 2px #0b2f68', overflow:'hidden' }
+const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
 const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
@@ -209,20 +213,20 @@ const arrowIcon: React.CSSProperties = { color:'#d3e8ff', fontSize:22, lineHeigh
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <span style={{fontSize:30}}>👛</span> },
-    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <span style={{fontSize:30}}>👥</span> },
-    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <span style={{fontSize:30}}>📝</span> },
-    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>🛠️</span> },
-    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <span style={{fontSize:30}}>🛍️</span> },
-    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>✈️</span> },
+    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" /> },
+    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" /> },
+    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" /> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" /> },
+    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/press5.png" alt="press5" /> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" /> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <span style={{fontSize:30}}>🛒</span> },
-    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <span style={{fontSize:30}}>💱</span> },
-    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <span style={{fontSize:30}}>📝</span> },
-    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <span style={{fontSize:30}}>📈</span> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <span style={{fontSize:30}}>📰</span> },
+    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/press7.png" alt="press7" /> },
+    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/press8.png" alt="press8" /> },
+    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" /> },
+    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" /> },
+    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/press11.png" alt="press11" /> },
 ]
 
 
