@@ -121,7 +121,7 @@ function FullPage({ open, direction, items }: FullPageProps) {
             <div style={menuHeaderWrap}>
                 <div style={menuHeaderTitle}>{direction === 'left' ? 'Задания и бонусы' : 'Магазин и новости'}</div>
             </div>
-            <div style={{...menuList, padding:'0 12px 12px'}}>
+            <div style={{...menuListFull}}>
                 {items.map((item, idx) => (
                     <div key={idx} style={menuCard}>
                         {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
@@ -149,7 +149,7 @@ const fullPage: React.CSSProperties = {
     paddingTop: 12
 }
 
-const menuList: React.CSSProperties = { display:'grid', gap:12 }
+const menuListFull: React.CSSProperties = { display:'grid', gap:12, padding:'0 12px 12px' }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
