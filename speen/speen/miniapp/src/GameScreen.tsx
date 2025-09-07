@@ -159,6 +159,7 @@ const menuCard: React.CSSProperties = {
 }
 
 const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center' }
+const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
 const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
