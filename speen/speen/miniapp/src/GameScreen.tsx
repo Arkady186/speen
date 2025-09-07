@@ -128,6 +128,8 @@ function MenuScreen({ title, items }: MenuScreenProps) {
 }
 
 const menuContainer: React.CSSProperties = { padding: 12, minHeight: '100%', overflowY:'auto' }
+const menuHeaderWrap: React.CSSProperties = { marginBottom: 8 }
+const menuHeaderTitle: React.CSSProperties = { color:'#e8f1ff', fontWeight: 900, textShadow:'0 1px 0 rgba(0,0,0,0.3)' }
 const menuList: React.CSSProperties = { display:'grid', gap:12 }
 
 const menuCard: React.CSSProperties = {
