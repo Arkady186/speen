@@ -57,8 +57,8 @@ export function GameScreen() {
                 <div style={navBtn} onClick={() => { setIsMenuOpen(false); setIsRightMenuOpen(false) }}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
                 <div style={{...navBtn, ...(isRightMenuOpen ? navBtnActive : undefined)}} onClick={() => setIsRightMenuOpen(true)}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
             </div>
-            <FullPage open={isMenuOpen} direction="left" items={menuItemsLeft} />
-            <FullPage open={isRightMenuOpen} direction="right" items={menuItemsRight} />
+            <MenuOverlay open={isMenuOpen} onClose={() => setIsMenuOpen(false)} items={menuItemsLeft} />
+            <MenuOverlay open={isRightMenuOpen} onClose={() => setIsRightMenuOpen(false)} items={menuItemsRight} />
         </div>
     )
 }
@@ -95,43 +95,55 @@ const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', border
 const navBtnActive: React.CSSProperties = { filter:'brightness(0.85)', transform:'translateY(1px)' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
 
-type FullPageProps = { open: boolean, direction: 'left' | 'right', items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
+type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
 
-function FullPage({ open, direction, items }: FullPageProps) {
-    if (!open) return null
+function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
     return (
-        <div style={fullPage}>
-            <div style={menuHeaderWrap}>
-                <div style={menuHeaderTitle}>{direction === 'left' ? 'Задания и бонусы' : 'Магазин и новости'}</div>
-            </div>
-            <div style={{...menuListFull}}>
-                {items.map((item, idx) => (
-                    <div key={idx} style={menuCard}>
-                        {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                        <div style={menuIconWrap}>{item.icon}</div>
-                        <div style={menuTextWrap}>
-                            <div style={menuTitle}>{item.title}</div>
-                            {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+        <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}} onClick={onClose}>
+            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}} onClick={e => e.stopPropagation()}>
+                <div style={sheetHandle} />
+                <div style={menuListOverlay}>
+                    {items.map((item, idx) => (
+                        <div key={idx} style={menuCard}>
+                            {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                            <div style={menuIconWrap}>{item.icon}</div>
+                            <div style={menuTextWrap}>
+                                <div style={menuTitle}>{item.title}</div>
+                                {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                            </div>
+                            <div style={arrowWrap}>
+                                <div style={arrowIcon}>›</div>
+                            </div>
                         </div>
-                        <div style={arrowWrap}>
-                            <div style={arrowIcon}>›</div>
-                        </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     )
 }
 
-const fullPage: React.CSSProperties = {
+const overlay: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
-    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
-    zIndex: 60,
-    overflowY:'auto',
-    paddingTop: 12
+    background:'rgba(5,20,50,0.45)',
+    transition:'opacity 220ms ease',
+    display:'grid', alignItems:'end',
+    zIndex: 50
 }
 
-const menuListFull: React.CSSProperties = { display:'grid', gap:12, padding:'0 12px 12px' }
+const sheet: React.CSSProperties = {
+    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    boxShadow:'0 -8px 24px rgba(0,0,0,0.35), inset 0 0 0 3px #0b2f68',
+    padding: 12,
+    transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
+    maxHeight:'78vh',
+    overflowY:'auto'
+}
+
+const sheetHandle: React.CSSProperties = { width: 48, height: 5, borderRadius: 3, background:'#8cbcff', opacity:.85, margin:'6px auto 10px' }
+
+const menuListOverlay: React.CSSProperties = { display:'grid', gap:12 }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
