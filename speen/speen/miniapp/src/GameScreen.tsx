@@ -98,26 +98,9 @@ const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contai
 type FullPageProps = { open: boolean, direction: 'left' | 'right', items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
 
 function FullPage({ open, direction, items }: FullPageProps) {
-    const [entered, setEntered] = React.useState<boolean>(false)
-    React.useEffect(() => {
-        if (open) {
-            setEntered(false)
-            const id = requestAnimationFrame(() => setEntered(true))
-            return () => cancelAnimationFrame(id)
-        } else {
-            setEntered(false)
-        }
-    }, [open])
-
     if (!open) return null
-    const startX = direction === 'right' ? '100%' : '-100%'
-    const style: React.CSSProperties = {
-        ...fullPage,
-        transform: entered ? 'translateX(0%)' : `translateX(${startX})`
-    }
-
     return (
-        <div style={style}>
+        <div style={fullPage}>
             <div style={menuHeaderWrap}>
                 <div style={menuHeaderTitle}>{direction === 'left' ? 'Задания и бонусы' : 'Магазин и новости'}</div>
             </div>
@@ -144,7 +127,6 @@ const fullPage: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
     background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
     zIndex: 60,
-    transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
     overflowY:'auto',
     paddingTop: 12
 }
