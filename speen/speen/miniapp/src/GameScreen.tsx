@@ -6,6 +6,7 @@ export function GameScreen() {
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
     const [view, setView] = React.useState<'game' | 'left' | 'right'>('game')
+    const [uiScale, setUiScale] = React.useState<number>(1)
 
     function parseUserFromInitDataString(initData: string | undefined) {
         if (!initData) return null
@@ -32,6 +33,19 @@ export function GameScreen() {
         } catch {}
     }, [])
 
+    React.useEffect(() => {
+        function computeScale() {
+            const baseWidth = 390
+            const w = Math.max(320, Math.min(window.innerWidth || baseWidth, 480))
+            const s = w / baseWidth
+            const clamped = Math.max(0.82, Math.min(1.05, s))
+            setUiScale(clamped)
+        }
+        computeScale()
+        window.addEventListener('resize', computeScale)
+        return () => window.removeEventListener('resize', computeScale)
+    }, [])
+
     return (
         <div style={root}>
             <div style={topBar}>
@@ -53,10 +67,10 @@ export function GameScreen() {
                     </div>
                 )}
                 {view === 'left' && (
-                    <MenuScreen title="Задания и бонусы" items={menuItemsLeft} />
+                    <MenuScreen title="Задания и бонусы" items={menuItemsLeft} scale={uiScale} />
                 )}
                 {view === 'right' && (
-                    <MenuScreen title="Магазин и новости" items={menuItemsRight} />
+                    <MenuScreen title="Магазин и новости" items={menuItemsRight} scale={uiScale} />
                 )}
             </div>
             <div style={bottomNav}>
@@ -100,25 +114,31 @@ const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', border
 const navBtnActive: React.CSSProperties = { filter:'brightness(0.85)', transform:'translateY(1px)' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
 
-type MenuScreenProps = { title: string, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
+type MenuScreenProps = { title: string, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }>, scale: number }
 
-function MenuScreen({ title, items }: MenuScreenProps) {
+function MenuScreen({ title, items, scale }: MenuScreenProps) {
+    const cardPad = Math.round(10 * scale)
+    const iconBox = Math.round(48 * scale)
+    const titleStyle: React.CSSProperties = { ...menuTitle, fontSize: Math.round(16 * scale) }
+    const subtitleStyle: React.CSSProperties = { ...menuSubtitle, fontSize: Math.max(11, Math.round(12 * scale)) }
+    const arrowWrapSize = Math.round(24 * scale)
+    const bannerW = Math.round(48 * scale)
     return (
         <div style={menuContainer}>
             <div style={menuHeaderWrap}>
-                <div style={menuHeaderTitle}>{title}</div>
+                <div style={{...menuHeaderTitle, fontSize: Math.round(18 * scale)}}>{title}</div>
             </div>
             <div style={menuList}>
                 {items.map((item, idx) => (
-                    <div key={idx} style={menuCard}>
-                        {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                        <div style={menuIconWrap}>{item.icon}</div>
+                    <div key={idx} style={{...menuCard, padding: `${cardPad}px ${cardPad + 2}px`}}>
+                        {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={{...comingSoonBanner, width: bannerW}} />}
+                        <div style={{...menuIconWrap, width: iconBox, height: iconBox}}>{item.icon}</div>
                         <div style={menuTextWrap}>
-                            <div style={menuTitle}>{item.title}</div>
-                            {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                            <div style={titleStyle}>{item.title}</div>
+                            {item.subtitle && <div style={subtitleStyle}>{item.subtitle}</div>}
                         </div>
-                        <div style={arrowWrap}>
-                            <div style={arrowIcon}>›</div>
+                        <div style={{...arrowWrap, width: arrowWrapSize, height: arrowWrapSize, borderRadius: Math.round(arrowWrapSize/2)}}>
+                            <div style={{...arrowIcon, fontSize: Math.round(22 * scale)}}>›</div>
                         </div>
                     </div>
                 ))}
