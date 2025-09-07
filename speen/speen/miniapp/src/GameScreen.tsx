@@ -153,7 +153,15 @@ function MenuScreen({ title, items, scale }: MenuScreenProps) {
             </div>
             <div style={menuList}>
                 {items.map((item, idx) => (
-                    <div key={idx} style={{...menuCard, padding: `${cardPad}px ${cardPad + 2}px`}}>
+                    <div
+                        key={idx}
+                        style={{...menuCard, padding: `${cardPad}px ${cardPad + 2}px`}}
+                        onMouseDown={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(1px) scale(0.995)' }}
+                        onMouseUp={e => { (e.currentTarget as HTMLDivElement).style.transform = '' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = '' }}
+                        onTouchStart={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(1px) scale(0.995)' }}
+                        onTouchEnd={e => { (e.currentTarget as HTMLDivElement).style.transform = '' }}
+                    >
                         {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={{...comingSoonBanner, width: bannerW}} />}
                         <div style={{...menuIconWrap, width: iconBox, height: iconBox}}>{item.icon}</div>
                         <div style={menuTextWrap}>
@@ -181,14 +189,14 @@ const menuCard: React.CSSProperties = {
     alignItems:'center',
     gap:10,
     padding:'10px 12px',
-    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
-    borderRadius:14,
-    boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
+    background:'linear-gradient(180deg, #447bd1 0%, #2c63b9 60%, #2556a7 100%)',
+    borderRadius:16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 10px rgba(0,0,0,0.25)',
     position:'relative',
     overflow:'visible'
 }
 
-const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center', borderRadius:999, background:'linear-gradient(180deg, #5c95f0, #386dcc)', boxShadow:'inset 0 0 0 2px #0b2f68' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
 const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
@@ -196,8 +204,8 @@ const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSi
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
-const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'#1e4b95', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68' }
-const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
+const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'linear-gradient(180deg,#2a5b9f,#1d4b8d)', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68, 0 1px 0 rgba(0,0,0,0.25)' }
+const arrowIcon: React.CSSProperties = { color:'#d3e8ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
