@@ -5,7 +5,8 @@ export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
-    const [active, setActive] = React.useState<'game' | 'left' | 'right'>('game')
+    const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
+    const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
 
     function parseUserFromInitDataString(initData: string | undefined) {
         if (!initData) return null
@@ -32,9 +33,6 @@ export function GameScreen() {
         } catch {}
     }, [])
 
-    const activeIndex = active === 'left' ? 0 : active === 'game' ? 1 : 2
-    const carouselStyle: React.CSSProperties = { ...carousel, transform: `translateX(-${activeIndex * 33.3333}%)` }
-
     return (
         <div style={root}>
             <div style={topBar}>
@@ -50,63 +48,17 @@ export function GameScreen() {
                 </div>
             </div>
             <div style={content}>
-                <div style={carouselStyle}>
-                    <div style={page}>
-                        <div style={menuScreen}>
-                            <div style={menuHeaderWrap}>
-                                <div style={menuHeaderTitle}>Задания и бонусы</div>
-                            </div>
-                            <div style={menuList}>
-                                {menuItemsLeft.map((item, idx) => (
-                                    <div key={idx} style={menuCard}>
-                                        {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                                        <div style={menuIconWrap}>{item.icon}</div>
-                                        <div style={menuTextWrap}>
-                                            <div style={menuTitle}>{item.title}</div>
-                                            {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
-                                        </div>
-                                        <div style={arrowWrap}>
-                                            <div style={arrowIcon}>›</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div style={page}>
-                        <div style={wheelWrap}>
-                            <FortuneWheel size={260} />
-                        </div>
-                    </div>
-                    <div style={page}>
-                        <div style={menuScreen}>
-                            <div style={menuHeaderWrap}>
-                                <div style={menuHeaderTitle}>Магазин и новости</div>
-                            </div>
-                            <div style={menuList}>
-                                {menuItemsRight.map((item, idx) => (
-                                    <div key={idx} style={menuCard}>
-                                        {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                                        <div style={menuIconWrap}>{item.icon}</div>
-                                        <div style={menuTextWrap}>
-                                            <div style={menuTitle}>{item.title}</div>
-                                            {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
-                                        </div>
-                                        <div style={arrowWrap}>
-                                            <div style={arrowIcon}>›</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                <div style={wheelWrap}>
+                    <FortuneWheel size={260} />
                 </div>
             </div>
             <div style={bottomNav}>
-                <div style={{...navBtn, ...(active === 'left' ? navBtnActive : undefined)}} onClick={() => setActive('left')}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
-                <div style={{...navBtn, ...(active === 'game' ? navBtnActive : undefined)}} onClick={() => setActive('game')}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
-                <div style={{...navBtn, ...(active === 'right' ? navBtnActive : undefined)}} onClick={() => setActive('right')}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
+                <div style={{...navBtn, ...(isMenuOpen ? navBtnActive : undefined)}} onClick={() => setIsMenuOpen(true)}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
+                <div style={navBtn} onClick={() => { setIsMenuOpen(false); setIsRightMenuOpen(false) }}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
+                <div style={{...navBtn, ...(isRightMenuOpen ? navBtnActive : undefined)}} onClick={() => setIsRightMenuOpen(true)}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
             </div>
+            <MenuOverlay open={isMenuOpen} onClose={() => setIsMenuOpen(false)} items={menuItemsLeft} />
+            <MenuOverlay open={isRightMenuOpen} onClose={() => setIsRightMenuOpen(false)} items={menuItemsRight} />
         </div>
     )
 }
@@ -135,7 +87,7 @@ const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
 const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%', objectFit: 'contain' }
 
-const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative', overflow:'hidden' }
+const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: '50%', transform:'translateX(-50%) scale(1.16)' }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
@@ -143,11 +95,54 @@ const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', border
 const navBtnActive: React.CSSProperties = { filter:'brightness(0.85)', transform:'translateY(1px)' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
 
-const carousel: React.CSSProperties = { display:'flex', width:'300%', height:'100%', transition:'transform 320ms cubic-bezier(.2,.8,.2,1)' }
-const page: React.CSSProperties = { width:'100%', flexShrink:0, position:'relative' }
-const menuScreen: React.CSSProperties = { padding: 12, height:'100%', overflowY:'auto' }
-const menuHeaderWrap: React.CSSProperties = { marginBottom: 8 }
-const menuHeaderTitle: React.CSSProperties = { color:'#e8f1ff', fontWeight: 900, textShadow:'0 1px 0 rgba(0,0,0,0.3)' }
+type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
+
+function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
+    return (
+        <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}} onClick={onClose}>
+            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}} onClick={e => e.stopPropagation()}>
+                <div style={sheetHandle} />
+                <div style={menuList}>
+                    {items.map((item, idx) => (
+                        <div key={idx} style={menuCard}>
+                            {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                            <div style={menuIconWrap}>{item.icon}</div>
+                            <div style={menuTextWrap}>
+                                <div style={menuTitle}>{item.title}</div>
+                                {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                            </div>
+                            <div style={arrowWrap}>
+                                <div style={arrowIcon}>›</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const overlay: React.CSSProperties = {
+    position:'fixed', left:0, right:0, top:0, bottom:0,
+    background:'rgba(5,20,50,0.45)',
+    transition:'opacity 220ms ease',
+    display:'grid', alignItems:'end',
+    zIndex: 50
+}
+
+const sheet: React.CSSProperties = {
+    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    boxShadow:'0 -8px 24px rgba(0,0,0,0.35), inset 0 0 0 3px #0b2f68',
+    padding: 12,
+    transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
+    maxHeight:'78vh',
+    overflowY:'auto'
+}
+
+const sheetHandle: React.CSSProperties = { width: 48, height: 5, borderRadius: 3, background:'#8cbcff', opacity:.85, margin:'6px auto 10px' }
+
 const menuList: React.CSSProperties = { display:'grid', gap:12 }
 
 const menuCard: React.CSSProperties = {
