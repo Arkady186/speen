@@ -90,8 +90,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     onResult?.(idx, labels[idx])
                 }}
             />
-            {/* указатель повернут на 90° */}
-            <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%) rotate(90deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+            {/* указатель повернут на 180° (основание сверху, вершина вниз) */}
+            <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
                 <svg width="34" height="40" viewBox="0 0 34 40">
                     <defs>
                         <linearGradient id="g2" x1="0" x2="1">
