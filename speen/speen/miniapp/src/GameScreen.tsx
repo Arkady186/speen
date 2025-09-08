@@ -54,7 +54,7 @@ export function GameScreen() {
             </div>
             <div style={content}>
                 <div style={wheelWrap}>
-                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} startOffsetDeg={23} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
+                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
                 </div>
             </div>
             <div style={bottomNav}>
