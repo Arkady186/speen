@@ -12,6 +12,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const seg = 360 / labels.length
+    const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -21,12 +22,13 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         // Какой сектор находится у указателя (сверху), если колесо повернуто на rotDeg по часовой
         const a = normalizeDeg(-rotDeg - startOffsetDeg)
         const idx = Math.floor(a / seg) % labels.length
-        return idx
+        return (idx + SECTOR_OFFSET) % labels.length
     }
 
     function computeRotationForIndex(index: number) {
         // Центр целевого сектора должен оказаться под указателем
-        const center = index * seg + seg / 2
+        const physIndex = (index - SECTOR_OFFSET + labels.length) % labels.length
+        const center = physIndex * seg + seg / 2
         // Базовый угол (без полных оборотов), который приведет центр сектора к указателю
         const base = -(center + startOffsetDeg)
         return base
@@ -88,8 +90,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     onResult?.(idx, labels[idx])
                 }}
             />
-            {/* верхний указатель (как было раньше) */}
-            <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+            {/* указатель повернут на 90° */}
+            <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%) rotate(90deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
                 <svg width="34" height="40" viewBox="0 0 34 40">
                     <defs>
                         <linearGradient id="g2" x1="0" x2="1">
