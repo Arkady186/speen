@@ -54,7 +54,7 @@ export function GameScreen() {
             </div>
             <div style={content}>
                 <div style={wheelWrap}>
-                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
+                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} startOffsetDeg={23} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
                 </div>
             </div>
             <div style={bottomNav}>
@@ -192,5 +192,6 @@ const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, 
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" /> },
     { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/press11.png" alt="press11" /> },
 ]
+
 
 

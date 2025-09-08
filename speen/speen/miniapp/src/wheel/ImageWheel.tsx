@@ -88,17 +88,19 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     onResult?.(idx, labels[idx])
                 }}
             />
-            {/* верхний указатель */}
-            <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
-                <svg width="34" height="40" viewBox="0 0 34 40">
-                    <defs>
-                        <linearGradient id="g2" x1="0" x2="1">
-                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                            <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M17 0 L34 22 L0 22 Z" fill="url(#g2)"/>
-                </svg>
+            {/* указатель, повернутый на startOffsetDeg и направленный внутрь колеса */}
+            <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, transform: `rotate(${startOffsetDeg}deg)`, transformOrigin: '50% 50%', pointerEvents:'none' }}>
+                <div style={{ position: 'absolute', left: '50%', top: -8, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+                    <svg width="34" height="40" viewBox="0 0 34 40">
+                        <defs>
+                            <linearGradient id="g2" x1="0" x2="1">
+                                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                                <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M17 0 L34 22 L0 22 Z" fill="url(#g2)"/>
+                    </svg>
+                </div>
             </div>
 
             {/* область клика для старта вращения */}
