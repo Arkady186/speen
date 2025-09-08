@@ -1,5 +1,6 @@
 import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
+import { ImageWheel } from './wheel/ImageWheel'
 
 function PressIcon({ src, alt }: { src: string, alt: string }) {
     return <img src={src} alt={alt} style={menuIconImg} onError={e => { (e.currentTarget as HTMLImageElement).src = '/coin-w.png' }} />
@@ -53,7 +54,7 @@ export function GameScreen() {
             </div>
             <div style={content}>
                 <div style={wheelWrap}>
-                    <FortuneWheel size={260} />
+                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
                 </div>
             </div>
             <div style={bottomNav}>
