@@ -6,6 +6,7 @@ type ImageWheelProps = {
     labels: string[]
     startOffsetDeg?: number
     onResult?: (index: number, label: string) => void
+    onBeforeSpin?: () => boolean | void
 }
 
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult }: ImageWheelProps) {
@@ -41,6 +42,10 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
 
     function spin(toIndex?: number) {
         if (isSpinning) return
+        if (typeof onBeforeSpin === 'function') {
+            const ok = onBeforeSpin()
+            if (ok === false) return
+        }
         const targetIndex = typeof toIndex === 'number' ? ((toIndex % labels.length) + labels.length) % labels.length : Math.floor(Math.random() * labels.length)
         // небольшой рандом внутри сектора, чтобы не останавливаться строго по центру
         const jitter = (Math.random() - 0.5) * (seg * 0.4) // ±20% сектора

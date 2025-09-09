@@ -25,6 +25,52 @@ export function GameScreen() {
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
+    // balances and game controls
+    const [balanceW, setBalanceW] = React.useState<number>(() => {
+        const v = Number(localStorage.getItem('balance_w') || '0')
+        if (Number.isFinite(v) && v > 0) return v
+        localStorage.setItem('balance_w', String(10000))
+        return 10000
+    })
+    const [balanceB, setBalanceB] = React.useState<number>(() => Number(localStorage.getItem('balance_b') || '0'))
+    const [mode, setMode] = React.useState<'x1'|'x2'|'x3'>('x2')
+    const [currency, setCurrency] = React.useState<'W'|'B'>('W')
+    const [bet, setBet] = React.useState<number>(15)
+    const [pickedDigit, setPickedDigit] = React.useState<number | null>(null)
+
+    function saveBalances(nextW: number, nextB: number) {
+        setBalanceW(nextW)
+        setBalanceB(nextB)
+        try {
+            localStorage.setItem('balance_w', String(nextW))
+            localStorage.setItem('balance_b', String(nextB))
+        } catch {}
+    }
+
+    function getMultiplier(m: 'x1'|'x2'|'x3') { return m === 'x1' ? 1 : m === 'x2' ? 2 : 3 }
+
+    function onBeforeSpin() {
+        if (pickedDigit == null) { setToast('Выбери число 0–9'); return false }
+        const b = Math.max(1, Math.floor(bet))
+        if (currency === 'W') {
+            if (balanceW < b) { setToast('Недостаточно W'); return false }
+            saveBalances(balanceW - b, balanceB)
+        } else {
+            if (balanceB < b) { setToast('Недостаточно B'); return false }
+            saveBalances(balanceW, balanceB - b)
+        }
+        return true
+    }
+
+    function onSpinResult(index: number, label: string) {
+        const won = String(pickedDigit) === label
+        if (!won) { setToast(`Промах (${label})`); return }
+        const mult = getMultiplier(mode)
+        const prize = Math.max(1, Math.floor(bet)) * mult
+        if (currency === 'W') saveBalances(balanceW + prize, balanceB)
+        else saveBalances(balanceW, balanceB + prize)
+        setToast(`Победа! +${prize} ${currency}`)
+    }
 
     function parseUserFromInitDataString(initData: string | undefined) {
         if (!initData) return null
@@ -61,13 +107,32 @@ export function GameScreen() {
                     <div style={usernameStyle}>{username || 'Игрок'}</div>
                 </div>
                 <div style={balances}>
-                    <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>0</span></div>
-                    <div style={balanceRow}><Coin /> <span style={{marginLeft: 6}}>B: 0</span></div>
+                    <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
+                    <div style={balanceRow}><Coin /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
                 </div>
             </div>
             <div style={content}>
+                <div style={panelsWrap}>
+                    <ControlRow>
+                        <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" />
+                        <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'':'+100%'}</div>
+                        <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" />
+                    </ControlRow>
+                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                        <div style={{...controlCurrency, background: currency==='W' ? '#2b7bd9' : '#2b66b9'}} onClick={() => setCurrency('W')}><img src="/coin-w.png" alt="W" style={{width:24,height:24}} /></div>
+                        <div style={{...controlCurrency, background: currency==='B' ? '#2b7bd9' : '#2b66b9'}} onClick={() => setCurrency('B')}><Coin /></div>
+                    </div>
+                    <ControlRow>
+                        <RoundBtn onClick={() => setBet(b => Math.max(1, b-1))} kind="minus" />
+                        <div style={controlBoxText}>{bet}</div>
+                        <RoundBtn onClick={() => setBet(b => Math.min(999999, b+1))} kind="plus" />
+                    </ControlRow>
+                    <DigitsRow value={pickedDigit} onChange={setPickedDigit} />
+                </div>
                 <div style={wheelWrap}>
-                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>setToast(`Выпало: ${l}`)} />
+                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
+                        onBeforeSpin={onBeforeSpin}
+                        onResult={onSpinResult} />
                 </div>
             </div>
             <div style={bottomNav}>
@@ -108,6 +173,7 @@ const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%
 
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: '50%', transform:'translateX(-50%) scale(1.16)' }
+const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 20px)', maxWidth: 460 }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
@@ -124,6 +190,44 @@ const toastCard: React.CSSProperties = {
     letterSpacing:.6,
     fontFamily:'"Russo One", Inter, system-ui',
 }
+
+// Controls UI
+function ControlRow({ children }: { children: React.ReactNode }){
+    return <div style={{display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8}}>{children}</div>
+}
+
+function Arrow({ dir, onClick }: { dir:'left'|'right', onClick?: () => void }){
+    const base: React.CSSProperties = { width:36, height:24, borderRadius:6, background:'#1e4b95', boxShadow:'inset 0 0 0 2px #0b2f68', color:'#bfe0ff', display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none' }
+    return <div style={base} onClick={onClick}>{dir==='left'?'◀':'▶'}</div>
+}
+
+function RoundBtn({ kind, onClick }: { kind:'plus'|'minus', onClick?: () => void }){
+    const base: React.CSSProperties = { width:36, height:24, borderRadius:6, background: kind==='plus' ? '#2c9a41' : '#c0392b', boxShadow:'inset 0 0 0 2px #0b2f68', color:'#fff', display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none', fontWeight:900 }
+    return <div style={base} onClick={onClick}>{kind==='plus'?'+':'−'}</div>
+}
+
+const controlBoxText: React.CSSProperties = { background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#fff', borderRadius:8, textAlign:'center', padding:'6px 10px', fontFamily:'"Russo One", Inter, system-ui' }
+const controlCurrency: React.CSSProperties = { display:'grid', placeItems:'center', height:36, borderRadius:8, background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+
+function DigitsRow({ value, onChange }: { value: number | null, onChange: (n:number)=>void }){
+    return (
+        <div style={{display:'grid', gridTemplateColumns:'repeat(10, 1fr)', gap:6}}>
+            {Array.from({length:10}).map((_,i)=> (
+                <div key={i} onClick={()=>onChange(i)} style={{padding:'6px 0', textAlign:'center', borderRadius:8, background: value===i ? '#ff6b57' : '#2b66b9', color:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer', fontWeight:900}}>{i}</div>
+            ))}
+        </div>
+    )
+}
+
+function onMultiplier(mode: 'x1'|'x2'|'x3'){
+    if (mode==='x1') return 1
+    if (mode==='x2') return 2
+    return 3
+}
+
+// betting hooks
+function onBeforeSpin(this: any) { return true }
+function onSpinResult(this: any, index: number, label: string) { return }
 
 type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
 
