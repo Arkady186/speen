@@ -129,9 +129,13 @@ type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ tit
 
 function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
     return (
-        <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}} onClick={onClose}>
-            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}} onClick={e => e.stopPropagation()}>
-                <div style={sheetHandle} />
+        <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}}>
+            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}}>
+                <div style={menuHeaderWrap}>
+                    <button style={menuHeaderBackBtn} onClick={onClose}>‹</button>
+                    <div style={menuHeaderTitle}>Меню</div>
+                    <div style={{width:36}} />
+                </div>
                 <div style={menuList}>
                     {items.map((item, idx) => (
                         <div key={idx} style={menuCard}>
@@ -141,7 +145,6 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                                 <div style={menuTitle}>{item.title}</div>
                                 {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                             </div>
-                            {/* text badge kept for potential reuse, but hidden by default */}
                             <div style={arrowWrap}>
                                 <div style={arrowIcon}>›</div>
                             </div>
@@ -155,24 +158,27 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
 
 const overlay: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
-    background:'rgba(5,20,50,0.45)',
+    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
     transition:'opacity 220ms ease',
-    display:'grid', alignItems:'end',
+    display:'grid', alignItems:'stretch',
     zIndex: 50
 }
 
 const sheet: React.CSSProperties = {
-    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    boxShadow:'0 -8px 24px rgba(0,0,0,0.35), inset 0 0 0 3px #0b2f68',
+    background:'transparent',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    boxShadow:'inset 0 0 0 3px #0b2f68',
     padding: 12,
     transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
-    maxHeight:'78vh',
+    height:'100vh',
     overflowY:'auto'
 }
 
-const sheetHandle: React.CSSProperties = { width: 48, height: 5, borderRadius: 3, background:'#8cbcff', opacity:.85, margin:'6px auto 10px' }
+const sheetHandle: React.CSSProperties = { display:'none' }
+const menuHeaderWrap: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', marginBottom:10 }
+const menuHeaderBackBtn: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const menuHeaderTitle: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, letterSpacing:1, fontFamily:'"Russo One", Inter, system-ui' }
 
 const menuList: React.CSSProperties = { display:'grid', gap:12 }
 
