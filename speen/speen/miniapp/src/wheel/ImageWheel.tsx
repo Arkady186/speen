@@ -91,7 +91,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 }}
             />
             {/* указатель повернут на 180° (основание сверху, вершина вниз) */}
-            <div style={{ position: 'absolute', left: '50%', top: -12, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+            <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
                 <svg width="34" height="40" viewBox="0 0 34 40">
                     <defs>
                         <linearGradient id="g2" x1="0" x2="1">
@@ -99,7 +99,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                             <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
                         </linearGradient>
                     </defs>
-                    <path d="M17 0 L34 22 L0 22 Z" fill="url(#g2)"/>
+                    <path d="M17 0 L34 22 L0 22 Z" fill="#ff3b30" stroke="#7a1d12" strokeWidth={2}/>
                 </svg>
             </div>
 
