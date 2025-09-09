@@ -185,7 +185,7 @@ const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%
 
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: '50%', transform:'translateX(-50%) scale(1.16)' }
-const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 20px)', maxWidth: 460 }
+const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440 }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
@@ -225,7 +225,7 @@ const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px
 
 function PanelShell({ children }: { children: React.ReactNode }){
     return (
-        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68'}}>
+        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68', width:'92%', margin:'0 auto'}}>
             {children}
         </div>
     )
