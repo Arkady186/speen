@@ -2,8 +2,20 @@ import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
 import { ImageWheel } from './wheel/ImageWheel'
 
-function PressIcon({ src, alt }: { src: string, alt: string }) {
-    return <img src={src} alt={alt} style={menuIconImg} onError={e => { (e.currentTarget as HTMLImageElement).src = '/coin-w.png' }} />
+function Toast({ text, onClose }: { text: string, onClose?: () => void }) {
+    React.useEffect(() => {
+        const t = setTimeout(() => onClose?.(), 2000)
+        return () => clearTimeout(t)
+    }, [])
+    return (
+        <div style={toastWrap}><div style={toastCard}>{text}</div></div>
+    )
+}
+
+function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fallbackEmoji: string }) {
+    const [ok, setOk] = React.useState(true)
+    if (!ok) return <span style={{fontSize:30}}>{fallbackEmoji}</span>
+    return <img src={src} alt={alt} style={menuIconImg} onError={() => setOk(false)} />
 }
 
 export function GameScreen() {
@@ -12,6 +24,7 @@ export function GameScreen() {
     const [initials, setInitials] = React.useState<string>('')
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
+    const [toast, setToast] = React.useState<string | null>(null)
 
     function parseUserFromInitDataString(initData: string | undefined) {
         if (!initData) return null
@@ -54,7 +67,7 @@ export function GameScreen() {
             </div>
             <div style={content}>
                 <div style={wheelWrap}>
-                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>alert(`Выпало: ${l}`)} />
+                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} onResult={(i,l)=>setToast(`Выпало: ${l}`)} />
                 </div>
             </div>
             <div style={bottomNav}>
@@ -64,6 +77,7 @@ export function GameScreen() {
             </div>
             <MenuOverlay open={isMenuOpen} onClose={() => setIsMenuOpen(false)} items={menuItemsLeft} />
             <MenuOverlay open={isRightMenuOpen} onClose={() => setIsRightMenuOpen(false)} items={menuItemsRight} />
+            {toast && <Toast text={toast} onClose={() => setToast(null)} />}
         </div>
     )
 }
@@ -98,6 +112,17 @@ const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'6px 6px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68' }
 const navIcon: React.CSSProperties = { width: 42, height: 42, objectFit: 'contain' }
+
+const toastWrap: React.CSSProperties = { position:'fixed', left:0, right:0, bottom:18, display:'grid', placeItems:'center', zIndex:60, pointerEvents:'none' }
+const toastCard: React.CSSProperties = {
+    padding:'10px 14px',
+    borderRadius:12,
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    boxShadow:'0 8px 24px rgba(0,0,0,0.35), inset 0 0 0 3px #0b2f68',
+    color:'#fff',
+    fontWeight:800,
+    letterSpacing:.3,
+}
 
 type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> }
 
@@ -177,21 +202,23 @@ const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeigh
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" /> },
-    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" /> },
-    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" /> },
-    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" /> },
-    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/press5.png" alt="press5" /> },
-    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" /> },
+    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="👛" /> },
+    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="👥" /> },
+    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="📝" /> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming-soon.svg', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🛠️" /> },
+    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🛍️" /> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming-soon.svg', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="✈️" /> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/press7.png" alt="press7" /> },
-    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/press8.png" alt="press8" /> },
-    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" /> },
-    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" /> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/press11.png" alt="press11" /> },
+    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🛒" /> },
+    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="💱" /> },
+    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="📝" /> },
+    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="📈" /> },
+    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming-soon.svg', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="📰" /> },
 ]
+
+
 
 
 
