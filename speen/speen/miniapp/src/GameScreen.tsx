@@ -36,7 +36,7 @@ export function GameScreen() {
     const [mode, setMode] = React.useState<'x1'|'x2'|'x3'>('x2')
     const [currency, setCurrency] = React.useState<'W'|'B'>('W')
     const [bet, setBet] = React.useState<number>(15)
-    const [pickedDigit, setPickedDigit] = React.useState<number | null>(null)
+    const [pickedDigit, setPickedDigit] = React.useState<number>(0)
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -113,21 +113,33 @@ export function GameScreen() {
             </div>
             <div style={content}>
                 <div style={panelsWrap}>
-                    <ControlRow>
-                        <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" />
-                        <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'':'+100%'}</div>
-                        <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" />
-                    </ControlRow>
-                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                        <div style={{...controlCurrency, background: currency==='W' ? '#2b7bd9' : '#2b66b9'}} onClick={() => setCurrency('W')}><img src="/coin-w.png" alt="W" style={{width:24,height:24}} /></div>
-                        <div style={{...controlCurrency, background: currency==='B' ? '#2b7bd9' : '#2b66b9'}} onClick={() => setCurrency('B')}><Coin /></div>
-                    </div>
-                    <ControlRow>
-                        <RoundBtn onClick={() => setBet(b => Math.max(1, b-1))} kind="minus" />
-                        <div style={controlBoxText}>{bet}</div>
-                        <RoundBtn onClick={() => setBet(b => Math.min(999999, b+1))} kind="plus" />
-                    </ControlRow>
-                    <DigitsRow value={pickedDigit} onChange={setPickedDigit} />
+                    {/* Row 1: режим игры */}
+                    <PanelShell>
+                        <div style={rowGrid}>
+                            <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" red />
+                            <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
+                            <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" red />
+                        </div>
+                    </PanelShell>
+                    {/* Row 2: валюта */}
+                    <PanelShell>
+                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                            <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('W')}>
+                                <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
+                            </div>
+                            <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('B')}>
+                                <div style={{fontWeight:900, color:'#2b66b9'}}>B</div>
+                            </div>
+                        </div>
+                    </PanelShell>
+                    {/* Row 3: выбор сектора 0–9 */}
+                    <PanelShell>
+                        <div style={rowGrid}>
+                            <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
+                            <div style={controlBoxText}>{pickedDigit}</div>
+                            <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
+                        </div>
+                    </PanelShell>
                 </div>
                 <div style={wheelWrap}>
                     <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
@@ -206,8 +218,18 @@ function RoundBtn({ kind, onClick }: { kind:'plus'|'minus', onClick?: () => void
     return <div style={base} onClick={onClick}>{kind==='plus'?'+':'−'}</div>
 }
 
-const controlBoxText: React.CSSProperties = { background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#fff', borderRadius:8, textAlign:'center', padding:'6px 10px', fontFamily:'"Russo One", Inter, system-ui' }
+const controlBoxText: React.CSSProperties = { background:'#8fbaff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#fff', borderRadius:8, textAlign:'center', padding:'6px 10px', fontFamily:'"Russo One", Inter, system-ui', textShadow:'0 1px 0 rgba(0,0,0,0.25)', fontSize:16 }
 const controlCurrency: React.CSSProperties = { display:'grid', placeItems:'center', height:36, borderRadius:8, background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const currencyCell: React.CSSProperties = { display:'grid', placeItems:'center', height:28, borderRadius:6, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
+
+function PanelShell({ children }: { children: React.ReactNode }){
+    return (
+        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68'}}>
+            {children}
+        </div>
+    )
+}
 
 function DigitsRow({ value, onChange }: { value: number | null, onChange: (n:number)=>void }){
     return (
