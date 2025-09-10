@@ -151,11 +151,6 @@ export function GameScreen() {
                     </>
                 ) : (
                     <div style={{padding:12}}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => { isMenuOpen ? setIsMenuOpen(false) : setIsRightMenuOpen(false) }}>‹</button>
-                            <div style={menuHeaderTitle}>Меню</div>
-                            <div style={{width:36}} />
-                        </div>
                         <div style={menuList}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div key={idx} style={menuCard}>
@@ -164,9 +159,6 @@ export function GameScreen() {
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
-                                    </div>
-                                    <div style={arrowWrap}>
-                                        <div style={arrowIcon}>›</div>
                                     </div>
                                 </div>
                             ))}
@@ -340,7 +332,7 @@ const menuList: React.CSSProperties = { display:'grid', gap:12 }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
-    gridTemplateColumns:'48px 1fr auto 24px',
+    gridTemplateColumns:'48px 1fr',
     alignItems:'center',
     gap:10,
     padding:'10px 12px',
@@ -360,8 +352,7 @@ const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSi
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
-const arrowWrap: React.CSSProperties = { width:24, height:24, borderRadius:12, background:'#1e4b95', display:'grid', placeItems:'center', boxShadow:'inset 0 0 0 2px #0b2f68' }
-const arrowIcon: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
+// right arrow removed per request: switching via bottom buttons only
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
