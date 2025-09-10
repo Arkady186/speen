@@ -9,7 +9,7 @@ type ImageWheelProps = {
     onBeforeSpin?: () => boolean | void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult }: ImageWheelProps) {
+export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const seg = 360 / labels.length
@@ -108,26 +108,27 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 </svg>
             </div>
 
-            {/* область клика для старта вращения */}
+            {/* центральная кнопка старта */}
             <button
                 type="button"
                 onClick={() => spin()}
                 disabled={isSpinning}
+                aria-label={isSpinning ? 'Крутится' : 'Крутить'}
                 style={{
                     position: 'absolute',
                     left: '50%',
-                    bottom: -14,
-                    transform: 'translateX(-50%)',
-                    padding: '8px 14px',
-                    borderRadius: 12,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: Math.round(size * 0.32),
+                    height: Math.round(size * 0.32),
+                    borderRadius: '50%',
                     border: 'none',
-                    background: isSpinning ? '#355da1' : '#244e96',
-                    color: '#fff',
-                    fontWeight: 800,
-                    boxShadow: 'inset 0 0 0 3px #0b2f68',
-                    cursor: isSpinning ? 'default' : 'pointer'
+                    background: `url(/center.png) center/contain no-repeat`,
+                    boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
+                    cursor: isSpinning ? 'default' : 'pointer',
+                    opacity: isSpinning ? 0.85 : 1,
                 }}
-            >{isSpinning ? 'Крутится…' : 'Крутить'}</button>
+            />
         </div>
     )
 }
