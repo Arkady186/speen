@@ -225,7 +225,7 @@ const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px
 
 function PanelShell({ children }: { children: React.ReactNode }){
     return (
-        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68', width:'92%', margin:'0 auto'}}>
+        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68', width:'88%', margin:'0 auto'}}>
             {children}
         </div>
     )
