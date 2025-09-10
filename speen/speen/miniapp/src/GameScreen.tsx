@@ -115,14 +115,14 @@ export function GameScreen() {
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
                         <div style={panelsWrap}>
-                            {/* Row 1: режим игры (без фона панели) */}
-                            <div style={rowBare}>
+                            {/* Row 1: режим игры (с фоном панели) */}
+                            <PanelShell>
                                 <div style={rowGrid}>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" variant="red" />
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" />
                                     <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" variant="red" />
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" />
                                 </div>
-                            </div>
+                            </PanelShell>
                             {/* Row 2: валюта */}
                             <PanelShell>
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
@@ -134,14 +134,14 @@ export function GameScreen() {
                                     </div>
                                 </div>
                             </PanelShell>
-                            {/* Row 3: выбор сектора 0–9 (без фона панели) */}
-                            <div style={rowBare}>
+                            {/* Row 3: выбор сектора 0–9 (с фоном панели) */}
+                            <PanelShell>
                                 <div style={rowGrid}>
                                     <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
                                     <div style={controlBoxText}>{pickedDigit}</div>
                                     <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
                                 </div>
-                            </div>
+                            </PanelShell>
                         </div>
                         <div style={wheelWrap}>
                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
@@ -258,7 +258,7 @@ function Arrow({ dir, onClick, variant = 'blue' }: { dir:'left'|'right', onClick
         boxShadow: variant==='red'
             ? 'inset 0 0 0 2px #7a1d12, 0 1px 0 rgba(0,0,0,0.2)'
             : 'inset 0 0 0 2px #0b2f68',
-        color: variant==='red' ? '#ffffff' : '#bfe0ff',
+        color: variant==='red' ? '#ffffff' : '#e5534b',
         display: 'grid',
         placeItems: 'center',
         cursor: 'pointer',
@@ -269,7 +269,13 @@ function Arrow({ dir, onClick, variant = 'blue' }: { dir:'left'|'right', onClick
 }
 
 function RoundBtn({ kind, onClick }: { kind:'plus'|'minus', onClick?: () => void }){
-    const base: React.CSSProperties = { width:36, height:24, borderRadius:6, background: kind==='plus' ? '#2c9a41' : '#c0392b', boxShadow:'inset 0 0 0 2px #0b2f68', color:'#fff', display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none', fontWeight:900 }
+    const base: React.CSSProperties = {
+        width:36, height:24, borderRadius:6,
+        background:'#1e4b95',
+        boxShadow:'inset 0 0 0 2px #0b2f68',
+        color: kind==='plus' ? '#22c55e' : '#e5534b',
+        display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none', fontWeight:900
+    }
     return <div style={base} onClick={onClick}>{kind==='plus'?'+':'−'}</div>
 }
 
@@ -430,9 +436,6 @@ const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, 
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="📈" /> },
     { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="📰" /> },
 ]
-
-
-
 
 
 
