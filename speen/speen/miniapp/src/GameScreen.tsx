@@ -167,9 +167,32 @@ export function GameScreen() {
                 )}
             </div>
             <div style={bottomNav}>
-                <div style={navBtn} onClick={() => setIsMenuOpen(true)}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
-                <div style={navBtn}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
-                <div style={navBtn} onClick={() => setIsRightMenuOpen(true)}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
+                <div
+                    style={navBtn}
+                    onClick={() => {
+                        if (isMenuOpen) { setIsMenuOpen(false); return }
+                        setIsRightMenuOpen(false)
+                        setIsMenuOpen(true)
+                    }}
+                >
+                    <img src="/zad.png" alt="Задания" style={navIcon} />
+                </div>
+                <div
+                    style={navBtn}
+                    onClick={() => { setIsMenuOpen(false); setIsRightMenuOpen(false) }}
+                >
+                    <img src="/bank.png" alt="Банк" style={navIcon} />
+                </div>
+                <div
+                    style={navBtn}
+                    onClick={() => {
+                        if (isRightMenuOpen) { setIsRightMenuOpen(false); return }
+                        setIsMenuOpen(false)
+                        setIsRightMenuOpen(true)
+                    }}
+                >
+                    <img src="/shop.png" alt="Магазин" style={navIcon} />
+                </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
