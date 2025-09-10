@@ -52,16 +52,18 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const base = computeRotationForIndex(targetIndex) + jitter
 
         // обеспечим как минимум несколько полных оборотов вперёд
-        const minSpins = 5
+        // больше оборотов для интриги
+        const minSpins = 8
         let target = base
         while (target < rotation + minSpins * 360) target += 360
 
         setIsSpinning(true)
         const degreesToTravel = target - rotation
-        const duration = Math.max(3.2, Math.min(5.2, degreesToTravel / 360 * 0.9 + 3.2))
+        // дольше и более плавное замедление
+        const duration = Math.max(8.5, Math.min(12.5, degreesToTravel / 360 * 0.9 + 8.5))
 
         if (wheelRef.current) {
-            wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.12, 0.76, 0.12, 1)`
+            wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
         requestAnimationFrame(() => setRotation(target))
 
