@@ -112,48 +112,74 @@ export function GameScreen() {
                 </div>
             </div>
             <div style={content}>
-                <div style={panelsWrap}>
-                    {/* Row 1: режим игры */}
-                    <PanelShell>
-                        <div style={rowGrid}>
-                            <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" red />
-                            <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
-                            <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" red />
+                {(!isMenuOpen && !isRightMenuOpen) ? (
+                    <>
+                        <div style={panelsWrap}>
+                            {/* Row 1: режим игры */}
+                            <PanelShell>
+                                <div style={rowGrid}>
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" red />
+                                    <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" red />
+                                </div>
+                            </PanelShell>
+                            {/* Row 2: валюта */}
+                            <PanelShell>
+                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('W')}>
+                                        <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
+                                    </div>
+                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('B')}>
+                                        <div style={{fontWeight:900, color:'#2b66b9'}}>B</div>
+                                    </div>
+                                </div>
+                            </PanelShell>
+                            {/* Row 3: выбор сектора 0–9 */}
+                            <PanelShell>
+                                <div style={rowGrid}>
+                                    <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
+                                    <div style={controlBoxText}>{pickedDigit}</div>
+                                    <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
+                                </div>
+                            </PanelShell>
                         </div>
-                    </PanelShell>
-                    {/* Row 2: валюта */}
-                    <PanelShell>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                            <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('W')}>
-                                <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
-                            </div>
-                            <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('B')}>
-                                <div style={{fontWeight:900, color:'#2b66b9'}}>B</div>
-                            </div>
+                        <div style={wheelWrap}>
+                            <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
+                                onBeforeSpin={onBeforeSpin}
+                                onResult={onSpinResult} />
                         </div>
-                    </PanelShell>
-                    {/* Row 3: выбор сектора 0–9 */}
-                    <PanelShell>
-                        <div style={rowGrid}>
-                            <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
-                            <div style={controlBoxText}>{pickedDigit}</div>
-                            <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
+                    </>
+                ) : (
+                    <div style={{padding:12}}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => { isMenuOpen ? setIsMenuOpen(false) : setIsRightMenuOpen(false) }}>‹</button>
+                            <div style={menuHeaderTitle}>Меню</div>
+                            <div style={{width:36}} />
                         </div>
-                    </PanelShell>
-                </div>
-                <div style={wheelWrap}>
-                    <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
-                        onBeforeSpin={onBeforeSpin}
-                        onResult={onSpinResult} />
-                </div>
+                        <div style={menuList}>
+                            {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
+                                <div key={idx} style={menuCard}>
+                                    {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                                    <div style={menuIconWrap}>{item.icon}</div>
+                                    <div style={menuTextWrap}>
+                                        <div style={menuTitle}>{item.title}</div>
+                                        {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                    </div>
+                                    <div style={arrowWrap}>
+                                        <div style={arrowIcon}>›</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
             <div style={bottomNav}>
                 <div style={navBtn} onClick={() => setIsMenuOpen(true)}><img src="/zad.png" alt="Задания" style={navIcon} /></div>
                 <div style={navBtn}><img src="/bank.png" alt="Банк" style={navIcon} /></div>
                 <div style={navBtn} onClick={() => setIsRightMenuOpen(true)}><img src="/shop.png" alt="Магазин" style={navIcon} /></div>
             </div>
-            <MenuOverlay open={isMenuOpen} onClose={() => setIsMenuOpen(false)} items={menuItemsLeft} />
-            <MenuOverlay open={isRightMenuOpen} onClose={() => setIsRightMenuOpen(false)} items={menuItemsRight} />
+            {/* Меню теперь показывается в контенте, а не как оверлей */}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
         </div>
     )
