@@ -115,14 +115,14 @@ export function GameScreen() {
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
                         <div style={panelsWrap}>
-                            {/* Row 1: режим игры */}
-                            <PanelShell>
+                            {/* Row 1: режим игры (без фона панели) */}
+                            <div style={rowBare}>
                                 <div style={rowGrid}>
                                     <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" variant="red" />
                                     <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
                                     <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" variant="red" />
                                 </div>
-                            </PanelShell>
+                            </div>
                             {/* Row 2: валюта */}
                             <PanelShell>
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
@@ -134,14 +134,14 @@ export function GameScreen() {
                                     </div>
                                 </div>
                             </PanelShell>
-                            {/* Row 3: выбор сектора 0–9 */}
-                            <PanelShell>
+                            {/* Row 3: выбор сектора 0–9 (без фона панели) */}
+                            <div style={rowBare}>
                                 <div style={rowGrid}>
                                     <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
                                     <div style={controlBoxText}>{pickedDigit}</div>
                                     <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
                                 </div>
-                            </PanelShell>
+                            </div>
                         </div>
                         <div style={wheelWrap}>
                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
@@ -292,6 +292,7 @@ const currencyCell: React.CSSProperties = {
     boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer'
 }
 const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
+const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
 
 function PanelShell({ children }: { children: React.ReactNode }){
     return (
