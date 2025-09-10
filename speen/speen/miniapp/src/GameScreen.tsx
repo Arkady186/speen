@@ -256,7 +256,7 @@ type MenuOverlayProps = { open: boolean, onClose: () => void, items: Array<{ tit
 function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
     return (
         <div style={{...overlay, pointerEvents: open ? 'auto' : 'none', opacity: open ? 1 : 0}}>
-            <div style={{...sheet, transform: open ? 'translateY(0%)' : 'translateY(100%)'}}>
+            <div style={{...sheet, transform: open ? 'translate(-50%, -50%)' : 'translate(-50%, 20%)'}}>
                 <div style={menuHeaderWrap}>
                     <button style={menuHeaderBackBtn} onClick={onClose}>‹</button>
                     <div style={menuHeaderTitle}>Меню</div>
@@ -283,7 +283,7 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
 }
 
 const overlay: React.CSSProperties = {
-    position:'fixed', left:0, right:0, top:0, bottom:0,
+    position:'fixed', left:0, right:0, top:0, bottom:96,
     background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
     transition:'opacity 220ms ease',
     display:'grid', alignItems:'stretch',
@@ -291,13 +291,17 @@ const overlay: React.CSSProperties = {
 }
 
 const sheet: React.CSSProperties = {
-    background:'transparent',
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    boxShadow:'inset 0 0 0 3px #0b2f68',
+    position:'absolute',
+    left:'50%',
+    top:'50%',
+    width:'92%',
+    maxWidth: 420,
+    maxHeight:'70vh',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderRadius: 16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
     padding: 12,
     transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
-    height:'100vh',
     overflowY:'auto'
 }
 
