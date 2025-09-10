@@ -118,18 +118,18 @@ export function GameScreen() {
                             {/* Row 1: режим игры */}
                             <PanelShell>
                                 <div style={rowGrid}>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" red />
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" variant="red" />
                                     <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" red />
+                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" variant="red" />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
                             <PanelShell>
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('W')}>
+                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('W')}>
                                         <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
                                     </div>
-                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : '#8fbaff'}} onClick={() => setCurrency('B')}>
+                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('B')}>
                                         <div style={{fontWeight:900, color:'#2b66b9'}}>B</div>
                                     </div>
                                 </div>
@@ -249,8 +249,22 @@ function ControlRow({ children }: { children: React.ReactNode }){
     return <div style={{display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8}}>{children}</div>
 }
 
-function Arrow({ dir, onClick }: { dir:'left'|'right', onClick?: () => void }){
-    const base: React.CSSProperties = { width:36, height:24, borderRadius:6, background:'#1e4b95', boxShadow:'inset 0 0 0 2px #0b2f68', color:'#bfe0ff', display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none' }
+function Arrow({ dir, onClick, variant = 'blue' }: { dir:'left'|'right', onClick?: () => void, variant?: 'blue' | 'red' }){
+    const base: React.CSSProperties = {
+        width: 36,
+        height: 24,
+        borderRadius: 6,
+        background: variant==='red' ? 'linear-gradient(180deg, #e5534b 0%, #c83d37 100%)' : '#1e4b95',
+        boxShadow: variant==='red'
+            ? 'inset 0 0 0 2px #7a1d12, 0 1px 0 rgba(0,0,0,0.2)'
+            : 'inset 0 0 0 2px #0b2f68',
+        color: variant==='red' ? '#ffffff' : '#bfe0ff',
+        display: 'grid',
+        placeItems: 'center',
+        cursor: 'pointer',
+        userSelect: 'none',
+        fontWeight: 900
+    }
     return <div style={base} onClick={onClick}>{dir==='left'?'◀':'▶'}</div>
 }
 
@@ -259,14 +273,35 @@ function RoundBtn({ kind, onClick }: { kind:'plus'|'minus', onClick?: () => void
     return <div style={base} onClick={onClick}>{kind==='plus'?'+':'−'}</div>
 }
 
-const controlBoxText: React.CSSProperties = { background:'#8fbaff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#fff', borderRadius:8, textAlign:'center', padding:'6px 10px', fontFamily:'"Russo One", Inter, system-ui', textShadow:'0 1px 0 rgba(0,0,0,0.25)', fontSize:16 }
+const controlBoxText: React.CSSProperties = {
+    background: 'linear-gradient(180deg, #cbe6ff 0%, #9cc9ff 100%)',
+    boxShadow: 'inset 0 0 0 3px #0b2f68',
+    color: '#ffffff',
+    borderRadius: 8,
+    textAlign: 'center',
+    padding: '6px 10px',
+    fontFamily: '"Russo One", Inter, system-ui',
+    textShadow: '0 1px 0 rgba(0,0,0,0.35)',
+    fontSize: 16,
+    letterSpacing: .4
+}
 const controlCurrency: React.CSSProperties = { display:'grid', placeItems:'center', height:36, borderRadius:8, background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
-const currencyCell: React.CSSProperties = { display:'grid', placeItems:'center', height:28, borderRadius:6, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const currencyCell: React.CSSProperties = {
+    display:'grid', placeItems:'center', height:28, borderRadius:6,
+    background: 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)',
+    boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer'
+}
 const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
 
 function PanelShell({ children }: { children: React.ReactNode }){
     return (
-        <div style={{background:'#2b66b9', borderRadius:10, padding:6, boxShadow:'inset 0 0 0 3px #0b2f68', width:'88%', margin:'0 auto'}}>
+        <div style={{
+            background: 'linear-gradient(180deg, #2b6fbe 0%, #1f57a0 100%)',
+            borderRadius: 10,
+            padding: 6,
+            boxShadow: 'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
+            width:'88%', margin:'0 auto'
+        }}>
             {children}
         </div>
     )
