@@ -119,14 +119,14 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     left: '50%',
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: Math.round(size * 0.32),
-                    height: Math.round(size * 0.32),
+                    width: Math.round(size * 0.26),
+                    height: Math.round(size * 0.26),
                     borderRadius: '50%',
                     border: 'none',
                     background: `url(/center.png) center/contain no-repeat`,
                     boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
                     cursor: isSpinning ? 'default' : 'pointer',
-                    opacity: isSpinning ? 0.85 : 1,
+                    display: isSpinning ? 'none' : 'block',
                 }}
             />
         </div>
