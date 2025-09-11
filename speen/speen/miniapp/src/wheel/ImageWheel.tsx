@@ -7,9 +7,10 @@ type ImageWheelProps = {
     startOffsetDeg?: number
     onResult?: (index: number, label: string) => void
     onBeforeSpin?: () => boolean | void
+    onSpinningChange?: (spinning: boolean) => void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin }: ImageWheelProps) {
+export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const seg = 360 / labels.length
@@ -58,6 +59,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         while (target < rotation + minSpins * 360) target += 360
 
         setIsSpinning(true)
+        try { onSpinningChange?.(true) } catch {}
         const degreesToTravel = target - rotation
         // дольше и более плавное замедление
         const duration = Math.max(8.5, Math.min(12.5, degreesToTravel / 360 * 0.9 + 8.5))
@@ -70,13 +72,14 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         // безопасный коллбэк результата по окончанию анимации
         timeoutRef.current = window.setTimeout(() => {
             setIsSpinning(false)
+            try { onSpinningChange?.(false) } catch {}
             const idx = indexFromRotation(target)
             onResult?.(idx, labels[idx])
         }, duration * 1000 + 50)
     }
 
     return (
-        <div style={{ position: 'relative', width: size, height: size }}>
+        <div style={{ position: 'relative', width: size, height: size, touchAction:'none' }}>
             <div
                 ref={wheelRef}
                 style={{
@@ -93,6 +96,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 onTransitionEnd={() => {
                     if (!isSpinning) return
                     setIsSpinning(false)
+                    try { onSpinningChange?.(false) } catch {}
                     const idx = indexFromRotation(rotation)
                     onResult?.(idx, labels[idx])
                 }}

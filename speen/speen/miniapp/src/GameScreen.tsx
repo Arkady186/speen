@@ -37,6 +37,7 @@ export function GameScreen() {
     const [currency, setCurrency] = React.useState<'W'|'B'>('W')
     const [bet, setBet] = React.useState<number>(15)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
+    const [spinning, setSpinning] = React.useState<boolean>(false)
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -50,6 +51,7 @@ export function GameScreen() {
     function getMultiplier(m: 'x1'|'x2'|'x3') { return m === 'x1' ? 1 : m === 'x2' ? 2 : 3 }
 
     function onBeforeSpin() {
+        if (spinning) return false
         if (pickedDigit == null) { setToast('Выбери число 0–9'); return false }
         const b = Math.max(1, Math.floor(bet))
         if (currency === 'W') {
@@ -114,7 +116,7 @@ export function GameScreen() {
             <div style={content}>
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
-                        <div style={panelsWrap}>
+                        <div style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
                                 <div style={rowGrid}>
@@ -146,7 +148,8 @@ export function GameScreen() {
                         <div style={wheelWrap}>
                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
                                 onBeforeSpin={onBeforeSpin}
-                                onResult={onSpinResult} />
+                                onResult={onSpinResult}
+                                onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }} />
                         </div>
                     </>
                 ) : (
@@ -166,10 +169,11 @@ export function GameScreen() {
                     </div>
                 )}
             </div>
-            <div style={bottomNav}>
+            <div style={{...bottomNav, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
                 <div
                     style={navBtn}
                     onClick={() => {
+                        if (spinning) return
                         if (isMenuOpen) { setIsMenuOpen(false); return }
                         setIsRightMenuOpen(false)
                         setIsMenuOpen(true)
@@ -179,13 +183,14 @@ export function GameScreen() {
                 </div>
                 <div
                     style={navBtn}
-                    onClick={() => { setIsMenuOpen(false); setIsRightMenuOpen(false) }}
+                    onClick={() => { if (spinning) return; setIsMenuOpen(false); setIsRightMenuOpen(false) }}
                 >
                     <img src="/bank.png" alt="Банк" style={navIcon} />
                 </div>
                 <div
                     style={navBtn}
                     onClick={() => {
+                        if (spinning) return
                         if (isRightMenuOpen) { setIsRightMenuOpen(false); return }
                         setIsMenuOpen(false)
                         setIsRightMenuOpen(true)
