@@ -21,28 +21,6 @@ function generateSlices(count: number) {
 export function WheelLoader({ onDone }: { onDone?: () => void }) {
 	const slices = React.useMemo(() => generateSlices(SLICE_COUNT), [])
 	const [userId, setUserId] = React.useState<string | null>(null)
-	const [progress, setProgress] = React.useState<number>(0)
-	const [assetsReady, setAssetsReady] = React.useState<boolean>(false)
-	const [animDone, setAnimDone] = React.useState<boolean>(false)
-
-	function finishIfReady() {
-		if (assetsReady && animDone) onDone?.()
-	}
-
-	function preloadImages(urls: string[], onStep?: (ratio: number) => void) {
-		const total = urls.length
-		if (total === 0) {
-			onStep?.(1)
-			return Promise.resolve()
-		}
-		let loaded = 0
-		return Promise.allSettled(urls.map(src => new Promise<void>((resolve) => {
-			const img = new Image()
-			img.onload = () => { loaded++; onStep?.(loaded/total); resolve() }
-			img.onerror = () => { loaded++; onStep?.(loaded/total); resolve() }
-			img.src = src
-		}))).then(() => {})
-	}
 
 	React.useEffect(() => {
 		try {
@@ -56,21 +34,8 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 			}
 		} catch {}
 
-		// прелоад ассетов: изображения интерфейса
-		const ASSETS: string[] = [
-			// core
-			'/wheel.png','/center.png','/coin-w.png',
-			// menu icons available in public
-			'/press1.png','/press2.png','/press3.png','/coming-soon.svg',
-			// badges and nav
-			'/coming1.png','/zad.png','/shop.png','/bank.png',
-		]
-		preloadImages(ASSETS, (r) => setProgress(Math.round(r*100)))
-			.then(() => { setAssetsReady(true); finishIfReady() })
-			.catch(() => { setAssetsReady(true); finishIfReady() })
-
-		// таймаут-фоллбек (10s) если что-то пойдёт не так
-		const t = setTimeout(() => onDone?.(), 10000)
+		// таймаут-фоллбек на случай, если событие animationend не сработает
+		const t = setTimeout(() => onDone?.(), 3500)
 		return () => clearTimeout(t)
 	}, [])
 
@@ -79,7 +44,7 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 			<div style={styles.wrapper}>
 				<div style={styles.glow} />
 				<div style={styles.ring} />
-				<div style={styles.wheelOnce} onAnimationEnd={() => { setAnimDone(true); finishIfReady() }}>
+				<div style={styles.wheelOnce} onAnimationEnd={() => onDone?.()}>
 					{slices.map((s) => (
 						<div
 							key={s.index}
@@ -104,7 +69,7 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 					</svg>
 				</div>
 			</div>
-			<div className="subtitle">Загрузка мини‑приложения… {progress}% {userId ? `(ID: ${userId})` : ''}</div>
+			<div className="subtitle">Загрузка мини‑приложения… {userId ? `(ID: ${userId})` : ''}</div>
 		</div>
 	)
 }
