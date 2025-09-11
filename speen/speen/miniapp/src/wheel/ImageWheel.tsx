@@ -13,6 +13,7 @@ type ImageWheelProps = {
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
+    const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
 
@@ -38,8 +39,12 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
 
     const wheelRef = React.useRef<HTMLDivElement | null>(null)
     const timeoutRef = React.useRef<number | null>(null)
+    const highlightTimeoutRef = React.useRef<number | null>(null)
 
-    React.useEffect(() => () => { if (timeoutRef.current) window.clearTimeout(timeoutRef.current) }, [])
+    React.useEffect(() => () => {
+        if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
+        if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
+    }, [])
 
     function spin(toIndex?: number) {
         if (isSpinning) return
@@ -47,6 +52,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             const ok = onBeforeSpin()
             if (ok === false) return
         }
+        setHighlightVisible(false)
         const targetIndex = typeof toIndex === 'number' ? ((toIndex % labels.length) + labels.length) % labels.length : Math.floor(Math.random() * labels.length)
         // небольшой рандом внутри сектора, чтобы не останавливаться строго по центру
         const jitter = (Math.random() - 0.5) * (seg * 0.4) // ±20% сектора
@@ -75,6 +81,9 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             try { onSpinningChange?.(false) } catch {}
             const idx = indexFromRotation(target)
             onResult?.(idx, labels[idx])
+            setHighlightVisible(true)
+            if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
+            highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
         }, duration * 1000 + 50)
     }
 
@@ -99,8 +108,48 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     try { onSpinningChange?.(false) } catch {}
                     const idx = indexFromRotation(rotation)
                     onResult?.(idx, labels[idx])
+                    setHighlightVisible(true)
+                    if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
+                    highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
             />
+            {highlightVisible && (
+                <svg
+                    width={size}
+                    height={size}
+                    style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                    viewBox={`0 0 ${size} ${size}`}
+                >
+                    {(() => {
+                        const cx = size / 2
+                        const cy = size / 2
+                        const rOuter = size * 0.49
+                        const rInner = size * 0.30
+                        const startDeg = -seg / 2 - 90
+                        const endDeg = seg / 2 - 90
+                        const toRad = (d: number) => (Math.PI / 180) * d
+                        const sx = cx + rOuter * Math.cos(toRad(startDeg))
+                        const sy = cy + rOuter * Math.sin(toRad(startDeg))
+                        const ex = cx + rOuter * Math.cos(toRad(endDeg))
+                        const ey = cy + rOuter * Math.sin(toRad(endDeg))
+                        const sxi = cx + rInner * Math.cos(toRad(startDeg))
+                        const syi = cy + rInner * Math.sin(toRad(startDeg))
+                        const exi = cx + rInner * Math.cos(toRad(endDeg))
+                        const eyi = cy + rInner * Math.sin(toRad(endDeg))
+                        const largeArc = endDeg - startDeg <= 180 ? 0 : 1
+                        const d = `M ${sxi} ${syi} L ${sx} ${sy} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${ex} ${ey} L ${exi} ${eyi} A ${rInner} ${rInner} 0 ${largeArc} 0 ${sxi} ${syi} Z`
+                        return (
+                            <path
+                                d={d}
+                                fill="rgba(255, 231, 76, 0.55)"
+                                stroke="#ffd23a"
+                                strokeWidth={2}
+                                style={{ filter: 'drop-shadow(0 0 10px rgba(255,220,60,0.9))' }}
+                            />
+                        )
+                    })()}
+                </svg>
+            )}
             {/* указатель повернут на 180° (основание сверху, вершина вниз) */}
             <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
                 <svg width="34" height="40" viewBox="0 0 34 40">
