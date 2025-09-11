@@ -38,6 +38,7 @@ export function GameScreen() {
     const [bet, setBet] = React.useState<number>(15)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
+    const [arrowPressedIdx, setArrowPressedIdx] = React.useState<number | null>(null)
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -163,6 +164,19 @@ export function GameScreen() {
                                         <div style={menuTitle}>{item.title}</div>
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
+                                    {!isMenuOpen && (
+                                        <div
+                                            style={{
+                                                ...arrowWrapRight,
+                                                transform: `translateY(-50%) ${arrowPressedIdx===idx?' translateX(2px) scale(0.95)':''}`
+                                            }}
+                                            onPointerDown={() => setArrowPressedIdx(idx)}
+                                            onPointerUp={() => setArrowPressedIdx(null)}
+                                            onPointerLeave={() => setArrowPressedIdx(null)}
+                                        >
+                                            <div style={arrowIconRight}>›</div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -422,7 +436,12 @@ const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSi
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
-// right arrow removed per request: switching via bottom buttons only
+const arrowWrapRight: React.CSSProperties = {
+    position:'absolute', right:10, top:'50%', width:26, height:26,
+    borderRadius:13, background:'#1e4b95', display:'grid', placeItems:'center',
+    boxShadow:'inset 0 0 0 2px #0b2f68', color:'#bfe0ff', transition:'transform 120ms ease'
+}
+const arrowIconRight: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, transform:'translateX(1px)' }
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
