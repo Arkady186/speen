@@ -38,7 +38,7 @@ export function GameScreen() {
     const [bet, setBet] = React.useState<number>(15)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
-    const [arrowPressedIdx, setArrowPressedIdx] = React.useState<number | null>(null)
+    const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -157,7 +157,13 @@ export function GameScreen() {
                     <div style={{padding:12}}>
                         <div style={menuList}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
-                                <div key={idx} style={menuCard}>
+                                <div
+                                    key={idx}
+                                    style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
+                                    onPointerDown={() => setPressedCardIdx(idx)}
+                                    onPointerUp={() => setPressedCardIdx(null)}
+                                    onPointerLeave={() => setPressedCardIdx(null)}
+                                >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={menuIconWrap}>{item.icon}</div>
                                     <div style={menuTextWrap}>
@@ -165,15 +171,7 @@ export function GameScreen() {
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
                                     {!isMenuOpen && (
-                                        <div
-                                            style={{
-                                                ...arrowWrapRight,
-                                                transform: `translateY(-50%) ${arrowPressedIdx===idx?' translateX(2px) scale(0.95)':''}`
-                                            }}
-                                            onPointerDown={() => setArrowPressedIdx(idx)}
-                                            onPointerUp={() => setArrowPressedIdx(null)}
-                                            onPointerLeave={() => setArrowPressedIdx(null)}
-                                        >
+                                        <div style={arrowWrapRight}>
                                             <div style={arrowIconRight}>›</div>
                                         </div>
                                     )}
@@ -424,7 +422,8 @@ const menuCard: React.CSSProperties = {
     borderRadius:14,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
     position:'relative',
-    overflow:'visible'
+    overflow:'visible',
+    transition:'transform 120ms ease'
 }
 
 const menuIconWrap: React.CSSProperties = { width:48, height:48, display:'grid', placeItems:'center' }
