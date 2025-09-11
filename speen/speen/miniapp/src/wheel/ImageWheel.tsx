@@ -125,8 +125,13 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const cy = size / 2
                         const rOuter = size * 0.49
                         const rInner = size * 0.30
-                        const startDeg = -seg / 2 - 90
-                        const endDeg = seg / 2 - 90
+                        // смещение клина с учётом реального положения сектора под указателем
+                        const a = normalizeDeg(-rotation - startOffsetDeg)
+                        const sectorStart = Math.floor(a / seg) * seg
+                        const sectorCenter = sectorStart + seg / 2
+                        const offsetDeg = sectorCenter - a // (-seg/2..+seg/2)
+                        const startDeg = offsetDeg - seg / 2 - 90
+                        const endDeg = offsetDeg + seg / 2 - 90
                         const toRad = (d: number) => (Math.PI / 180) * d
                         const sx = cx + rOuter * Math.cos(toRad(startDeg))
                         const sy = cy + rOuter * Math.sin(toRad(startDeg))
