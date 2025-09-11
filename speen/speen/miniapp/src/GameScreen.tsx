@@ -106,8 +106,11 @@ export function GameScreen() {
         <div style={root}>
             <div style={topBar}>
                 <div style={leftUser}>
-                    <div style={{...avatar, backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined, backgroundSize:'cover', backgroundPosition:'center'}}>
-                        {!avatarUrl && <span style={avatarText}>{initials || 'IG'}</span>}
+                    <div style={avatar}>
+                        {avatarUrl
+                            ? <img src={avatarUrl} alt="avatar" style={avatarImg} onError={() => setAvatarUrl('')} />
+                            : <span style={avatarText}>{initials || '🧑'}</span>
+                        }
                     </div>
                     <div style={usernameStyle}>{username || 'Игрок'}</div>
                 </div>
@@ -236,7 +239,8 @@ const root: React.CSSProperties = {
 const topBar: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }
 const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap:10 }
 
-const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68' }
+const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }
+const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
 const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 800, textShadow:'0 1px 0 rgba(255,255,255,0.6)', fontFamily:'"Rubik", Inter, system-ui' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }
