@@ -58,8 +58,11 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 
 		// прелоад ассетов: изображения интерфейса
 		const ASSETS: string[] = [
+			// core
 			'/wheel.png','/center.png','/coin-w.png',
-			'/press1.png','/press2.png','/press3.png','/press7.png','/press8.png','/press9.png','/press10.png','/press11.png',
+			// menu icons (all used across left/right)
+			'/press1.png','/press2.png','/press3.png','/press4.png','/press5.png','/press6.png','/press7.png','/press8.png','/press9.png','/press10.png','/press11.png',
+			// badges and nav
 			'/coming1.png','/zad.png','/shop.png','/bank.png',
 		]
 		preloadImages(ASSETS, (r) => setProgress(Math.round(r*100)))
