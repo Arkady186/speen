@@ -158,7 +158,7 @@ export function GameScreen() {
                         <div style={menuList}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
-                                    key={idx}
+                                    key={`${isMenuOpen ? 'left' : 'right'}:${item.title}`}
                                     style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
