@@ -142,15 +142,38 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const exi = cx + rInner * Math.cos(toRad(endDeg))
                         const eyi = cy + rInner * Math.sin(toRad(endDeg))
                         const largeArc = endDeg - startDeg <= 180 ? 0 : 1
-                        const d = `M ${sxi} ${syi} L ${sx} ${sy} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${ex} ${ey} L ${exi} ${eyi} A ${rInner} ${rInner} 0 ${largeArc} 0 ${sxi} ${syi} Z`
+                        const dOuter = `M ${sxi} ${syi} L ${sx} ${sy} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${ex} ${ey} L ${exi} ${eyi} A ${rInner} ${rInner} 0 ${largeArc} 0 ${sxi} ${syi} Z`
+
+                        // второй клин ниже (над областью цифр)
+                        const rOuter2 = size * 0.29
+                        const rInner2 = size * 0.12
+                        const sx2 = cx + rOuter2 * Math.cos(toRad(startDeg))
+                        const sy2 = cy + rOuter2 * Math.sin(toRad(startDeg))
+                        const ex2 = cx + rOuter2 * Math.cos(toRad(endDeg))
+                        const ey2 = cy + rOuter2 * Math.sin(toRad(endDeg))
+                        const sxi2 = cx + rInner2 * Math.cos(toRad(startDeg))
+                        const syi2 = cy + rInner2 * Math.sin(toRad(startDeg))
+                        const exi2 = cx + rInner2 * Math.cos(toRad(endDeg))
+                        const eyi2 = cy + rInner2 * Math.sin(toRad(endDeg))
+                        const dInner = `M ${sxi2} ${syi2} L ${sx2} ${sy2} A ${rOuter2} ${rOuter2} 0 ${largeArc} 1 ${ex2} ${ey2} L ${exi2} ${eyi2} A ${rInner2} ${rInner2} 0 ${largeArc} 0 ${sxi2} ${syi2} Z`
+
                         return (
-                            <path
-                                d={d}
-                                fill="rgba(255, 231, 76, 0.55)"
-                                stroke="#ffd23a"
-                                strokeWidth={2}
-                                style={{ filter: 'drop-shadow(0 0 10px rgba(255,220,60,0.9))' }}
-                            />
+                            <g>
+                                <path
+                                    d={dOuter}
+                                    fill="rgba(255, 231, 76, 0.55)"
+                                    stroke="#ffd23a"
+                                    strokeWidth={2}
+                                    style={{ filter: 'drop-shadow(0 0 10px rgba(255,220,60,0.9))' }}
+                                />
+                                <path
+                                    d={dInner}
+                                    fill="rgba(255, 239, 120, 0.65)"
+                                    stroke="#ffe35c"
+                                    strokeWidth={2}
+                                    style={{ filter: 'drop-shadow(0 0 8px rgba(255,230,90,0.9))' }}
+                                />
+                            </g>
                         )
                     })()}
                 </svg>
