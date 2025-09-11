@@ -40,6 +40,8 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
 
+    React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
+
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
         setBalanceB(nextB)
@@ -158,7 +160,7 @@ export function GameScreen() {
                         <div style={menuList}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
-                                    key={`${isMenuOpen ? 'left' : 'right'}:${item.title}`}
+                                    key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
                                     style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
