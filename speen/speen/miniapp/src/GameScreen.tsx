@@ -175,11 +175,9 @@ export function GameScreen() {
                                         <div style={menuTitle}>{item.title}</div>
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
-                                    {!isMenuOpen && (
-                                        <div style={arrowWrapRight}>
-                                            <div style={arrowIconRight}>›</div>
-                                        </div>
-                                    )}
+                                    <div style={arrowWrapRight}>
+                                        <div style={arrowIconRight}>›</div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
