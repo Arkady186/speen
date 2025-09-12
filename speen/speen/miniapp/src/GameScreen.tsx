@@ -33,7 +33,8 @@ export function GameScreen() {
         return 10000
     })
     const [balanceB, setBalanceB] = React.useState<number>(() => Number(localStorage.getItem('balance_b') || '0'))
-    const [mode, setMode] = React.useState<'x1'|'x2'|'x3'>('x2')
+    type GameMode = 'normal' | 'pyramid' | 'allin'
+    const [mode, setMode] = React.useState<GameMode>('normal')
     const [currency, setCurrency] = React.useState<'W'|'B'>('W')
     const [bet, setBet] = React.useState<number>(15)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
@@ -51,12 +52,32 @@ export function GameScreen() {
         } catch {}
     }
 
-    function getMultiplier(m: 'x1'|'x2'|'x3') { return m === 'x1' ? 1 : m === 'x2' ? 2 : 3 }
+    function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
+
+    function getLimits(m: GameMode, cur: 'W'|'B') {
+        // General limits
+        const general = cur === 'W' ? { min: 100, max: 1_000_000_000 } : { min: 1, max: 1000 }
+        // Mode-specific limits
+        const modeLimits = (
+            m === 'allin'
+                ? (cur === 'W' ? { min: 1000, max: 10000 } : { min: 3, max: 10 })
+                : (cur === 'W' ? { min: 100, max: 1000 } : { min: 1, max: 3 })
+        )
+        return { min: Math.max(general.min, modeLimits.min), max: Math.min(general.max, modeLimits.max) }
+    }
+
+    // Clamp bet when mode/currency changes
+    React.useEffect(() => {
+        const { min, max } = getLimits(mode, currency)
+        setBet(prev => Math.min(max, Math.max(min, Math.floor(prev || min))))
+    }, [mode, currency])
 
     function onBeforeSpin() {
         if (spinning) return false
         if (pickedDigit == null) { setToast('Выбери число 0–9'); return false }
-        const b = Math.max(1, Math.floor(bet))
+        const { min, max } = getLimits(mode, currency)
+        const b = Math.max(min, Math.min(max, Math.floor(bet)))
+        if (b !== bet) setBet(b)
         if (currency === 'W') {
             if (balanceW < b) { setToast('Недостаточно W'); return false }
             saveBalances(balanceW - b, balanceB)
@@ -68,13 +89,28 @@ export function GameScreen() {
     }
 
     function onSpinResult(index: number, label: string) {
-        const won = String(pickedDigit) === label
-        if (!won) { setToast(`Промах (${label})`); return }
-        const mult = getMultiplier(mode)
-        const prize = Math.max(1, Math.floor(bet)) * mult
-        if (currency === 'W') saveBalances(balanceW + prize, balanceB)
-        else saveBalances(balanceW, balanceB + prize)
-        setToast(`Победа! +${prize} ${currency}`)
+        const b = Math.floor(bet)
+        let delta = 0
+        if (mode === 'normal' || mode === 'allin') {
+            const won = String(pickedDigit) === label
+            if (won) delta = b * getMultiplier(mode)
+        } else {
+            // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25%
+            const center = pickedDigit
+            const cw = (pickedDigit + 1) % 10
+            const ccw = (pickedDigit + 9) % 10
+            const n = Number(label)
+            if (n === center) delta = Math.max(1, b * 2)
+            else if (n === cw) delta = Math.max(1, Math.floor(b * 1.5))
+            else if (n === ccw) delta = Math.max(1, Math.floor(b * 1.25))
+        }
+        if (delta > 0) {
+            if (currency === 'W') saveBalances(balanceW + delta, balanceB)
+            else saveBalances(balanceW, balanceB + delta)
+            setToast(`Победа! +${delta} ${currency}`)
+        } else {
+            setToast(`Промах (${label})`)
+        }
     }
 
     function parseUserFromInitDataString(initData: string | undefined) {
@@ -126,9 +162,9 @@ export function GameScreen() {
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
                                 <div style={rowGrid}>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x3': prev==='x2'?'x1':'x2')} dir="left" />
-                                    <div style={controlBoxText}>{mode.toUpperCase()} {mode==='x1'?'': mode==='x2'?'+100%':'+200%'}</div>
-                                    <Arrow onClick={() => setMode(prev => prev==='x1'?'x2': prev==='x2'?'x3':'x1')} dir="right" />
+                                    <Arrow onClick={() => setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} dir="left" />
+                                    <div style={controlBoxText}>{mode==='normal' ? 'Обычный x2 +100%' : mode==='pyramid' ? 'Пирамида 3/10 +100/50/25%' : 'Всё или ничего x5 +500%'}</div>
+                                    <Arrow onClick={() => setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} dir="right" />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
@@ -142,7 +178,14 @@ export function GameScreen() {
                                     </div>
                                 </div>
                             </PanelShell>
-                            {/* Row 3: выбор сектора 0–9 (с фоном панели) */}
+                            {/* Row 3: ставка и выбор сектора */}
+                            <PanelShell>
+                                <div style={rowGrid}>
+                                    <RoundBtn onClick={() => setBet(b => { const {min}=getLimits(mode,currency); return Math.max(min, Math.floor((b||0)-1)) })} kind="minus" />
+                                    <div style={controlBoxText}>{bet}</div>
+                                    <RoundBtn onClick={() => setBet(b => { const {max}=getLimits(mode,currency); return Math.min(max, Math.floor((b||0)+1)) })} kind="plus" />
+                                </div>
+                            </PanelShell>
                             <PanelShell>
                                 <div style={rowGrid}>
                                     <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
