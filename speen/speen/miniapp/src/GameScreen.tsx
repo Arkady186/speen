@@ -178,7 +178,7 @@ export function GameScreen() {
                                     </div>
                                 </div>
                             </PanelShell>
-                            {/* Row 3: ставка и выбор сектора */}
+                            {/* Row 3: ставка */}
                             <PanelShell>
                                 <div style={rowGrid}>
                                     <RoundBtn onClick={() => setBet(b => { const {min}=getLimits(mode,currency); return Math.max(min, Math.floor((b||0)-1)) })} kind="minus" />
@@ -186,18 +186,13 @@ export function GameScreen() {
                                     <RoundBtn onClick={() => setBet(b => { const {max}=getLimits(mode,currency); return Math.min(max, Math.floor((b||0)+1)) })} kind="plus" />
                                 </div>
                             </PanelShell>
-                            <PanelShell>
-                                <div style={rowGrid}>
-                                    <RoundBtn onClick={() => setPickedDigit(n => (n+9)%10)} kind="minus" />
-                                    <div style={controlBoxText}>{pickedDigit}</div>
-                                    <RoundBtn onClick={() => setPickedDigit(n => (n+1)%10)} kind="plus" />
-                                </div>
-                            </PanelShell>
                         </div>
                         <div style={wheelWrap}>
                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
                                 onBeforeSpin={onBeforeSpin}
                                 onResult={onSpinResult}
+                                selectedIndex={pickedDigit}
+                                onSelectIndex={(idx)=> setPickedDigit(idx)}
                                 onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }} />
                         </div>
                     </>
@@ -505,6 +500,7 @@ const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, 
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📈" /> },
     { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📰" /> },
 ]
+
 
 
 

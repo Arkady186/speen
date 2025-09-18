@@ -8,9 +8,11 @@ type ImageWheelProps = {
     onResult?: (index: number, label: string) => void
     onBeforeSpin?: () => boolean | void
     onSpinningChange?: (spinning: boolean) => void
+    selectedIndex?: number | null
+    onSelectIndex?: (index: number, label: string) => void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange }: ImageWheelProps) {
+export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
@@ -87,8 +89,23 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         }, duration * 1000 + 50)
     }
 
+    function handleSelectAt(evt: React.MouseEvent<HTMLDivElement>) {
+        if (isSpinning) return
+        const rect = (evt.currentTarget as HTMLDivElement).getBoundingClientRect()
+        const cx = rect.left + rect.width / 2
+        const cy = rect.top + rect.height / 2
+        const x = evt.clientX - cx
+        const y = evt.clientY - cy
+        const angle = (Math.atan2(y, x) * 180) / Math.PI // 0 at +X, CCW positive
+        const a = ((angle % 360) + 360) % 360
+        // преобразуем в угол изображения: вычесть текущий поворот и стартовый сдвиг
+        const imgAngle = ((a - rotation - startOffsetDeg) % 360 + 360) % 360
+        const idx = Math.floor(imgAngle / seg) % labels.length
+        onSelectIndex?.(idx, labels[idx])
+    }
+
     return (
-        <div style={{ position: 'relative', width: size, height: size, touchAction:'none' }}>
+        <div style={{ position: 'relative', width: size, height: size, touchAction:'none' }} onClick={handleSelectAt}>
             <div
                 ref={wheelRef}
                 style={{
@@ -113,6 +130,39 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
             />
+            {!isSpinning && typeof selectedIndex === 'number' && (
+                <svg
+                    width={size}
+                    height={size}
+                    style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                    viewBox={`0 0 ${size} ${size}`}
+                >
+                    {(() => {
+                        const cx = size / 2
+                        const cy = size / 2
+                        const rOuter = size * 0.49
+                        const rInner = size * 0.30
+                        const center = selectedIndex * seg + seg / 2
+                        const centerScreen = ((center + rotation + startOffsetDeg) % 360 + 360) % 360
+                        const startDeg = centerScreen - seg / 2 - 90
+                        const endDeg = centerScreen + seg / 2 - 90
+                        const toRad = (d: number) => (Math.PI / 180) * d
+                        const sx = cx + rOuter * Math.cos(toRad(startDeg))
+                        const sy = cy + rOuter * Math.sin(toRad(startDeg))
+                        const ex = cx + rOuter * Math.cos(toRad(endDeg))
+                        const ey = cy + rOuter * Math.sin(toRad(endDeg))
+                        const sxi = cx + rInner * Math.cos(toRad(startDeg))
+                        const syi = cy + rInner * Math.sin(toRad(startDeg))
+                        const exi = cx + rInner * Math.cos(toRad(endDeg))
+                        const eyi = cy + rInner * Math.sin(toRad(endDeg))
+                        const largeArc = endDeg - startDeg <= 180 ? 0 : 1
+                        const dOuter = `M ${sxi} ${syi} L ${sx} ${sy} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${ex} ${ey} L ${exi} ${eyi} A ${rInner} ${rInner} 0 ${largeArc} 0 ${sxi} ${syi} Z`
+                        return (
+                            <path d={dOuter} fill="rgba(76, 217, 100, 0.35)" stroke="#22c55e" strokeWidth={2} style={{ filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.9))' }} />
+                        )
+                    })()}
+                </svg>
+            )}
             {highlightVisible && (
                 <svg
                     width={size}
