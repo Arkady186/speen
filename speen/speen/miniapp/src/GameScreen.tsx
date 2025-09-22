@@ -233,8 +233,8 @@ export function GameScreen() {
                             <div style={midCounterShell}>
                                 <div style={midCounterInner}>
                                     <div style={midValue}>{midW}</div>
-                                    <div style={{position:'relative', width:28, height:28, display:'grid', placeItems:'center'}}>
-                                        <img src="/coin-w.png" alt="W" style={{width:24,height:24, transform: midAnim? 'scale(1.25)': 'scale(1)', transition:'transform 240ms ease'}} />
+                                    <div style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center'}}>
+                                        <img src="/coin-w.png" alt="W" style={{width:44,height:44, transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
                                 </div>
@@ -413,7 +413,7 @@ const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px
 const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
 const midCounterShell: React.CSSProperties = { width:'88%', margin:'2px auto 0', display:'grid' }
 const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridAutoFlow:'column', alignItems:'center', gap:8, background:'transparent', padding:0, borderRadius:0, boxShadow:'none' }
-const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui' }
+const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', fontSize:48, lineHeight:1 }
 const midPlusOne: React.CSSProperties = { position:'absolute', bottom:24, color:'#22c55e', fontWeight:900, animation:'midpop 900ms ease forwards', textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
 
 function PanelShell({ children }: { children: React.ReactNode }){
