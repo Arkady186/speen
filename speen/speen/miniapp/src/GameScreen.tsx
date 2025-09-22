@@ -40,21 +40,49 @@ export function GameScreen() {
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
+    const MID_INTERVAL_MS = 30_000
     const [midW, setMidW] = React.useState<number>(() => Number(localStorage.getItem('mid_w') || '0'))
     const [midAnim, setMidAnim] = React.useState<boolean>(false)
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
+    // Catch-up accrual based on time away
     React.useEffect(() => {
+        function accrueIfDue() {
+            const now = Date.now()
+            const last = Number(localStorage.getItem('mid_w_last_ts') || String(now))
+            const ticks = Math.floor((now - last) / MID_INTERVAL_MS)
+            if (ticks > 0) {
+                setMidW(prev => {
+                    const next = (prev || 0) + ticks
+                    try {
+                        localStorage.setItem('mid_w', String(next))
+                        localStorage.setItem('mid_w_last_ts', String(last + ticks * MID_INTERVAL_MS))
+                    } catch {}
+                    setMidAnim(true)
+                    setTimeout(() => setMidAnim(false), 900)
+                    return next
+                })
+            } else {
+                try { localStorage.setItem('mid_w_last_ts', String(last)) } catch {}
+            }
+        }
+        accrueIfDue()
         const t = setInterval(() => {
+            // regular tick while app is open
             setMidW(prev => {
                 const next = (prev || 0) + 1
-                try { localStorage.setItem('mid_w', String(next)) } catch {}
+                try {
+                    localStorage.setItem('mid_w', String(next))
+                    localStorage.setItem('mid_w_last_ts', String(Date.now()))
+                } catch {}
                 setMidAnim(true)
                 setTimeout(() => setMidAnim(false), 900)
                 return next
             })
-        }, 30000)
-        return () => clearInterval(t)
+        }, MID_INTERVAL_MS)
+        function onVis() { if (!document.hidden) accrueIfDue() }
+        document.addEventListener('visibilitychange', onVis)
+        return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis) }
     }, [])
 
     function saveBalances(nextW: number, nextB: number) {
