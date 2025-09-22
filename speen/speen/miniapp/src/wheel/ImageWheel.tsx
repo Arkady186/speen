@@ -98,8 +98,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const y = evt.clientY - cy
         const angle = (Math.atan2(y, x) * 180) / Math.PI // 0 at +X, CCW positive
         const a = ((angle % 360) + 360) % 360
-        // преобразуем в угол изображения: вычесть текущий поворот и стартовый сдвиг
-        const imgAngle = ((a - rotation - startOffsetDeg) % 360 + 360) % 360
+        // привести к системе отсчёта указателя (0 на вершине), учесть текущий поворот и стартовый сдвиг
+        const imgAngle = ((a + 90 - rotation - startOffsetDeg) % 360 + 360) % 360
         const baseIdx = Math.floor(imgAngle / seg) % labels.length
         const logicalIdx = (baseIdx + SECTOR_OFFSET) % labels.length
         onSelectIndex?.(logicalIdx, labels[logicalIdx])
