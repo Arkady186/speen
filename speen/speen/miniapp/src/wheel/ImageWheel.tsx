@@ -131,46 +131,6 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
             />
-            {/* counter-rotating inner sectors */}
-            <svg
-                width={size}
-                height={size}
-                style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
-                viewBox={`0 0 ${size} ${size}`}
-            >
-                {(() => {
-                    const cx = size / 2
-                    const cy = size / 2
-                    const outer = size * 0.26
-                    const inner = size * 0.18
-                    const innerRotation = -rotation // полная против часовой
-                    const toRad = (d: number) => (Math.PI / 180) * d
-                    const items: JSX.Element[] = []
-                    for (let i = 0; i < labels.length; i++) {
-                        const a0 = i * seg - 90
-                        const a1 = (i + 1) * seg - 90
-                        const sx = cx + outer * Math.cos(toRad(a0))
-                        const sy = cy + outer * Math.sin(toRad(a0))
-                        const ex = cx + outer * Math.cos(toRad(a1))
-                        const ey = cy + outer * Math.sin(toRad(a1))
-                        const sxi = cx + inner * Math.cos(toRad(a0))
-                        const syi = cy + inner * Math.sin(toRad(a0))
-                        const exi = cx + inner * Math.cos(toRad(a1))
-                        const eyi = cy + inner * Math.sin(toRad(a1))
-                        const d = `M ${sxi} ${syi} L ${sx} ${sy} A ${outer} ${outer} 0 0 1 ${ex} ${ey} L ${exi} ${eyi} A ${inner} ${inner} 0 0 0 ${sxi} ${syi} Z`
-                        items.push(
-                            <path
-                                key={i}
-                                d={d}
-                                fill={i % 2 === 0 ? '#2b66b9' : '#1e4b95'}
-                                stroke="#0b2f68"
-                                strokeWidth={1}
-                            />
-                        )
-                    }
-                    return <g transform={`rotate(${innerRotation} ${cx} ${cy})`}>{items}</g>
-                })()}
-            </svg>
             {!isSpinning && typeof selectedIndex === 'number' && (
                 <svg
                     width={size}
