@@ -143,7 +143,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     const cy = size / 2
                     const outer = size * 0.26
                     const inner = size * 0.18
-                    const innerRotation = -rotation * 0.35
+                    const innerRotation = -rotation // полная против часовой
                     const toRad = (d: number) => (Math.PI / 180) * d
                     const items: JSX.Element[] = []
                     for (let i = 0; i < labels.length; i++) {
@@ -162,11 +162,13 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                             <path
                                 key={i}
                                 d={d}
-                                fill={i % 2 === 0 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
+                                fill={i % 2 === 0 ? '#2b66b9' : '#1e4b95'}
+                                stroke="#0b2f68"
+                                strokeWidth={1}
                             />
                         )
                     }
-                    return <g transform={`rotate(${innerRotation} ${cx} ${cy})`} style={{opacity: isSpinning ? 0.18 : 0.08}}>{items}</g>
+                    return <g transform={`rotate(${innerRotation} ${cx} ${cy})`}>{items}</g>
                 })()}
             </svg>
             {!isSpinning && typeof selectedIndex === 'number' && (
