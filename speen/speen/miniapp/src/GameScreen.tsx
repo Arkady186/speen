@@ -40,8 +40,22 @@ export function GameScreen() {
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
+    const [midW, setMidW] = React.useState<number>(() => Number(localStorage.getItem('mid_w') || '0'))
+    const [midAnim, setMidAnim] = React.useState<boolean>(false)
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
+    React.useEffect(() => {
+        const t = setInterval(() => {
+            setMidW(prev => {
+                const next = (prev || 0) + 1
+                try { localStorage.setItem('mid_w', String(next)) } catch {}
+                setMidAnim(true)
+                setTimeout(() => setMidAnim(false), 900)
+                return next
+            })
+        }, 30000)
+        return () => clearInterval(t)
+    }, [])
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -186,6 +200,17 @@ export function GameScreen() {
                                     <RoundBtn onClick={() => setBet(b => { const {max}=getLimits(mode,currency); return Math.min(max, Math.floor((b||0)+1)) })} kind="plus" />
                                 </div>
                             </PanelShell>
+
+                            {/* Mid W ticker */}
+                            <div style={midCounterShell}>
+                                <div style={midCounterInner}>
+                                    <div style={midValue}>{midW}</div>
+                                    <div style={{position:'relative', width:28, height:28, display:'grid', placeItems:'center'}}>
+                                        <img src="/coin-w.png" alt="W" style={{width:24,height:24, transform: midAnim? 'scale(1.25)': 'scale(1)', transition:'transform 240ms ease'}} />
+                                        {midAnim && <div style={midPlusOne}>+1</div>}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div style={wheelWrap}>
                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
@@ -358,6 +383,10 @@ const currencyCell: React.CSSProperties = {
 }
 const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
 const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
+const midCounterShell: React.CSSProperties = { width:'88%', margin:'2px auto 0', display:'grid' }
+const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridAutoFlow:'column', alignItems:'center', gap:8, background:'#2b66b9', padding:'6px 10px', borderRadius:10, boxShadow:'inset 0 0 0 3px #0b2f68' }
+const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui' }
+const midPlusOne: React.CSSProperties = { position:'absolute', bottom:24, color:'#22c55e', fontWeight:900, animation:'midpop 900ms ease forwards', textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
 
 function PanelShell({ children }: { children: React.ReactNode }){
     return (
@@ -500,6 +529,7 @@ const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, 
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📈" /> },
     { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📰" /> },
 ]
+
 
 
 

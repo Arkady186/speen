@@ -151,6 +151,11 @@ style.innerHTML = `
 	50% { transform: rotate(380deg); }
 	100% { transform: rotate(720deg); }
 }
+@keyframes midpop {
+    0% { transform: translateY(0); opacity: 0; }
+    20% { transform: translateY(-6px); opacity: 1; }
+    100% { transform: translateY(-18px); opacity: 0; }
+}
 `
 document.head.appendChild(style)
 
