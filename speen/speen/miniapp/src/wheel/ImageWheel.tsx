@@ -100,8 +100,9 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const a = ((angle % 360) + 360) % 360
         // преобразуем в угол изображения: вычесть текущий поворот и стартовый сдвиг
         const imgAngle = ((a - rotation - startOffsetDeg) % 360 + 360) % 360
-        const idx = Math.floor(imgAngle / seg) % labels.length
-        onSelectIndex?.(idx, labels[idx])
+        const baseIdx = Math.floor(imgAngle / seg) % labels.length
+        const logicalIdx = (baseIdx + SECTOR_OFFSET) % labels.length
+        onSelectIndex?.(logicalIdx, labels[logicalIdx])
     }
 
     return (
@@ -142,7 +143,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const cy = size / 2
                         const rOuter = size * 0.49
                         const rInner = size * 0.30
-                        const center = selectedIndex * seg + seg / 2
+                        const physIndex = (selectedIndex - SECTOR_OFFSET + labels.length) % labels.length
+                        const center = physIndex * seg + seg / 2
                         const centerScreen = ((center + rotation + startOffsetDeg) % 360 + 360) % 360
                         const startDeg = centerScreen - seg / 2 - 90
                         const endDeg = centerScreen + seg / 2 - 90
