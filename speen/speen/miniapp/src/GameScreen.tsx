@@ -412,7 +412,7 @@ const currencyCell: React.CSSProperties = {
 const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
 const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
 const midCounterShell: React.CSSProperties = { width:'88%', margin:'2px auto 0', display:'grid' }
-const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridAutoFlow:'column', alignItems:'center', gap:8, background:'#2b66b9', padding:'6px 10px', borderRadius:10, boxShadow:'inset 0 0 0 3px #0b2f68' }
+const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridAutoFlow:'column', alignItems:'center', gap:8, background:'transparent', padding:0, borderRadius:0, boxShadow:'none' }
 const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui' }
 const midPlusOne: React.CSSProperties = { position:'absolute', bottom:24, color:'#22c55e', fontWeight:900, animation:'midpop 900ms ease forwards', textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
 
