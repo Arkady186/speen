@@ -141,8 +141,9 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 {(() => {
                     const cx = size / 2
                     const cy = size / 2
-                    const outer = size * 0.30
-                    const inner = size * 0.12
+                    const outer = size * 0.26
+                    const inner = size * 0.18
+                    const innerRotation = -rotation * 0.35
                     const toRad = (d: number) => (Math.PI / 180) * d
                     const items: JSX.Element[] = []
                     for (let i = 0; i < labels.length; i++) {
@@ -161,13 +162,11 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                             <path
                                 key={i}
                                 d={d}
-                                fill={i % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}
-                                stroke="rgba(255,255,255,0.12)"
-                                strokeWidth={1}
+                                fill={i % 2 === 0 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
                             />
                         )
                     }
-                    return <g transform={`rotate(${-rotation} ${cx} ${cy})`}>{items}</g>
+                    return <g transform={`rotate(${innerRotation} ${cx} ${cy})`} style={{opacity: isSpinning ? 0.18 : 0.08}}>{items}</g>
                 })()}
             </svg>
             {!isSpinning && typeof selectedIndex === 'number' && (
