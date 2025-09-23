@@ -110,12 +110,11 @@ export function GameScreen() {
     function getLimits(m: GameMode, cur: 'W'|'B') {
         // General limits
         const general = cur === 'W' ? { min: 100, max: 1_000_000_000 } : { min: 1, max: 1000 }
-        // Mode-specific limits
+        // Mode-specific limits per spec
         const modeLimits = (
             m === 'allin'
                 ? (cur === 'W' ? { min: 1000, max: 10000 } : { min: 3, max: 10 })
-                // For initial (normal/pyramid, W): cap max at 100 instead of 1000
-                : (cur === 'W' ? { min: 100, max: 100 } : { min: 1, max: 3 })
+                : (cur === 'W' ? { min: 100, max: 1000 } : { min: 1, max: 3 })
         )
         return { min: Math.max(general.min, modeLimits.min), max: Math.min(general.max, modeLimits.max) }
     }
@@ -124,7 +123,10 @@ export function GameScreen() {
     React.useEffect(() => {
         const { min, max } = getLimits(mode, currency)
         const baseMin = Math.max(100, min)
-        setBet(prev => Math.min(max, Math.max(baseMin, Math.floor(prev || baseMin))))
+        setBet(prev => {
+            const cur = Math.floor(prev || baseMin)
+            return Math.min(max, Math.max(baseMin, cur))
+        })
     }, [mode, currency])
 
     function onBeforeSpin() {
