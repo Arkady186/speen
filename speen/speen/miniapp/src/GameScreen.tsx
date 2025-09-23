@@ -40,26 +40,34 @@ export function GameScreen() {
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
-    const MID_INTERVAL_MS = 30_000
-    const [midW, setMidW] = React.useState<number>(() => Number(localStorage.getItem('mid_w') || '0'))
+    const MID_RATE_PER_SEC = 0.01
+    const MID_INTERVAL_MS = 1_000
+    const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
+    const [midW, setMidW] = React.useState<number>(() => parseFloat(localStorage.getItem('mid_w') || '0') || 0)
     const [midAnim, setMidAnim] = React.useState<boolean>(false)
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
-    // Catch-up accrual based on time away
+    // Catch-up accrual based on time away with 3h cap
     React.useEffect(() => {
         function accrueIfDue() {
             const now = Date.now()
             const last = Number(localStorage.getItem('mid_w_last_ts') || String(now))
-            const ticks = Math.floor((now - last) / MID_INTERVAL_MS)
+            const elapsed = Math.max(0, now - last)
+            const accrualMs = Math.min(elapsed, MID_STOP_AFTER_MS)
+            const ticks = Math.floor(accrualMs / 1000)
             if (ticks > 0) {
                 setMidW(prev => {
-                    const next = (prev || 0) + ticks
+                    const add = ticks * MID_RATE_PER_SEC
+                    const next = Number(((prev || 0) + add).toFixed(2))
                     try {
                         localStorage.setItem('mid_w', String(next))
-                        localStorage.setItem('mid_w_last_ts', String(last + ticks * MID_INTERVAL_MS))
+                        localStorage.setItem('mid_w_last_ts', String(now))
                     } catch {}
-                    setMidAnim(true)
-                    setTimeout(() => setMidAnim(false), 900)
+                    // анимацию показываем только когда прирост целого значения
+                    if (Math.floor(next) > Math.floor(prev || 0)) {
+                        setMidAnim(true)
+                        setTimeout(() => setMidAnim(false), 900)
+                    }
                     return next
                 })
             } else {
@@ -70,13 +78,16 @@ export function GameScreen() {
         const t = setInterval(() => {
             // regular tick while app is open
             setMidW(prev => {
-                const next = (prev || 0) + 1
+                const nextRaw = (prev || 0) + MID_RATE_PER_SEC
+                const next = Number(nextRaw.toFixed(2))
                 try {
                     localStorage.setItem('mid_w', String(next))
                     localStorage.setItem('mid_w_last_ts', String(Date.now()))
                 } catch {}
-                setMidAnim(true)
-                setTimeout(() => setMidAnim(false), 900)
+                if (Math.floor(next) > Math.floor(prev || 0)) {
+                    setMidAnim(true)
+                    setTimeout(() => setMidAnim(false), 900)
+                }
                 return next
             })
         }, MID_INTERVAL_MS)
