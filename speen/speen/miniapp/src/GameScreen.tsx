@@ -36,7 +36,7 @@ export function GameScreen() {
     type GameMode = 'normal' | 'pyramid' | 'allin'
     const [mode, setMode] = React.useState<GameMode>('normal')
     const [currency, setCurrency] = React.useState<'W'|'B'>('W')
-    const [bet, setBet] = React.useState<number>(15)
+    const [bet, setBet] = React.useState<number>(100)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
@@ -122,7 +122,8 @@ export function GameScreen() {
     // Clamp bet when mode/currency changes
     React.useEffect(() => {
         const { min, max } = getLimits(mode, currency)
-        setBet(prev => Math.min(max, Math.max(min, Math.floor(prev || min))))
+        const baseMin = Math.max(100, min)
+        setBet(prev => Math.min(max, Math.max(baseMin, Math.floor(prev || baseMin))))
     }, [mode, currency])
 
     function onBeforeSpin() {
@@ -234,9 +235,21 @@ export function GameScreen() {
                             {/* Row 3: ставка */}
                             <PanelShell>
                                 <div style={rowGrid}>
-                                    <RoundBtn onClick={() => setBet(b => { const {min}=getLimits(mode,currency); return Math.max(min, Math.floor((b||0)-1)) })} kind="minus" />
+                                    <RoundBtn onClick={() => setBet(b => {
+                                        const {min} = getLimits(mode, currency)
+                                        const baseMin = Math.max(100, min)
+                                        const cur = Math.max(baseMin, Math.floor(b || baseMin))
+                                        const next = cur - 10
+                                        return Math.max(baseMin, next)
+                                    })} kind="minus" />
                                     <div style={controlBoxText}>{bet}</div>
-                                    <RoundBtn onClick={() => setBet(b => { const {max}=getLimits(mode,currency); return Math.min(max, Math.floor((b||0)+1)) })} kind="plus" />
+                                    <RoundBtn onClick={() => setBet(b => {
+                                        const {max} = getLimits(mode, currency)
+                                        const baseMin = Math.max(100, getLimits(mode, currency).min)
+                                        const cur = Math.max(baseMin, Math.floor(b || baseMin))
+                                        const next = cur + 10
+                                        return Math.min(max, next)
+                                    })} kind="plus" />
                                 </div>
                             </PanelShell>
 
