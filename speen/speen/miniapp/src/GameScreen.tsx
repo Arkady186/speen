@@ -114,7 +114,8 @@ export function GameScreen() {
         const modeLimits = (
             m === 'allin'
                 ? (cur === 'W' ? { min: 1000, max: 10000 } : { min: 3, max: 10 })
-                : (cur === 'W' ? { min: 100, max: 1000 } : { min: 1, max: 3 })
+                // For initial (normal/pyramid, W): cap max at 100 instead of 1000
+                : (cur === 'W' ? { min: 100, max: 100 } : { min: 1, max: 3 })
         )
         return { min: Math.max(general.min, modeLimits.min), max: Math.min(general.max, modeLimits.max) }
     }
