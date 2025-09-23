@@ -230,18 +230,28 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     })()}
                 </svg>
             )}
-            {/* указатель повернут на 180° (основание сверху, вершина вниз) */}
-            <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
-                <svg width="34" height="40" viewBox="0 0 34 40">
-                    <defs>
-                        <linearGradient id="g2" x1="0" x2="1">
-                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                            <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M17 0 L34 22 L0 22 Z" fill="#ff3b30" stroke="#7a1d12" strokeWidth={2}/>
-                </svg>
-            </div>
+            {/* указатель: ставим на сектор 3, остриём к центру */}
+            {(() => {
+                const pointerTargetIndex = 3
+                const physIndex = (pointerTargetIndex - SECTOR_OFFSET + labels.length) % labels.length
+                const center = physIndex * seg + seg / 2
+                const pointerRotate = center - 90 // 0° вдоль +X, нам нужен верх = -90°
+                return (
+                    <div style={{ position:'absolute', left:0, top:0, width:size, height:size, transform:`rotate(${pointerRotate}deg)`, transformOrigin:'50% 50%' }}>
+                        <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+                            <svg width="34" height="40" viewBox="0 0 34 40">
+                                <defs>
+                                    <linearGradient id="g2" x1="0" x2="1">
+                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                                        <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M17 0 L34 22 L0 22 Z" fill="#ff3b30" stroke="#7a1d12" strokeWidth={2}/>
+                            </svg>
+                        </div>
+                    </div>
+                )
+            })()}
 
             {/* центральная кнопка старта */}
             <button
