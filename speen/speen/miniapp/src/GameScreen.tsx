@@ -268,7 +268,7 @@ export function GameScreen() {
                             </div>
                         </div>
                         <div style={wheelWrap}>
-                            <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]} startOffsetDeg={-54}
+                            <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
                                 onBeforeSpin={onBeforeSpin}
                                 onResult={onSpinResult}
                                 selectedIndex={pickedDigit}
