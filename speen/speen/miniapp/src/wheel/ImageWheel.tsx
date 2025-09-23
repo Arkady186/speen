@@ -238,7 +238,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 const pointerRotate = center - 90 // 0° вдоль +X, нам нужен верх = -90°
                 return (
                     <div style={{ position:'absolute', left:0, top:0, width:size, height:size, transform:`rotate(${pointerRotate}deg)`, transformOrigin:'50% 50%' }}>
-                        <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+                        <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%) rotate(180deg) scaleX(-1)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
                             <svg width="34" height="40" viewBox="0 0 34 40">
                                 <defs>
                                     <linearGradient id="g2" x1="0" x2="1">
