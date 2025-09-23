@@ -239,7 +239,7 @@ export function GameScreen() {
                                         const {min} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
-                                        const next = cur - 10
+                                        const next = cur - 25
                                         return Math.max(baseMin, next)
                                     })} kind="minus" />
                                     <div style={controlBoxText}>{bet}</div>
@@ -247,7 +247,7 @@ export function GameScreen() {
                                         const {max} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, getLimits(mode, currency).min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
-                                        const next = cur + 10
+                                        const next = cur + 25
                                         return Math.min(max, next)
                                     })} kind="plus" />
                                 </div>
