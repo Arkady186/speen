@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="24" viewBox="0 0 64 24">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0%" stop-color="#ffb199"/>
+      <stop offset="100%" stop-color="#ff6b57"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="22" rx="10" fill="url(#g)" stroke="#7a1d12" stroke-width="2"/>
+  <text x="32" y="15" font-size="12" font-family="Inter, Arial" font-weight="800" text-anchor="middle" fill="#fff">COMING SOON</text>
+</svg>
+
+
