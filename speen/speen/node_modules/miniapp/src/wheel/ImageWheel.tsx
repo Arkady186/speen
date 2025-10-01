@@ -272,16 +272,18 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     </div>
                 )
             })()}
-            {/* плюс-иконка напротив, наполовину заходя на треугольник */}
+            {/* плюс-иконка слева снизу, параллельно треугольнику */}
             {(() => {
                 const PLUS_SIZE = 34
                 const cx = size / 2
+                const cy = size / 2
                 const pointerTop = -16 + POINTER_DY
-                // ставим правее указателя на половину ширины и совмещаем по вертикали
-                const leftCss = `calc(50% + ${POINTER_DX + PLUS_SIZE / 2}px)`
-                const topCss = pointerTop - 2
+                const px = cx + POINTER_DX
+                const py = pointerTop
+                const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI
+                const rotateDeg = angleToCenter + 90
                 return (
-                    <img src="/plus.png" alt="plus" style={{ position:'absolute', left: leftCss, top: topCss, width: PLUS_SIZE, height: PLUS_SIZE, transform:'translateX(-50%)', pointerEvents:'none', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))' }} />
+                    <img src="/plus.png" alt="plus" style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg}deg)`, transformOrigin:'50% 50%', pointerEvents:'none', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))' }} />
                 )
             })()}
 
