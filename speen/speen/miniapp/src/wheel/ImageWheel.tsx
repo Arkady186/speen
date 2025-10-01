@@ -18,14 +18,25 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
+    // Pointer offsets from original top-center position
+    const POINTER_DX = 100 // px to the right from center
+    const POINTER_DY = 30  // px down from original top (-16 + 30 => top: 14)
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
     }
 
     function indexFromRotation(rotDeg: number) {
-        // Какой сектор находится у указателя (сверху), если колесо повернуто на rotDeg по часовой
-        const a = normalizeDeg(-rotDeg - startOffsetDeg)
+        // Коррекция под положение указателя
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI // от центра к указателю
+        const pointerCorrectionDeg = pointerAzimuth + 90 // 0 соответствует верхней позиции
+        // Какой сектор под указателем при повороте rotDeg
+        const a = normalizeDeg(-rotDeg - startOffsetDeg + pointerCorrectionDeg)
         const idx = Math.floor(a / seg) % labels.length
         return (idx + SECTOR_OFFSET) % labels.length
     }
@@ -34,8 +45,16 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         // Центр целевого сектора должен оказаться под указателем
         const physIndex = (index - SECTOR_OFFSET + labels.length) % labels.length
         const center = physIndex * seg + seg / 2
-        // Базовый угол (без полных оборотов), который приведет центр сектора к указателю
-        const base = -(center + startOffsetDeg)
+        // Учесть смещение указателя от верхней позиции
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
+        const pointerCorrectionDeg = pointerAzimuth + 90
+        // Базовый угол, который приведет центр сектора к указателю
+        const base = -(center + startOffsetDeg - pointerCorrectionDeg)
         return base
     }
 
@@ -230,18 +249,29 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     })()}
                 </svg>
             )}
-            {/* указатель со смещением и поворотом */}
-            <div style={{ position: 'absolute', left: 'calc(50% + 100px)', top: 14, transform: 'translateX(-50%) rotate(195deg)', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
-                <svg width="34" height="40" viewBox="0 0 34 40">
-                    <defs>
-                        <linearGradient id="g2" x1="0" x2="1">
-                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                            <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M17 0 L34 22 L0 22 Z" fill="#ff3b30" stroke="#7a1d12" strokeWidth={2}/>
-                </svg>
-            </div>
+            {/* указатель со смещением; ориентируем остриём к центру */}
+            {(() => {
+                const cx = size / 2
+                const cy = size / 2
+                const pointerTop = -16 + POINTER_DY
+                const px = cx + POINTER_DX
+                const py = pointerTop
+                const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI // от указателя к центру
+                const rotateDeg = angleToCenter + 90 // апекс вверх => +90 чтобы смотреть по вектору
+                return (
+                    <div style={{ position: 'absolute', left: `calc(50% + ${POINTER_DX}px)`, top: pointerTop, transform: `translateX(-50%) rotate(${rotateDeg}deg)`, filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
+                        <svg width="34" height="40" viewBox="0 0 34 40">
+                            <defs>
+                                <linearGradient id="g2" x1="0" x2="1">
+                                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                                    <stop offset="100%" stopColor="#bcd7ff" stopOpacity="0.6" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M17 0 L34 22 L0 22 Z" fill="#ff3b30" stroke="#7a1d12" strokeWidth={2}/>
+                        </svg>
+                    </div>
+                )
+            })()}
 
             {/* центральная кнопка старта */}
             <button
