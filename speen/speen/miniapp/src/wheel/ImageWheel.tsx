@@ -278,7 +278,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 style={{
                     position: 'absolute',
                     left: 8,
-                    bottom: 8,
+                    bottom: -12,
                     width: 40,
                     height: 40,
                     pointerEvents: 'none',
