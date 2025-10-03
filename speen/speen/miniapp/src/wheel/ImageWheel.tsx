@@ -283,7 +283,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI
                 const rotateDeg = angleToCenter + 90
                 return (
-                    <img src="/plus.png" alt="plus" style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg}deg)`, transformOrigin:'50% 50%', pointerEvents:'none', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))' }} />
+                    <img src="/plus.png" alt="plus" style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg + 20}deg)`, transformOrigin:'50% 50%', pointerEvents:'none', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))' }} />
                 )
             })()}
 
