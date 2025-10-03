@@ -273,6 +273,32 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 )
             })()}
 
+            {/* дополнительная иконка плюс — симметрично указателю */}
+            {(() => {
+                const cx = size / 2
+                const cy = size / 2
+                const pointerTop = -16 + POINTER_DY
+                const px = cx - POINTER_DX // зеркально по X
+                const py = pointerTop
+                const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI
+                const rotateDeg = angleToCenter + 90
+                return (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            left: `calc(50% - ${POINTER_DX}px)`,
+                            top: pointerTop,
+                            transform: `translateX(-50%) rotate(${rotateDeg - 180}deg)`,
+                            filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.25))',
+                            pointerEvents: 'none',
+                            zIndex: 2
+                        }}
+                    >
+                        <img src="/plus.png" alt="plus" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                    </div>
+                )
+            })()}
+
             {/* центральная кнопка старта */}
             <button
                 type="button"
