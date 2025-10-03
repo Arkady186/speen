@@ -273,21 +273,6 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 )
             })()}
 
-            {/* дополнительная иконка plus — снизу слева, рядом с колесом */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: 8,
-                    bottom: -12,
-                    width: 40,
-                    height: 40,
-                    pointerEvents: 'none',
-                    filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.25))',
-                    zIndex: 2
-                }}
-            >
-                <img src="/plus.png" alt="plus" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
 
             {/* центральная кнопка старта */}
             <button

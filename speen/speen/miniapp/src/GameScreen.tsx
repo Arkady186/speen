@@ -274,8 +274,10 @@ export function GameScreen() {
                                 selectedIndex={pickedDigit}
                                 onSelectIndex={(idx)=> setPickedDigit(idx)}
                                 onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }} />
-                            {/* Plus.png снизу слева рядом с колесом */}
-                            <img src="/plus.png" alt="plus" style={plusNearWheel} />
+                        </div>
+                        {/* Plus.png снизу слева рядом с колесом (вне колеса) */}
+                        <div style={plusOutsideWrap}>
+                            <img src="/plus.png" alt="plus" style={{ width: 40, height: 40, objectFit: 'contain' }} />
                         </div>
                     </>
                 ) : (
@@ -366,6 +368,7 @@ const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 24, left: '50%', transform:'translateX(-50%) scale(1.16)' }
 const plusNearWheel: React.CSSProperties = { position:'absolute', left: -56, bottom: -8, width: 40, height: 40, objectFit:'contain', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
+const plusOutsideWrap: React.CSSProperties = { position:'absolute', left: 'calc(50% - 170px)', bottom: 12, transform:'translateX(-50%)', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
 const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440 }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8 }
