@@ -41,6 +41,8 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
+    const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%','💎','⭐','🎁','🔒','↻','🛡️']
+    const [selectedBonus, setSelectedBonus] = React.useState<number | null>(null)
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
     const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
@@ -148,9 +150,35 @@ export function GameScreen() {
 
     function onSpinResult(index: number, label: string) {
         const b = Math.floor(bet)
+
+        const numCorrect = String(pickedDigit) === label
+        const bonusCorrect = selectedBonus != null && selectedBonus === index
+
+        // Если верная цифра, но бонус неверный — возвращаем ставку
+        if (numCorrect && !bonusCorrect) {
+            if (currency === 'W') saveBalances(balanceW + b, balanceB)
+            else saveBalances(balanceW, balanceB + b)
+            setToast('Цифра угадана! Ставка возвращена')
+            return
+        }
+
+        // Если неверная цифра, но бонус верный — выдаём бонус (инвентарь)
+        if (!numCorrect && bonusCorrect) {
+            try {
+                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                const inv: string[] = JSON.parse(invRaw)
+                const bonusName = BONUS_LABELS[index] || `Бонус ${index}`
+                inv.push(bonusName)
+                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+            } catch {}
+            setToast('Бонус получен!')
+            return
+        }
+
+        // Иначе — стандартная логика выигрыша по цифре/режиму
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
-            const won = String(pickedDigit) === label
+            const won = numCorrect
             if (won) delta = b * getMultiplier(mode)
         } else {
             // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25%
@@ -282,8 +310,15 @@ export function GameScreen() {
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>Выбор бонусов</div>
                                     <div style={bonusGrid}>
-                                        {bonusOptions.map((b, i) => (
-                                            <div key={i} style={bonusCard} onClick={()=>{ /* сюда можно добавить логику выбора */ setBonusesOpen(false); setToast(`Бонус: ${b}`) }}>
+                                        {BONUS_LABELS.map((b, i) => (
+                                            <div
+                                                key={i}
+                                                style={{
+                                                    ...bonusCard,
+                                                    boxShadow: selectedBonus===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
+                                                }}
+                                                onClick={()=>{ setSelectedBonus(i); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
+                                            >
                                                 <img src="/bonus.png" alt="bonus" style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
                                             </div>
