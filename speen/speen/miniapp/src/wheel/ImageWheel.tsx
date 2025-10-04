@@ -138,6 +138,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     transform: `rotate(${rotation}deg)`,
                     willChange: 'transform',
                     filter: 'drop-shadow(0 18px 22px rgba(0,0,0,0.35))',
+                    position: 'relative'
                 }}
                 onTransitionEnd={() => {
                     if (!isSpinning) return
@@ -149,7 +150,28 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
-            />
+            >
+                {(() => {
+                    const BONUS_SIZE = Math.max(18, Math.round(size * 0.09))
+                    const cx = size / 2
+                    const cy = size / 2
+                    const r = Math.round(size * 0.31)
+                    return labels.map((_, i) => {
+                        const angleDeg = i * seg + seg / 2 - 90
+                        const rad = angleDeg * Math.PI / 180
+                        const x = Math.round(cx + r * Math.cos(rad) - BONUS_SIZE / 2)
+                        const y = Math.round(cy + r * Math.sin(rad) - BONUS_SIZE / 2)
+                        return (
+                            <img
+                                key={`bonus-${i}`}
+                                src="/bonus.png"
+                                alt="bonus"
+                                style={{ position:'absolute', left: x, top: y, width: BONUS_SIZE, height: BONUS_SIZE, objectFit:'contain', pointerEvents:'none' }}
+                            />
+                        )
+                    })
+                })()}
+            </div>
             {!isSpinning && typeof selectedIndex === 'number' && (
                 <svg
                     width={size}
