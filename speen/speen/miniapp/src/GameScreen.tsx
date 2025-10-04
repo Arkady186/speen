@@ -40,6 +40,7 @@ export function GameScreen() {
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
+    const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
     const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
@@ -273,8 +274,27 @@ export function GameScreen() {
                                 onResult={onSpinResult}
                                 selectedIndex={pickedDigit}
                                 onSelectIndex={(idx)=> setPickedDigit(idx)}
-                                onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }} />
+                                onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
+                                onOpenBonuses={() => setBonusesOpen(true)} />
                         </div>
+                        {bonusesOpen && (
+                            <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
+                                <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
+                                    <div style={bonusHeader}>Выбор бонусов</div>
+                                    <div style={bonusGrid}>
+                                        {bonusOptions.map((b, i) => (
+                                            <div key={i} style={bonusCard} onClick={()=>{ /* сюда можно добавить логику выбора */ setBonusesOpen(false); setToast(`Бонус: ${b}`) }}>
+                                                <img src="/bonus.png" alt="bonus" style={{width:36,height:36,objectFit:'contain'}} />
+                                                <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div style={{display:'grid', placeItems:'center', marginTop:10}}>
+                                        <button style={bonusCloseBtn} onClick={()=>setBonusesOpen(false)}>Закрыть</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         
                     </>
                 ) : (
@@ -384,6 +404,15 @@ const toastCard: React.CSSProperties = {
     letterSpacing:.6,
     fontFamily:'"Russo One", Inter, system-ui',
 }
+
+// Bonuses UI
+const bonusOverlay: React.CSSProperties = { position:'fixed', left:0, right:0, top:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'grid', placeItems:'center', zIndex:80 }
+const bonusSheet: React.CSSProperties = { width:'90%', maxWidth:420, background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)', borderRadius:14, boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)', padding:12 }
+const bonusHeader: React.CSSProperties = { color:'#fff', fontWeight:900, textAlign:'center', marginBottom:10, fontFamily:'"Russo One", Inter, system-ui' }
+const bonusGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:10 }
+const bonusCard: React.CSSProperties = { display:'grid', placeItems:'center', gap:6, padding:'10px 8px', background:'#1e4b95', boxShadow:'inset 0 0 0 2px #0b2f68', borderRadius:10, cursor:'pointer' }
+const bonusCloseBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, background:'#244e96', color:'#fff', fontWeight:800, border:'none', boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const bonusOptions = ['x2', 'x3', '+50%', '+25%', 'Free Spin', 'Shield']
 
 // Controls UI
 function ControlRow({ children }: { children: React.ReactNode }){
@@ -499,8 +528,8 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                                 <div style={menuTitle}>{item.title}</div>
                                 {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                             </div>
-                            <div style={arrowWrap}>
-                                <div style={arrowIcon}>›</div>
+                            <div style={arrowWrapRight}>
+                                <div style={arrowIconRight}>›</div>
                             </div>
                         </div>
                     ))}

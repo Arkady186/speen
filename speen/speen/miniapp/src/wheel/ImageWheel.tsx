@@ -10,9 +10,10 @@ type ImageWheelProps = {
     onSpinningChange?: (spinning: boolean) => void
     selectedIndex?: number | null
     onSelectIndex?: (index: number, label: string) => void
+    onOpenBonuses?: () => void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex }: ImageWheelProps) {
+export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
@@ -291,7 +292,14 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI
                 const rotateDeg = angleToCenter + 90
                 return (
-                    <img src="/plus.png" alt="plus" style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg + 55}deg)`, transformOrigin:'50% 50%', pointerEvents:'none', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))' }} />
+                    <div
+                        role="button"
+                        aria-label="Открыть бонусы"
+                        onClick={(e) => { e.stopPropagation(); if (!isSpinning) onOpenBonuses?.() }}
+                        style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg + 55}deg)`, transformOrigin:'50% 50%', cursor: isSpinning ? 'default' : 'pointer', zIndex: 3 }}
+                    >
+                        <img src="/plus.png" alt="plus" style={{ width: '100%', height: '100%', objectFit:'contain', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))', pointerEvents:'none' }} />
+                    </div>
                 )
             })()}
 
