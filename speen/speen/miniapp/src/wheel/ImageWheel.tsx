@@ -155,7 +155,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 <img
                     src="/bonus.png"
                     alt="bonus-ring"
-                    style={{ position:'absolute', left: 0, top: 0, width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: `rotate(${0}deg)` }}
+                    style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
                 />
             </div>
             {!isSpinning && typeof selectedIndex === 'number' && (
