@@ -151,26 +151,12 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
             >
-                {(() => {
-                    const BONUS_SIZE = Math.max(18, Math.round(size * 0.09))
-                    const cx = size / 2
-                    const cy = size / 2
-                    const r = Math.round(size * 0.31)
-                    return labels.map((_, i) => {
-                        const angleDeg = i * seg + seg / 2 - 90
-                        const rad = angleDeg * Math.PI / 180
-                        const x = Math.round(cx + r * Math.cos(rad) - BONUS_SIZE / 2)
-                        const y = Math.round(cy + r * Math.sin(rad) - BONUS_SIZE / 2)
-                        return (
-                            <img
-                                key={`bonus-${i}`}
-                                src="/bonus.png"
-                                alt="bonus"
-                                style={{ position:'absolute', left: x, top: y, width: BONUS_SIZE, height: BONUS_SIZE, objectFit:'contain', pointerEvents:'none' }}
-                            />
-                        )
-                    })
-                })()}
+                {/* цельное кольцо бонусов поверх колеса */}
+                <img
+                    src="/bonus.png"
+                    alt="bonus-ring"
+                    style={{ position:'absolute', left: 0, top: 0, width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: `rotate(${0}deg)` }}
+                />
             </div>
             {!isSpinning && typeof selectedIndex === 'number' && (
                 <svg
