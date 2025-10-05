@@ -641,9 +641,9 @@ const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, b
     { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
-    { title: 'Скоро', subtitle: 'Новые режимы', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
     { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
-    { title: 'Скоро', subtitle: 'Ещё функции', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
+    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
