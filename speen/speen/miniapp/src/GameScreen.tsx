@@ -638,20 +638,20 @@ const arrowIconRight: React.CSSProperties = { color:'#bfe0ff', fontSize:22, line
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="👛" /> },
-    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="👥" /> },
-    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="📝" /> },
-    { title: 'Скоро', subtitle: 'Новые режимы', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="🛠️" /> },
-    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/shop.png" alt="shop" fallbackEmoji="🛍️" /> },
-    { title: 'Скоро', subtitle: 'Ещё функции', badgeImg:'/coming1.png', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="✈️" /> },
+    { title: 'Подключай свой кошелёк TON', subtitle: 'Синхронизируй баланс в игре', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+    { title: 'Приглашай друзей и получай', subtitle: 'свой процент в игре', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+    { title: 'Забери ежедневный бонус', subtitle: 'и получай дополнительные очки', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+    { title: 'Скоро', subtitle: 'Новые режимы', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+    { title: 'Магазин и бонусы', subtitle: 'Покупки за W/TON', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+    { title: 'Скоро', subtitle: 'Ещё функции', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/shop.png" alt="shop" fallbackEmoji="🛒" /> },
-    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/bank.png" alt="bank" fallbackEmoji="💱" /> },
-    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/zad.png" alt="tasks" fallbackEmoji="📝" /> },
-    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📈" /> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', icon: <PressIcon src="/coming-soon.svg" alt="coming" fallbackEmoji="📰" /> },
+    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
+    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
+    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
 ]
 
 
