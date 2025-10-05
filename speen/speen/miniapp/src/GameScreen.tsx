@@ -41,7 +41,9 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
-    const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%','💎','⭐','🎁','🔒','↻','🛡️']
+    const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
+    const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
+    const getSectorBonusIndex = (i: number) => SECTOR_TO_BONUS[((i % 10) + 10) % 10]
     const [selectedBonus, setSelectedBonus] = React.useState<number | null>(null)
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
@@ -152,7 +154,8 @@ export function GameScreen() {
         const b = Math.floor(bet)
 
         const numCorrect = String(pickedDigit) === label
-        const bonusCorrect = selectedBonus != null && selectedBonus === index
+        const sectorBonusIdx = getSectorBonusIndex(index)
+        const bonusCorrect = selectedBonus != null && selectedBonus === sectorBonusIdx
 
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
@@ -309,7 +312,7 @@ export function GameScreen() {
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>Выбор бонусов</div>
-                                    <div style={bonusGrid}>
+                                    <div style={{...bonusGrid, gridTemplateColumns:'repeat(2, 1fr)'}}>
                                         {BONUS_LABELS.map((b, i) => (
                                             <div
                                                 key={i}
