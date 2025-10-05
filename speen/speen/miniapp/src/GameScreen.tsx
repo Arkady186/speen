@@ -337,20 +337,26 @@ export function GameScreen() {
                     </>
                 ) : (
                     <div style={{padding:12}}>
-                        <div style={menuList}>
+                        <div style={{...menuList, gridTemplateColumns: !isMenuOpen ? '1fr' : undefined}}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
-                                    style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
+                                    style={{
+                                        ...menuCard,
+                                        padding: !isMenuOpen ? '16px 14px' : menuCard.padding as string,
+                                        gridTemplateColumns: !isMenuOpen ? '64px 1fr' : (menuCard.gridTemplateColumns as string),
+                                        minHeight: !isMenuOpen ? 82 : undefined,
+                                        transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'
+                                    }}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                                    <div style={menuIconWrap}>{item.icon}</div>
+                                    <div style={{...menuIconWrap, width: !isMenuOpen ? 64 : menuIconWrap.width as number, height: !isMenuOpen ? 64 : menuIconWrap.height as number}}>{item.icon}</div>
                                     <div style={menuTextWrap}>
-                                        <div style={menuTitle}>{item.title}</div>
-                                        {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                        <div style={{...menuTitle, fontSize: !isMenuOpen ? 18 : (menuTitle as any).fontSize}}>{item.title}</div>
+                                        {item.subtitle && <div style={{...menuSubtitle, fontSize: !isMenuOpen ? 14 : (menuSubtitle as any).fontSize}}>{item.subtitle}</div>}
                                     </div>
                                     <div style={arrowWrapRight}>
                                         <div style={arrowIconRight}>›</div>
