@@ -627,7 +627,7 @@ const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFi
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
 const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:1, textAlign:'center' }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:12, fontFamily:'"Rubik", Inter, system-ui' }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:12, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
@@ -648,11 +648,11 @@ const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, b
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'WHEEL SHOP', subtitle: 'проверь удачу', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
-    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой валюты', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
+    { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой волюты', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
     { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
-    { title: 'WCOIN новости', subtitle: 'Будь в курсе всех событий', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
+    { title: 'WCOIN новости', subtitle: 'будь в курсе всех событий', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
 ]
 
 
