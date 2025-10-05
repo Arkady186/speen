@@ -41,16 +41,7 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
-    // responsive sizing for right menu cards
-    const [viewportH, setViewportH] = React.useState<number>(() => (typeof window !== 'undefined' ? window.innerHeight : 720))
-    React.useEffect(() => {
-        function onResize(){ setViewportH(typeof window !== 'undefined' ? window.innerHeight : 720) }
-        window.addEventListener('resize', onResize)
-        return () => window.removeEventListener('resize', onResize)
-    }, [])
-    const rightMenuScale = (!isMenuOpen && isRightMenuOpen)
-        ? (viewportH < 640 ? 0.92 : viewportH < 740 ? 1.0 : 1.08)
-        : 1.0
+    // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
     const getSectorBonusIndex = (i: number) => SECTOR_TO_BONUS[((i % 10) + 10) % 10]
@@ -347,26 +338,20 @@ export function GameScreen() {
                     </>
                 ) : (
                     <div style={{padding:12}}>
-                        <div style={{...menuList, gridTemplateColumns: !isMenuOpen ? '1fr' : undefined}}>
+                        <div style={menuList}>
                             {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
-                                    style={{
-                                        ...menuCard,
-                                        padding: !isMenuOpen ? `${Math.round(12 * rightMenuScale)}px ${Math.round(12 * rightMenuScale)}px` : (menuCard.padding as string),
-                                        gridTemplateColumns: !isMenuOpen ? `${Math.round(48 * rightMenuScale)}px 1fr` : (menuCard.gridTemplateColumns as string),
-                                        minHeight: !isMenuOpen ? Math.round(72 * rightMenuScale) : undefined,
-                                        transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'
-                                    }}
+                                    style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                                    <div style={{...menuIconWrap, width: !isMenuOpen ? Math.round(48 * rightMenuScale) : (menuIconWrap.width as number), height: !isMenuOpen ? Math.round(48 * rightMenuScale) : (menuIconWrap.height as number)}}>{item.icon}</div>
+                                    <div style={menuIconWrap}>{item.icon}</div>
                                     <div style={menuTextWrap}>
-                                        <div style={{...menuTitle, fontSize: !isMenuOpen ? Math.round(16 * rightMenuScale) : (menuTitle as any).fontSize}}>{item.title}</div>
-                                        {item.subtitle && <div style={{...menuSubtitle, fontSize: !isMenuOpen ? Math.round(12 * rightMenuScale) : (menuSubtitle as any).fontSize}}>{item.subtitle}</div>}
+                                        <div style={menuTitle}>{item.title}</div>
+                                        {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
                                     <div style={arrowWrapRight}>
                                         <div style={arrowIconRight}>›</div>
