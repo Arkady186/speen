@@ -42,6 +42,7 @@ export function GameScreen() {
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
+    const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -353,7 +354,12 @@ export function GameScreen() {
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
-                                    onClick={() => { if (isMenuOpen && (item as any).action === 'invite') setInviteOpen(true) }}
+                                    onClick={() => {
+                                        if (!isMenuOpen) return
+                                        const act = (item as any).action
+                                        if (act === 'invite') setInviteOpen(true)
+                                        if (act === 'daily') setDailyOpen(true)
+                                    }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={menuIconWrap}>{item.icon}</div>
@@ -451,6 +457,25 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {dailyOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setDailyOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>Ежедневный бонус</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <DailyBonus
+                            onClose={() => setDailyOpen(false)}
+                            onClaim={(amount) => {
+                                saveBalances(balanceW + amount, balanceB)
+                                setToast(`+${amount} W за ежедневный вход`)
+                                setDailyOpen(false)
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
         </div>
     )
@@ -459,6 +484,36 @@ export function GameScreen() {
 function Coin(){
     return (
         <div style={{width:20,height:20,borderRadius:'50%',background:'radial-gradient(circle,#ffd86b,#f2a93b)',border:'2px solid #7a4e06'}} />
+    )
+}
+
+function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amount: number) => void }){
+    const [todayClaimed, setTodayClaimed] = React.useState<boolean>(() => {
+        try {
+            const d = localStorage.getItem('daily_claim_date')
+            const today = new Date().toDateString()
+            return d === today
+        } catch { return false }
+    })
+    const amount = 50
+    function handleClaim(){
+        if (todayClaimed) return
+        try { localStorage.setItem('daily_claim_date', new Date().toDateString()) } catch {}
+        setTodayClaimed(true)
+        onClaim(amount)
+    }
+    return (
+        <div style={{display:'grid', gap:12}}>
+            <div style={{textAlign:'center', color:'#fff', fontWeight:900}}>Заходи каждый день и получай +{amount} W</div>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <button style={{ padding:'10px 14px', borderRadius:10, border:'none', background: todayClaimed ? '#889bb9' : '#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: todayClaimed ? 'default' : 'pointer' }} onClick={handleClaim} disabled={todayClaimed}>
+                    {todayClaimed ? 'Уже получено сегодня' : 'Забрать бонус'}
+                </button>
+            </div>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+            </div>
+        </div>
     )
 }
 
@@ -703,10 +758,10 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' }> = [
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' }> = [
     { title: 'Подключай свой кошелек TON', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-    { title: 'Заходи каждый день и получай дополнительные бонусы', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+    { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
     { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
     { title: 'Мои покупки и бонусы в игре', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
