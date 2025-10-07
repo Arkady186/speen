@@ -43,6 +43,7 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
+    const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
     const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
     const getSectorBonusIndex = (i: number) => SECTOR_TO_BONUS[((i % 10) + 10) % 10]
     const [selectedBonus, setSelectedBonus] = React.useState<number | null>(null)
@@ -323,7 +324,7 @@ export function GameScreen() {
                                                 }}
                                                 onClick={()=>{ setSelectedBonus(i); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
                                             >
-                                                <img src="/bonus.png" alt="bonus" style={{width:36,height:36,objectFit:'contain'}} />
+                                                <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
                                             </div>
                                         ))}
