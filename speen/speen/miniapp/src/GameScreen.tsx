@@ -239,7 +239,10 @@ export function GameScreen() {
                             : <span style={avatarText}>{initials || '🧑'}</span>
                         }
                     </div>
-                    <div style={usernameStyle}>{username || 'Игрок'}</div>
+                    <div style={{display:'grid'}}>
+                        <div style={usernameStyle}>{username || 'Игрок'}</div>
+                        <div style={levelStyle}>1 lvl</div>
+                    </div>
                 </div>
                 <div style={balances}>
                     <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
@@ -419,6 +422,7 @@ const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap
 const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }
 const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
 const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 800, textShadow:'0 1px 0 rgba(255,255,255,0.6)', fontFamily:'"Rubik", Inter, system-ui' }
+const levelStyle: React.CSSProperties = { color:'#e8f1ff', fontWeight:800, fontSize:12, lineHeight:1.1, textShadow:'0 1px 0 rgba(0,0,0,0.25)' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
