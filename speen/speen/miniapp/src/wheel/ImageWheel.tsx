@@ -11,9 +11,11 @@ type ImageWheelProps = {
     selectedIndex?: number | null
     onSelectIndex?: (index: number, label: string) => void
     onOpenBonuses?: () => void
+    selectedBonusIndex?: number | null
+    onSelectBonusSector?: (index: number) => void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses }: ImageWheelProps) {
+export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
     const [rotation, setRotation] = React.useState<number>(0)
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
@@ -116,13 +118,26 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const cy = rect.top + rect.height / 2
         const x = evt.clientX - cx
         const y = evt.clientY - cy
+        const r = Math.hypot(x, y)
         const angle = (Math.atan2(y, x) * 180) / Math.PI // 0 at +X, CCW positive
         const a = ((angle % 360) + 360) % 360
         // привести к системе отсчёта указателя (0 на вершине), учесть текущий поворот и стартовый сдвиг
         const imgAngle = ((a + 90 - rotation - startOffsetDeg) % 360 + 360) % 360
         const baseIdx = Math.floor(imgAngle / seg) % labels.length
         const logicalIdx = (baseIdx + SECTOR_OFFSET) % labels.length
-        onSelectIndex?.(logicalIdx, labels[logicalIdx])
+        // зоны по радиусу: внутренний бонус-круг и внешний круг чисел
+        const innerRMin = size * 0.12
+        const innerRMax = size * 0.29
+        const outerRMin = size * 0.30
+        const outerRMax = size * 0.49
+        if (r >= innerRMin && r <= innerRMax) {
+            onSelectBonusSector?.(logicalIdx)
+            return
+        }
+        if (r >= outerRMin && r <= outerRMax) {
+            onSelectIndex?.(logicalIdx, labels[logicalIdx])
+            return
+        }
     }
 
     return (
@@ -189,6 +204,42 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const dOuter = `M ${sxi} ${syi} L ${sx} ${sy} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${ex} ${ey} L ${exi} ${eyi} A ${rInner} ${rInner} 0 ${largeArc} 0 ${sxi} ${syi} Z`
                         return (
                             <path d={dOuter} fill="rgba(76, 217, 100, 0.35)" stroke="#22c55e" strokeWidth={2} style={{ filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.9))' }} />
+                        )
+                    })()}
+                </svg>
+            )}
+            {!isSpinning && typeof selectedBonusIndex === 'number' && (
+                <svg
+                    width={size}
+                    height={size}
+                    style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                    viewBox={`0 0 ${size} ${size}`}
+                >
+                    {(() => {
+                        const cx = size / 2
+                        const cy = size / 2
+                        const segDeg = seg
+                        const physIndex = (selectedBonusIndex - SECTOR_OFFSET + labels.length) % labels.length
+                        const center = physIndex * segDeg + segDeg / 2
+                        const centerScreen = ((center + rotation + startOffsetDeg) % 360 + 360) % 360
+                        const startDeg = centerScreen - segDeg / 2 - 90
+                        const endDeg = centerScreen + segDeg / 2 - 90
+                        const toRad = (d: number) => (Math.PI / 180) * d
+                        // внутренний бонус-круг
+                        const rOuter2 = size * 0.29
+                        const rInner2 = size * 0.12
+                        const sx2 = cx + rOuter2 * Math.cos(toRad(startDeg))
+                        const sy2 = cy + rOuter2 * Math.sin(toRad(startDeg))
+                        const ex2 = cx + rOuter2 * Math.cos(toRad(endDeg))
+                        const ey2 = cy + rOuter2 * Math.sin(toRad(endDeg))
+                        const sxi2 = cx + rInner2 * Math.cos(toRad(startDeg))
+                        const syi2 = cy + rInner2 * Math.sin(toRad(startDeg))
+                        const exi2 = cx + rInner2 * Math.cos(toRad(endDeg))
+                        const eyi2 = cy + rInner2 * Math.sin(toRad(endDeg))
+                        const largeArc = endDeg - startDeg <= 180 ? 0 : 1
+                        const dInner = `M ${sxi2} ${syi2} L ${sx2} ${sy2} A ${rOuter2} ${rOuter2} 0 ${largeArc} 1 ${ex2} ${ey2} L ${exi2} ${eyi2} A ${rInner2} ${rInner2} 0 ${largeArc} 0 ${sxi2} ${syi2} Z`
+                        return (
+                            <path d={dInner} fill="rgba(255, 231, 76, 0.5)" stroke="#ffd23a" strokeWidth={2} style={{ filter: 'drop-shadow(0 0 8px rgba(255,220,60,0.8))' }} />
                         )
                     })()}
                 </svg>

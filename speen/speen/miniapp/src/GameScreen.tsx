@@ -172,7 +172,7 @@ export function GameScreen() {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                 const inv: string[] = JSON.parse(invRaw)
-                const bonusName = BONUS_LABELS[index] || `Бонус ${index}`
+                const bonusName = BONUS_LABELS[sectorBonusIdx] || `Бонус ${sectorBonusIdx}`
                 inv.push(bonusName)
                 localStorage.setItem('bonuses_inv', JSON.stringify(inv))
             } catch {}
@@ -308,7 +308,9 @@ export function GameScreen() {
                                 selectedIndex={pickedDigit}
                                 onSelectIndex={(idx)=> setPickedDigit(idx)}
                                 onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
-                                onOpenBonuses={() => setBonusesOpen(true)} />
+                                onOpenBonuses={() => setBonusesOpen(true)}
+                                selectedBonusIndex={selectedBonus}
+                                onSelectBonusSector={(idx) => setSelectedBonus(idx)} />
                         </div>
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
