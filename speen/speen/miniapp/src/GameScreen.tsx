@@ -41,6 +41,7 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
+    const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -352,6 +353,7 @@ export function GameScreen() {
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
+                                    onClick={() => { if (isMenuOpen && (item as any).action === 'invite') setInviteOpen(true) }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={menuIconWrap}>{item.icon}</div>
@@ -397,6 +399,43 @@ export function GameScreen() {
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
+            {inviteOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setInviteOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>Пригласи друга</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <div style={{display:'grid', gap:10}}>
+                            <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
+                            <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, alignItems:'center'}}>
+                                <input readOnly value={(typeof window!== 'undefined' ? window.location.href : 'https://t.me') as any} style={inviteInput} />
+                                <button style={inviteBtn} onClick={() => {
+                                    const url = typeof window!== 'undefined' ? window.location.href : 'https://t.me'
+                                    const text = 'Присоединяйся в игру!'
+                                    try {
+                                        const tg = (window as any).Telegram?.WebApp
+                                        if (tg?.openTelegramLink) {
+                                            const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+                                            tg.openTelegramLink(share)
+                                            return
+                                        }
+                                    } catch {}
+                                    if ((navigator as any)?.share) {
+                                        (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{})
+                                        return
+                                    }
+                                    navigator.clipboard?.writeText(url).then(()=> setToast('Ссылка скопирована'))
+                                }}>Поделиться</button>
+                            </div>
+                            <div style={{display:'grid', placeItems:'center'}}>
+                                <button style={inviteSecondaryBtn} onClick={() => setInviteOpen(false)}>Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
         </div>
     )
@@ -644,10 +683,13 @@ const arrowWrapRight: React.CSSProperties = {
 }
 const arrowIconRight: React.CSSProperties = { color:'#bfe0ff', fontSize:22, lineHeight:1, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
 const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bottom:-7, width:48, pointerEvents:'none', zIndex:2 }
+const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', borderRadius:8, border:'none', background:'#cbe6ff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#083068', fontWeight:800 }
+const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
+const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' }> = [
     { title: 'Подключай свой кошелек TON', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-    { title: 'Приглашай друзей и поднимай свой уровень в игре', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+    { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Заходи каждый день и получай дополнительные бонусы', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
     { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
     { title: 'Мои покупки и бонусы в игре', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
