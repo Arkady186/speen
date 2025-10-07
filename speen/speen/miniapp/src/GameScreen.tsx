@@ -410,9 +410,24 @@ export function GameScreen() {
                         <div style={{display:'grid', gap:10}}>
                             <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
                             <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, alignItems:'center'}}>
-                                <input readOnly value={(typeof window!== 'undefined' ? window.location.href : 'https://t.me') as any} style={inviteInput} />
+                                <input readOnly value={(() => {
+                                    try {
+                                        const tg = (window as any).Telegram?.WebApp
+                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'your_bot_username_here'
+                                        const uid = tg?.initDataUnsafe?.user?.id
+                                        const payload = uid ? `ref_${uid}` : 'invite'
+                                        return `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
+                                    } catch { return 'https://t.me' }
+                                })() as any} style={inviteInput} />
                                 <button style={inviteBtn} onClick={() => {
-                                    const url = typeof window!== 'undefined' ? window.location.href : 'https://t.me'
+                                    let url = 'https://t.me'
+                                    try {
+                                        const tg = (window as any).Telegram?.WebApp
+                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'your_bot_username_here'
+                                        const uid = tg?.initDataUnsafe?.user?.id
+                                        const payload = uid ? `ref_${uid}` : 'invite'
+                                        url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
+                                    } catch {}
                                     const text = 'Присоединяйся в игру!'
                                     try {
                                         const tg = (window as any).Telegram?.WebApp
