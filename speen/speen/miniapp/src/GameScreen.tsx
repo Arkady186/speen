@@ -413,7 +413,7 @@ export function GameScreen() {
                                 <input readOnly value={(() => {
                                     try {
                                         const tg = (window as any).Telegram?.WebApp
-                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'your_bot_username_here'
+                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
                                         const uid = tg?.initDataUnsafe?.user?.id
                                         const payload = uid ? `ref_${uid}` : 'invite'
                                         return `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
@@ -423,7 +423,7 @@ export function GameScreen() {
                                     let url = 'https://t.me'
                                     try {
                                         const tg = (window as any).Telegram?.WebApp
-                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'your_bot_username_here'
+                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
                                         const uid = tg?.initDataUnsafe?.user?.id
                                         const payload = uid ? `ref_${uid}` : 'invite'
                                         url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
