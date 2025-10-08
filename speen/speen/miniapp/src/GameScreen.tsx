@@ -44,6 +44,7 @@ export function GameScreen() {
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
+    const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
