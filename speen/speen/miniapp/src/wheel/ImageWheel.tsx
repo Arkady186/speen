@@ -24,6 +24,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     // Pointer offsets from original top-center position
     const POINTER_DX = 100 // px to the right from center
     const POINTER_DY = 30  // px down from original top (-16 + 30 => top: 14)
+    const lastSectorRef = React.useRef<number>(-1)
+    const audioContextRef = React.useRef<AudioContext | null>(null)
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -69,6 +71,61 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
         if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
     }, [])
+
+    // Функция воспроизведения глухого звука
+    function playTickSound() {
+        try {
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+            }
+            const ctx = audioContextRef.current
+            const oscillator = ctx.createOscillator()
+            const gainNode = ctx.createGain()
+            
+            oscillator.type = 'sine'
+            oscillator.frequency.value = 80 // глухой низкий звук
+            
+            gainNode.gain.setValueAtTime(0.15, ctx.currentTime)
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05)
+            
+            oscillator.connect(gainNode)
+            gainNode.connect(ctx.destination)
+            
+            oscillator.start(ctx.currentTime)
+            oscillator.stop(ctx.currentTime + 0.05)
+        } catch {}
+    }
+
+    // Функция вибрации
+    function vibrate() {
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            if (tg?.HapticFeedback?.impactOccurred) {
+                tg.HapticFeedback.impactOccurred('light')
+            } else if (navigator.vibrate) {
+                navigator.vibrate(10)
+            }
+        } catch {}
+    }
+
+    // Отслеживание смены сектора во время вращения
+    React.useEffect(() => {
+        if (!isSpinning) {
+            lastSectorRef.current = -1
+            return
+        }
+        
+        const interval = setInterval(() => {
+            const currentSector = indexFromRotation(rotation)
+            if (currentSector !== lastSectorRef.current) {
+                lastSectorRef.current = currentSector
+                playTickSound()
+                vibrate()
+            }
+        }, 50) // проверяем каждые 50мс
+        
+        return () => clearInterval(interval)
+    }, [isSpinning, rotation])
 
     function spin(toIndex?: number) {
         if (isSpinning) return
