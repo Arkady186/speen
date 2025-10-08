@@ -647,12 +647,11 @@ export function GameScreen() {
                 </div>
             )}
             {newsOpen && (
-                <div style={overlayDim}>
-                    <div style={sheet}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => setNewsOpen(false)}>‹</button>
-                            <div style={menuHeaderTitle}>WCOIN новости</div>
-                            <div style={{width:36}} />
+                <div style={overlayDim} onClick={() => setNewsOpen(false)}>
+                    <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
+                        <div style={newsPopupHeader}>
+                            <div style={newsPopupTitle}>📰 WCOIN новости</div>
+                            <button style={newsCloseBtn} onClick={() => setNewsOpen(false)}>✕</button>
                         </div>
                         <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
                     </div>
@@ -786,41 +785,41 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
         if (!url) return
         setImages(prev => [...prev, url])
     }
+    const newsInputStyle: React.CSSProperties = { width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'rgba(255,255,255,0.95)', boxShadow:'inset 0 0 0 2px #0b2f68', color:'#083068', fontWeight:700, fontFamily:'"Rubik", Inter, system-ui' }
+    const newsAddBtn: React.CSSProperties = { padding:'10px 14px', borderRadius:10, border:'none', background:'#22c55e', color:'#fff', fontWeight:900, boxShadow:'0 4px 12px rgba(34,197,94,0.35)', cursor:'pointer', transition:'transform 120ms ease' }
+    const newsCard: React.CSSProperties = { background:'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))', borderRadius:16, boxShadow:'0 8px 20px rgba(0,0,0,0.2), inset 0 0 0 2px rgba(255,255,255,0.25)', padding:'12px 14px' }
     return (
-        <div style={{display:'grid', gap:12}}>
+        <div style={{display:'grid', gap:14}}>
             {isAdmin && (
-                <div style={{display:'grid', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'10px 12px'}}>
-                    <div style={{color:'#fff', fontWeight:900}}>Добавить новость</div>
-                    <input placeholder="Заголовок" value={title} onChange={e=>setTitle(e.target.value)} style={inviteInput} />
-                    <textarea placeholder="Текст" value={text} onChange={e=>setText(e.target.value)} style={{...inviteInput, minHeight:80 as any}} />
-                    <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
-                        {images.map((src,i)=>(<img key={i} src={src} alt="img" style={{width:64,height:64,objectFit:'cover',borderRadius:8,boxShadow:'inset 0 0 0 2px #0b2f68'}} />))}
-                        <button style={inviteBtn} onClick={addImage}>Добавить фото</button>
+                <div style={{display:'grid', gap:10, background:'rgba(255,255,255,0.12)', borderRadius:14, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.25)', padding:'12px 14px'}}>
+                    <div style={{color:'#fff', fontWeight:900, fontSize:16}}>➕ Добавить новость</div>
+                    <input placeholder="Заголовок" value={title} onChange={e=>setTitle(e.target.value)} style={newsInputStyle} />
+                    <textarea placeholder="Текст" value={text} onChange={e=>setText(e.target.value)} style={{...newsInputStyle, minHeight:90, resize:'vertical' as any}} />
+                    <div style={{display:'flex', gap:8, flexWrap:'wrap', alignItems:'center'}}>
+                        {images.map((src,i)=>(<img key={i} src={src} alt="img" style={{width:72,height:72,objectFit:'cover',borderRadius:10,boxShadow:'0 4px 12px rgba(0,0,0,0.25)'}} />))}
+                        <button style={{...newsAddBtn, fontSize:13}} onClick={addImage}>📷 Фото</button>
                     </div>
-                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8}}>
+                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:10}}>
                         <div />
-                        <button style={inviteBtn} onClick={addNews}>Опубликовать</button>
+                        <button style={newsAddBtn} onClick={addNews}>🚀 Опубликовать</button>
                     </div>
                 </div>
             )}
-            <div style={{display:'grid', gap:10}}>
+            <div style={{display:'grid', gap:12}}>
                 {list.length===0 ? (
-                    <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>Новостей пока нет</div>
+                    <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85, padding:20}}>Новостей пока нет</div>
                 ) : list.map((n, idx) => (
-                    <div key={idx} style={{background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:14, boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 16px rgba(0,0,0,0.25)', padding:'10px 12px'}}>
-                        <div style={{color:'#fff', fontWeight:900, fontSize:16, marginBottom:6}}>{n.title}</div>
-                        <div style={{color:'#e8f1ff', whiteSpace:'pre-wrap', lineHeight:1.35}}>{n.text}</div>
+                    <div key={idx} style={newsCard}>
+                        <div style={{color:'#fff', fontWeight:900, fontSize:17, marginBottom:8, textShadow:'0 2px 4px rgba(0,0,0,0.25)'}}>{n.title}</div>
+                        <div style={{color:'#e8f1ff', whiteSpace:'pre-wrap', lineHeight:1.5, fontSize:14}}>{n.text}</div>
                         {n.images.length>0 && (
-                            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:6, marginTop:8}}>
-                                {n.images.map((src,i)=>(<img key={i} src={src} alt="news" style={{width:'100%', height:88, objectFit:'cover', borderRadius:8, boxShadow:'inset 0 0 0 2px #0b2f68'}} />))}
+                            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(90px, 1fr))', gap:8, marginTop:10}}>
+                                {n.images.map((src,i)=>(<img key={i} src={src} alt="news" style={{width:'100%', height:96, objectFit:'cover', borderRadius:10, boxShadow:'0 4px 12px rgba(0,0,0,0.25)'}} />))}
                             </div>
                         )}
-                        <div style={{color:'#bfe0ff', fontSize:12, marginTop:6, textAlign:'right'}}>{new Date(n.ts).toLocaleString()}</div>
+                        <div style={{color:'rgba(255,255,255,0.7)', fontSize:11, marginTop:10, textAlign:'right', fontWeight:600}}>{new Date(n.ts).toLocaleString('ru-RU')}</div>
                     </div>
                 ))}
-            </div>
-            <div style={{display:'grid', placeItems:'center'}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
             </div>
         </div>
     )
@@ -1058,6 +1057,50 @@ const overlayDim: React.CSSProperties = {
     background:'rgba(0,0,0,0.5)',
     display:'grid', alignItems:'center', justifyItems:'center',
     zIndex: 70
+}
+
+const newsPopup: React.CSSProperties = {
+    width:'92%',
+    maxWidth: 480,
+    maxHeight:'80vh',
+    background:'linear-gradient(135deg, #4a90e2 0%, #357abd 50%, #2a5b9f 100%)',
+    borderRadius: 20,
+    boxShadow:'inset 0 0 0 4px #8cbcff, 0 16px 48px rgba(0,0,0,0.4)',
+    padding: 16,
+    overflowY:'auto',
+    animation: 'newsSlideUp 300ms cubic-bezier(.2,.8,.2,1)'
+}
+
+const newsPopupHeader: React.CSSProperties = {
+    display:'grid',
+    gridTemplateColumns:'1fr auto',
+    alignItems:'center',
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottom: '2px solid rgba(255,255,255,0.25)'
+}
+
+const newsPopupTitle: React.CSSProperties = {
+    color:'#fff',
+    fontWeight:900,
+    fontSize: 20,
+    letterSpacing: 1,
+    fontFamily:'"Russo One", Inter, system-ui',
+    textShadow:'0 2px 8px rgba(0,0,0,0.35)'
+}
+
+const newsCloseBtn: React.CSSProperties = {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    border:'none',
+    background:'rgba(255,255,255,0.2)',
+    color:'#fff',
+    fontSize: 18,
+    fontWeight:900,
+    cursor:'pointer',
+    boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.3)',
+    transition:'transform 120ms ease'
 }
 
 const sheet: React.CSSProperties = {
