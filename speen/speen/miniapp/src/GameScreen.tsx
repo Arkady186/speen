@@ -46,6 +46,7 @@ export function GameScreen() {
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
+    const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -247,6 +248,22 @@ export function GameScreen() {
         } else {
             setToast(`Промах (${label})`)
         }
+
+        // задачи: учёт спинов
+        try {
+            const spins = Number(localStorage.getItem('task_spins') || '0') + 1
+            localStorage.setItem('task_spins', String(spins))
+            // 50 спинов -> +1000 W
+            if (spins === 50) {
+                saveBalances(balanceW + 1000, balanceB)
+                setToast('+1000 W (за 50 спинов)')
+            }
+            // 100 спинов -> +1 B
+            if (spins === 100) {
+                saveBalances(balanceW, balanceB + 1)
+                setToast('+1 B (за 100 спинов)')
+            }
+        } catch {}
     }
 
     function parseUserFromInitDataString(initData: string | undefined) {
@@ -418,6 +435,7 @@ export function GameScreen() {
                                         if (act === 'stars') setStarsOpen(true)
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
+                                        if (act === 'tasks') setTasksOpen(true)
                                     }
                                 }}
                                 >
@@ -604,6 +622,26 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {tasksOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setTasksOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>Задания</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <TasksPanel onClose={() => setTasksOpen(false)} onShare5={() => {
+                            try {
+                                const tg = (window as any).Telegram?.WebApp
+                                const url = window.location.href
+                                const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Присоединяйся в игру!')}`
+                                if (tg?.openTelegramLink) tg.openTelegramLink(share)
+                                else window.open(share, '_blank')
+                            } catch {}
+                        }} />
+                    </div>
+                </div>
+            )}
             {dailyOpen && (
                 <div style={{...overlay, bottom: 0}}>
                     <div style={sheet}>
@@ -657,6 +695,56 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
                     {todayClaimed ? 'Уже получено сегодня' : 'Забрать бонус'}
                 </button>
             </div>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+            </div>
+        </div>
+    )
+}
+
+function TasksPanel({ onClose, onShare5 }: { onClose: () => void, onShare5: () => void }){
+    const spins = Number(localStorage.getItem('task_spins') || '0')
+    const loginStreak = (()=>{
+        try {
+            const today = new Date().toDateString()
+            const last = localStorage.getItem('task_last_login')
+            let streak = Number(localStorage.getItem('task_streak') || '0')
+            if (last !== today) {
+                if (last) streak = (new Date(today).getTime() - new Date(last).getTime()) <= 86400000*2 ? streak + 1 : 1
+                else streak = 1
+                localStorage.setItem('task_last_login', today)
+                localStorage.setItem('task_streak', String(streak))
+            }
+            return streak
+        } catch { return 1 }
+    })()
+    const sharedCount = Number(localStorage.getItem('task_shared') || '0')
+    function claim(name: string, reward: {W?:number, B?:number}){
+        const key = `task_done_${name}`
+        if (localStorage.getItem(key) === '1') return
+        if (reward.W) saveBalances(Number(localStorage.getItem('balance_w')||'0') + reward.W, Number(localStorage.getItem('balance_b')||'0'))
+        if (reward.B) saveBalances(Number(localStorage.getItem('balance_w')||'0'), Number(localStorage.getItem('balance_b')||'0') + reward.B)
+        try { localStorage.setItem(key,'1') } catch {}
+    }
+    const card = (title: string, progress: string, canClaim: boolean, onClick: () => void) => (
+        <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+            <div>
+                <div style={{color:'#fff', fontWeight:900}}>{title}</div>
+                <div style={{color:'#e8f1ff', opacity:.9, fontSize:12}}>{progress}</div>
+            </div>
+            <button disabled={!canClaim} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: canClaim ? '#22c55e' : '#889bb9', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: canClaim ? 'pointer' : 'default' }} onClick={onClick}>Забрать</button>
+        </div>
+    )
+    const spin50Done = (localStorage.getItem('task_done_spin50') === '1')
+    const spin100Done = (localStorage.getItem('task_done_spin100') === '1')
+    const streak7Done = (localStorage.getItem('task_done_streak7') === '1')
+    const share5Done = (localStorage.getItem('task_done_share5') === '1')
+    return (
+        <div style={{display:'grid', gap:10}}>
+            {card('50 прокрутов — 1000 W', `${Math.min(50, spins)}/50`, !spin50Done && spins >= 50, () => claim('spin50', {W:1000}))}
+            {card('100 прокрутов — 1 B', `${Math.min(100, spins)}/100`, !spin100Done && spins >= 100, () => claim('spin100', {B:1}))}
+            {card('Заходи 7 дней подряд — 1 B', `${Math.min(7, loginStreak)}/7`, !streak7Done && loginStreak >= 7, () => claim('streak7', {B:1}))}
+            {card('Поделись с 5 друзьями — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
             <div style={{display:'grid', placeItems:'center'}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
             </div>
@@ -956,10 +1044,10 @@ const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, b
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
-const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' }> = [
+const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' }> = [
     { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
     { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой волюты', badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
-    { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
+    { title: 'Получай WCOIN', subtitle: 'выполняя задания', action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
     { title: 'WCOIN новости', subtitle: 'будь в курсе всех событий', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
 ]
