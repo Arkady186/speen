@@ -334,21 +334,17 @@ export function GameScreen() {
                                             >
                                                 <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
-                                                <button
-                                                    style={{ marginTop:6, padding:'4px 8px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 2px #7a4e06', cursor:'pointer' }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        if (balanceB < 1) { setToast('Недостаточно B'); return }
-                                                        saveBalances(balanceW, balanceB - 1)
+                                                {/* count placeholder: show current count from inventory */}
+                                                <div style={{marginTop:6, color:'#e8f1ff', fontWeight:800, opacity:.9}}>
+                                                    {(() => {
                                                         try {
                                                             const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                                                             const inv: string[] = JSON.parse(invRaw)
-                                                            inv.push(b)
-                                                            localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                                                        } catch {}
-                                                        setToast(`Куплено: ${b} за 1 B`)
-                                                    }}
-                                                >1 B</button>
+                                                            const count = inv.filter(x => x === b).length
+                                                            return `x${count}`
+                                                        } catch { return 'x0' }
+                                                    })()}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
