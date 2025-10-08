@@ -2,6 +2,29 @@ import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
 import { ImageWheel } from './wheel/ImageWheel'
 
+// CSS анимация для всплытия новостей
+const newsAnimationStyle = document.createElement('style')
+newsAnimationStyle.textContent = `
+@keyframes newsSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+@keyframes newsOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+`
+if (!document.head.querySelector('#news-animation-styles')) {
+    newsAnimationStyle.id = 'news-animation-styles'
+    document.head.appendChild(newsAnimationStyle)
+}
+
 function Toast({ text, onClose }: { text: string, onClose?: () => void }) {
     React.useEffect(() => {
         const t = setTimeout(() => onClose?.(), 2000)
@@ -1056,7 +1079,8 @@ const overlayDim: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
     background:'rgba(0,0,0,0.5)',
     display:'grid', alignItems:'center', justifyItems:'center',
-    zIndex: 70
+    zIndex: 70,
+    animation: 'newsOverlayFadeIn 250ms ease-out'
 }
 
 const newsPopup: React.CSSProperties = {
@@ -1068,7 +1092,11 @@ const newsPopup: React.CSSProperties = {
     boxShadow:'inset 0 0 0 4px #8cbcff, 0 16px 48px rgba(0,0,0,0.4)',
     padding: 16,
     overflowY:'auto',
-    animation: 'newsSlideUp 300ms cubic-bezier(.2,.8,.2,1)'
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    animation: 'newsSlideUp 350ms cubic-bezier(.2,.8,.2,1)'
 }
 
 const newsPopupHeader: React.CSSProperties = {
@@ -1100,7 +1128,7 @@ const newsCloseBtn: React.CSSProperties = {
     fontWeight:900,
     cursor:'pointer',
     boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.3)',
-    transition:'transform 120ms ease'
+    transition:'transform 120ms ease, background 120ms ease'
 }
 
 const sheet: React.CSSProperties = {
