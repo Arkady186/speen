@@ -20,6 +20,7 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
+    const [userId, setUserId] = React.useState<number | null>(null)
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
@@ -47,6 +48,7 @@ export function GameScreen() {
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
+    const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -287,6 +289,7 @@ export function GameScreen() {
                 if (u.photo_url) setAvatarUrl(u.photo_url)
                 const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
                 setInitials(ini.toUpperCase())
+                if (u.id) setUserId(Number(u.id))
             }
         } catch {}
     }, [])
@@ -436,6 +439,7 @@ export function GameScreen() {
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
+                                        if (act === 'news') setNewsOpen(true)
                                     }
                                 }}
                                 >
@@ -642,6 +646,18 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {newsOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setNewsOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>WCOIN новости</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
+                    </div>
+                </div>
+            )}
             {dailyOpen && (
                 <div style={{...overlay, bottom: 0}}>
                     <div style={sheet}>
@@ -745,6 +761,64 @@ function TasksPanel({ onClose, onShare5 }: { onClose: () => void, onShare5: () =
             {card('100 прокрутов — 1 B', `${Math.min(100, spins)}/100`, !spin100Done && spins >= 100, () => claim('spin100', {B:1}))}
             {card('Заходи 7 дней подряд — 1 B', `${Math.min(7, loginStreak)}/7`, !streak7Done && loginStreak >= 7, () => claim('streak7', {B:1}))}
             {card('Поделись с 5 друзьями — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
+            <div style={{display:'grid', placeItems:'center'}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+            </div>
+        </div>
+    )
+}
+
+function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean }){
+    const [title, setTitle] = React.useState('')
+    const [text, setText] = React.useState('')
+    const [images, setImages] = React.useState<string[]>([])
+    const list: Array<{title:string, text:string, images:string[], ts:number}> = (()=>{
+        try { return JSON.parse(localStorage.getItem('news_list') || '[]') } catch { return [] }
+    })()
+    function addNews(){
+        if (!isAdmin) return
+        const next = [{ title, text, images, ts: Date.now() }, ...list]
+        try { localStorage.setItem('news_list', JSON.stringify(next)) } catch {}
+        setTitle(''); setText(''); setImages([])
+    }
+    function addImage(){
+        const url = prompt('Ссылка на картинку') || ''
+        if (!url) return
+        setImages(prev => [...prev, url])
+    }
+    return (
+        <div style={{display:'grid', gap:12}}>
+            {isAdmin && (
+                <div style={{display:'grid', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'10px 12px'}}>
+                    <div style={{color:'#fff', fontWeight:900}}>Добавить новость</div>
+                    <input placeholder="Заголовок" value={title} onChange={e=>setTitle(e.target.value)} style={inviteInput} />
+                    <textarea placeholder="Текст" value={text} onChange={e=>setText(e.target.value)} style={{...inviteInput, minHeight:80 as any}} />
+                    <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+                        {images.map((src,i)=>(<img key={i} src={src} alt="img" style={{width:64,height:64,objectFit:'cover',borderRadius:8,boxShadow:'inset 0 0 0 2px #0b2f68'}} />))}
+                        <button style={inviteBtn} onClick={addImage}>Добавить фото</button>
+                    </div>
+                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8}}>
+                        <div />
+                        <button style={inviteBtn} onClick={addNews}>Опубликовать</button>
+                    </div>
+                </div>
+            )}
+            <div style={{display:'grid', gap:10}}>
+                {list.length===0 ? (
+                    <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>Новостей пока нет</div>
+                ) : list.map((n, idx) => (
+                    <div key={idx} style={{background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:14, boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 16px rgba(0,0,0,0.25)', padding:'10px 12px'}}>
+                        <div style={{color:'#fff', fontWeight:900, fontSize:16, marginBottom:6}}>{n.title}</div>
+                        <div style={{color:'#e8f1ff', whiteSpace:'pre-wrap', lineHeight:1.35}}>{n.text}</div>
+                        {n.images.length>0 && (
+                            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:6, marginTop:8}}>
+                                {n.images.map((src,i)=>(<img key={i} src={src} alt="news" style={{width:'100%', height:88, objectFit:'cover', borderRadius:8, boxShadow:'inset 0 0 0 2px #0b2f68'}} />))}
+                            </div>
+                        )}
+                        <div style={{color:'#bfe0ff', fontSize:12, marginTop:6, textAlign:'right'}}>{new Date(n.ts).toLocaleString()}</div>
+                    </div>
+                ))}
+            </div>
             <div style={{display:'grid', placeItems:'center'}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
             </div>
@@ -1044,12 +1118,12 @@ const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, b
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
-const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' }> = [
+const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> = [
     { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
     { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой волюты', badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
     { title: 'Получай WCOIN', subtitle: 'выполняя задания', action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
-    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
-    { title: 'WCOIN новости', subtitle: 'будь в курсе всех событий', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
+    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+    { title: 'WCOIN новости', subtitle: 'будь в курсе всех событий', action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
 ]
 
 
