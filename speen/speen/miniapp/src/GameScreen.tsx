@@ -340,6 +340,22 @@ export function GameScreen() {
                     <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
                     <div style={balanceRow}><Coin /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
                 </div>
+                {/* Прозрачная кнопка для теста (добавляет 1000 W) */}
+                <div 
+                    style={{
+                        position:'absolute',
+                        top:0,
+                        right:0,
+                        width:60,
+                        height:60,
+                        cursor:'pointer',
+                        opacity:0
+                    }}
+                    onClick={() => {
+                        saveBalances(balanceW + 1000, balanceB)
+                        setToast('+1000 W (тест)')
+                    }}
+                />
             </div>
             <div style={content}>
                 {(!isMenuOpen && !isRightMenuOpen) ? (
