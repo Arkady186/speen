@@ -43,6 +43,7 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
+    const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -359,6 +360,7 @@ export function GameScreen() {
                                         const act = (item as any).action
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
+                                        if (act === 'shop') setShopOpen(true)
                                     }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
@@ -457,6 +459,29 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {shopOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setShopOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>Покупки и бонусы</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <ShopPanel onClose={() => setShopOpen(false)} onPurchase={(title, priceB) => {
+                            // списываем B, добавляем в инвентарь покупок
+                            if (balanceB < priceB) { setToast('Недостаточно B'); return }
+                            saveBalances(balanceW, balanceB - priceB)
+                            try {
+                                const raw = localStorage.getItem('purchases') || '[]'
+                                const list: Array<{title:string, priceB:number, ts:number}> = JSON.parse(raw)
+                                list.push({ title, priceB, ts: Date.now() })
+                                localStorage.setItem('purchases', JSON.stringify(list))
+                            } catch {}
+                            setToast(`Куплено: ${title} за ${priceB} B`)
+                        }} />
+                    </div>
+                </div>
+            )}
             {dailyOpen && (
                 <div style={{...overlay, bottom: 0}}>
                     <div style={sheet}>
@@ -509,6 +534,48 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
                 <button style={{ padding:'10px 14px', borderRadius:10, border:'none', background: todayClaimed ? '#889bb9' : '#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: todayClaimed ? 'default' : 'pointer' }} onClick={handleClaim} disabled={todayClaimed}>
                     {todayClaimed ? 'Уже получено сегодня' : 'Забрать бонус'}
                 </button>
+            </div>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+            </div>
+        </div>
+    )
+}
+
+function ShopPanel({ onClose, onPurchase }: { onClose: () => void, onPurchase: (title: string, priceB: number) => void }){
+    const items: Array<{ title: string, priceB: number, img?: string }> = [
+        { title: 'VIP значок', priceB: 3, img:'/press10.png' },
+        { title: 'x2 к W на 1 день', priceB: 5, img:'/press7.png' },
+        { title: 'Free Spin', priceB: 2, img:'/press9.png' },
+        { title: 'Скин колеса', priceB: 4, img:'/press8.png' },
+    ]
+    const purchases: Array<{title:string, priceB:number, ts:number}> = (()=>{
+        try { return JSON.parse(localStorage.getItem('purchases') || '[]') } catch { return [] }
+    })()
+    return (
+        <div style={{display:'grid', gap:12}}>
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Покупки за B</div>
+            <div style={{display:'grid', gap:8}}>
+                {items.map((it, i) => (
+                    <div key={i} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                        <img src={it.img} alt={it.title} style={{width:44,height:44,objectFit:'contain'}} />
+                        <div style={{color:'#fff', fontWeight:800}}>{it.title}</div>
+                        <button style={{ padding:'8px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onPurchase(it.title, it.priceB)}>
+                            Купить {it.priceB} B
+                        </button>
+                    </div>
+                ))}
+            </div>
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Мои бонусы и покупки</div>
+            <div style={{display:'grid', gap:6}}>
+                {purchases.length === 0 ? (
+                    <div style={{color:'#e8f1ff', textAlign:'center', opacity:.8}}>Пока пусто</div>
+                ) : purchases.map((p, idx) => (
+                    <div key={idx} style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, alignItems:'center', background:'rgba(0,0,0,0.15)', borderRadius:10, padding:'6px 8px', boxShadow:'inset 0 0 0 2px #0b2f68'}}>
+                        <div style={{color:'#fff', fontWeight:800}}>{p.title}</div>
+                        <div style={{color:'#ffd23a', fontWeight:900}}>{p.priceB} B</div>
+                    </div>
+                ))}
             </div>
             <div style={{display:'grid', placeItems:'center'}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
@@ -758,12 +825,12 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' }> = [
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' }> = [
     { title: 'Подключай свой кошелек TON', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
     { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-    { title: 'Мои покупки и бонусы в игре', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+    { title: 'Мои покупки и бонусы в игре', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
