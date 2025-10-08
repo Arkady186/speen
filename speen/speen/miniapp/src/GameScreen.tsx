@@ -412,6 +412,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
+                                        if (act === 'stars') setStarsOpen(true)
                                     }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
@@ -458,6 +459,30 @@ export function GameScreen() {
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
+            {starsOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setStarsOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>Пополнить за ⭐</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <div style={{display:'grid', gap:10}}>
+                            <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:900}}>10⭐ = 1 B</div>
+                            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8}}>
+                                {[10, 30, 100].map((stars, i) => (
+                                    <div key={`st-${i}`} style={{display:'grid', gap:6, placeItems:'center', background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                                        <div style={{color:'#fff', fontWeight:800}}>{stars} ⭐</div>
+                                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => openStarsPurchase(stars, Math.floor(stars/10))}>
+                                            Получить {Math.floor(stars/10)} B
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {inviteOpen && (
                 <div style={{...overlay, bottom: 0}}>
                     <div style={sheet}>
@@ -642,17 +667,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
                     </div>
                 ))}
             </div>
-            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Пополнить за ⭐ Telegram (10⭐ = 1 B)</div>
-            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8}}>
-                {[10, 30, 100].map((stars, i) => (
-                    <div key={`s-${i}`} style={{display:'grid', gap:6, placeItems:'center', background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-                        <div style={{color:'#fff', fontWeight:800}}>{stars} ⭐</div>
-                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onBuyStars(stars, Math.floor(stars/10))}>
-                            Получить {Math.floor(stars/10)} B
-                        </button>
-                    </div>
-                ))}
-            </div>
+            {/* блок Stars перемещен в отдельную модалку */}
             <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Мои бонусы и покупки</div>
             <div style={{display:'grid', gap:6}}>
                 {purchases.length === 0 ? (
@@ -912,8 +927,8 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' }> = [
-    { title: 'Подключай свой кошелек TON', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'stars' }> = [
+    { title: 'Подключай свой кошелек TON', action: 'stars', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
     { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
