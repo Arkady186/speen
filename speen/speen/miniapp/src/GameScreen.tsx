@@ -49,7 +49,8 @@ export function GameScreen() {
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
     const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
     const getSectorBonusIndex = (i: number) => SECTOR_TO_BONUS[((i % 10) + 10) % 10]
-    const [selectedBonus, setSelectedBonus] = React.useState<number | null>(null)
+    const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
+    const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
     const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
@@ -160,7 +161,7 @@ export function GameScreen() {
 
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
-        const bonusCorrect = selectedBonus != null && selectedBonus === sectorBonusIdx
+        const bonusCorrect = selectedBonusBucket != null && selectedBonusBucket === sectorBonusIdx
 
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
@@ -307,30 +308,30 @@ export function GameScreen() {
                                 </div>
                             </div>
                         </div>
-                        <div style={wheelWrap}>
-                            <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
+                         <div style={wheelWrap}>
+                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
                                 onBeforeSpin={onBeforeSpin}
                                 onResult={onSpinResult}
                                 selectedIndex={pickedDigit}
                                 onSelectIndex={(idx)=> setPickedDigit(idx)}
                                 onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
-                                onOpenBonuses={() => setBonusesOpen(true)}
-                                selectedBonusIndex={selectedBonus}
-                                onSelectBonusSector={(idx) => setSelectedBonus(idx)} />
+                                 onOpenBonuses={() => setBonusesOpen(true)}
+                                 selectedBonusIndex={selectedBonusSector}
+                                 onSelectBonusSector={(idx) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
                         </div>
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>Выбор бонусов</div>
                                     <div style={{...bonusGrid, gridTemplateColumns:'repeat(2, 1fr)'}}>
-                                        {BONUS_LABELS.map((b, i) => (
+                                         {BONUS_LABELS.map((b, i) => (
                                             <div
                                                 key={i}
                                                 style={{
-                                                    ...bonusCard,
-                                                    boxShadow: selectedBonus===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
+                                                     ...bonusCard,
+                                                     boxShadow: selectedBonusBucket===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
                                                 }}
-                                                onClick={()=>{ setSelectedBonus(i); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
+                                                 onClick={()=>{ setSelectedBonusBucket(i); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
                                             >
                                                 <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
