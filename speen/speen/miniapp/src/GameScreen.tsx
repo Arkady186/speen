@@ -44,6 +44,7 @@ export function GameScreen() {
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
+    const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
@@ -399,22 +400,26 @@ export function GameScreen() {
                     </>
                 ) : (
                     <div style={{padding:12}}>
-                        <div style={menuList}>
-                            {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
+                    <div style={menuList}>
+                        {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
                                     style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
-                                    onClick={() => {
-                                        if (!isMenuOpen) return
-                                        const act = (item as any).action
+                                onClick={() => {
+                                    const left = isMenuOpen
+                                    const act = (item as any).action
+                                    if (left) {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
                                         if (act === 'stars') setStarsOpen(true)
-                                    }}
+                                    } else {
+                                        if (act === 'wheelshop') setWheelShopOpen(true)
+                                    }
+                                }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={menuIconWrap}>{item.icon}</div>
@@ -566,6 +571,39 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {wheelShopOpen && (
+                <div style={{...overlay, bottom: 0}}>
+                    <div style={sheet}>
+                        <div style={menuHeaderWrap}>
+                            <button style={menuHeaderBackBtn} onClick={() => setWheelShopOpen(false)}>‹</button>
+                            <div style={menuHeaderTitle}>WHEEL SHOP</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <div style={{display:'grid', gap:12}}>
+                            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Купить бонусы за 1 B</div>
+                            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                                {BONUS_LABELS.map((b, i) => (
+                                    <div key={`wb-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                                        <img src={BONUS_IMAGES[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
+                                        <div style={{color:'#fff', fontWeight:800}}>{b}</div>
+                                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => {
+                                            if (balanceB < 1) { setToast('Недостаточно B'); return }
+                                            saveBalances(balanceW, balanceB - 1)
+                                            try {
+                                                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                                const inv: string[] = JSON.parse(invRaw)
+                                                inv.push(b)
+                                                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                            } catch {}
+                                            setToast(`Куплено: ${b} за 1 B`)
+                                        }}>1 B</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {dailyOpen && (
                 <div style={{...overlay, bottom: 0}}>
                     <div style={sheet}>
@@ -648,26 +686,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
                     </div>
                 ))}
             </div>
-            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Купить бонусы за 1 B</div>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                {bonusLabels.map((b, i) => (
-                    <div key={`b-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-                        <img src={bonusImages[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
-                        <div style={{color:'#fff', fontWeight:800}}>{b}</div>
-                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => {
-                            const ok = onPurchase(`Бонус: ${b}`, 1)
-                            if (ok) {
-                                try {
-                                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                                    const inv: string[] = JSON.parse(invRaw)
-                                    inv.push(b)
-                                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                                } catch {}
-                            }
-                        }}>1 B</button>
-                    </div>
-                ))}
-            </div>
+            {/* Покупка бонусов перенесена в Wheel Shop (правое меню) */}
             {/* блок Stars перемещен в отдельную модалку */}
             <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Мои бонусы и покупки</div>
             <div style={{display:'grid', gap:6}}>
@@ -937,8 +956,8 @@ const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, b
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
-const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode }> = [
-    { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' }> = [
+    { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
     { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой волюты', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
     { title: 'Получай WCOIN', subtitle: 'выполняя задания', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
     { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
