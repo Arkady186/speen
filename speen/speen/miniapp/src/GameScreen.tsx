@@ -647,8 +647,8 @@ export function GameScreen() {
                 </div>
             )}
             {newsOpen && (
-                <div style={{...overlay, bottom: 0}}>
-                    <div style={newsSheet}>
+                <div style={overlayDim}>
+                    <div style={sheet}>
                         <div style={menuHeaderWrap}>
                             <button style={menuHeaderBackBtn} onClick={() => setNewsOpen(false)}>‹</button>
                             <div style={menuHeaderTitle}>WCOIN новости</div>
@@ -1051,6 +1051,13 @@ const overlay: React.CSSProperties = {
     transition:'opacity 220ms ease',
     display:'grid', alignItems:'stretch',
     zIndex: 50
+}
+
+const overlayDim: React.CSSProperties = {
+    position:'fixed', left:0, right:0, top:0, bottom:0,
+    background:'rgba(0,0,0,0.5)',
+    display:'grid', alignItems:'center', justifyItems:'center',
+    zIndex: 70
 }
 
 const sheet: React.CSSProperties = {
