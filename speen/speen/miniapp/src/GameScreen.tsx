@@ -161,7 +161,7 @@ export function GameScreen() {
 
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
-        const bonusCorrect = selectedBonusBucket != null && selectedBonusBucket === sectorBonusIdx
+        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
 
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
