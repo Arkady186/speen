@@ -117,6 +117,45 @@ export function GameScreen() {
     }
 
     function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
+    async function openStarsPurchase(stars: number, toB: number) {
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            // 1) пробуем взять ссылку из env (например, VITE_STARS_LINK_10)
+            const envKey = `VITE_STARS_LINK_${stars}`
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const env: any = (import.meta as any)?.env || {}
+            let invoiceLink: string | null = env[envKey] || null
+            // 2) иначе пробуем получить с бэкенда (если настроен)
+            if (!invoiceLink) {
+                try {
+                    const res = await fetch(`/api/stars-invoice?stars=${encodeURIComponent(stars)}`)
+                    if (res.ok) {
+                        const data = await res.json()
+                        if (data?.link) invoiceLink = data.link
+                    }
+                } catch {}
+            }
+            if (!invoiceLink) {
+                setToast('Платёжная ссылка недоступна')
+                return
+            }
+            const onPaid = () => {
+                saveBalances(balanceW, balanceB + toB)
+                setToast(`+${toB} B за ${stars}⭐`)
+            }
+            if (tg?.openInvoice) {
+                tg.openInvoice(invoiceLink, (status: string) => {
+                    if (status === 'paid') onPaid()
+                })
+            } else if (tg?.openTelegramLink) {
+                tg.openTelegramLink(invoiceLink)
+            } else {
+                window.open(invoiceLink, '_blank')
+            }
+        } catch {
+            setToast('Ошибка открытия оплаты')
+        }
+    }
 
     function getLimits(m: GameMode, cur: 'W'|'B') {
         // General limits
@@ -496,6 +535,7 @@ export function GameScreen() {
                                 setToast(`Куплено: ${title} за ${priceB} B`)
                                 return true
                             }}
+                            onBuyStars={(stars, toB) => openStarsPurchase(stars, toB)}
                         />
                     </div>
                 </div>
@@ -560,7 +600,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
     )
 }
 
-function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[] }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void }){
     const items: Array<{ title: string, priceB: number, img?: string }> = [
         { title: 'VIP значок', priceB: 3, img:'/press10.png' },
         { title: 'Скин колеса', priceB: 4, img:'/press8.png' },
@@ -599,6 +639,17 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages }: { onClose:
                                 } catch {}
                             }
                         }}>1 B</button>
+                    </div>
+                ))}
+            </div>
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Пополнить за ⭐ Telegram (10⭐ = 1 B)</div>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8}}>
+                {[10, 30, 100].map((stars, i) => (
+                    <div key={`s-${i}`} style={{display:'grid', gap:6, placeItems:'center', background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                        <div style={{color:'#fff', fontWeight:800}}>{stars} ⭐</div>
+                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onBuyStars(stars, Math.floor(stars/10))}>
+                            Получить {Math.floor(stars/10)} B
+                        </button>
                     </div>
                 ))}
             </div>
