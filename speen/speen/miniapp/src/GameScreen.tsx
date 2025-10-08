@@ -357,10 +357,10 @@ export function GameScreen() {
                             <PanelShell>
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
                                     <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('W')}>
-                                        <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
+                                        <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>W</div>
                                     </div>
                                     <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('B')}>
-                                        <div style={{fontWeight:900, color:'#2b66b9'}}>B</div>
+                                        <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>B</div>
                                     </div>
                                 </div>
                             </PanelShell>
