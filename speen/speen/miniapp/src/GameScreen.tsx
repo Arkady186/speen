@@ -479,18 +479,24 @@ export function GameScreen() {
                             <div style={menuHeaderTitle}>Покупки и бонусы</div>
                             <div style={{width:36}} />
                         </div>
-                        <ShopPanel onClose={() => setShopOpen(false)} onPurchase={(title, priceB) => {
-                            // списываем B, добавляем в инвентарь покупок
-                            if (balanceB < priceB) { setToast('Недостаточно B'); return }
-                            saveBalances(balanceW, balanceB - priceB)
-                            try {
-                                const raw = localStorage.getItem('purchases') || '[]'
-                                const list: Array<{title:string, priceB:number, ts:number}> = JSON.parse(raw)
-                                list.push({ title, priceB, ts: Date.now() })
-                                localStorage.setItem('purchases', JSON.stringify(list))
-                            } catch {}
-                            setToast(`Куплено: ${title} за ${priceB} B`)
-                        }} />
+                        <ShopPanel
+                            onClose={() => setShopOpen(false)}
+                            bonusLabels={BONUS_LABELS}
+                            bonusImages={BONUS_IMAGES}
+                            onPurchase={(title, priceB) => {
+                                // списываем B, добавляем в инвентарь покупок
+                                if (balanceB < priceB) { setToast('Недостаточно B'); return false }
+                                saveBalances(balanceW, balanceB - priceB)
+                                try {
+                                    const raw = localStorage.getItem('purchases') || '[]'
+                                    const list: Array<{title:string, priceB:number, ts:number}> = JSON.parse(raw)
+                                    list.push({ title, priceB, ts: Date.now() })
+                                    localStorage.setItem('purchases', JSON.stringify(list))
+                                } catch {}
+                                setToast(`Куплено: ${title} за ${priceB} B`)
+                                return true
+                            }}
+                        />
                     </div>
                 </div>
             )}
@@ -554,11 +560,9 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
     )
 }
 
-function ShopPanel({ onClose, onPurchase }: { onClose: () => void, onPurchase: (title: string, priceB: number) => void }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[] }){
     const items: Array<{ title: string, priceB: number, img?: string }> = [
         { title: 'VIP значок', priceB: 3, img:'/press10.png' },
-        { title: 'x2 к W на 1 день', priceB: 5, img:'/press7.png' },
-        { title: 'Free Spin', priceB: 2, img:'/press9.png' },
         { title: 'Скин колеса', priceB: 4, img:'/press8.png' },
     ]
     const purchases: Array<{title:string, priceB:number, ts:number}> = (()=>{
@@ -575,6 +579,26 @@ function ShopPanel({ onClose, onPurchase }: { onClose: () => void, onPurchase: (
                         <button style={{ padding:'8px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onPurchase(it.title, it.priceB)}>
                             Купить {it.priceB} B
                         </button>
+                    </div>
+                ))}
+            </div>
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Купить бонусы за 1 B</div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                {bonusLabels.map((b, i) => (
+                    <div key={`b-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                        <img src={bonusImages[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
+                        <div style={{color:'#fff', fontWeight:800}}>{b}</div>
+                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => {
+                            const ok = onPurchase(`Бонус: ${b}`, 1)
+                            if (ok) {
+                                try {
+                                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                    const inv: string[] = JSON.parse(invRaw)
+                                    inv.push(b)
+                                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                } catch {}
+                            }
+                        }}>1 B</button>
                     </div>
                 ))}
             </div>
