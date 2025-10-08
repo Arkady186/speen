@@ -6,11 +6,15 @@ import { ImageWheel } from './wheel/ImageWheel'
 const newsAnimationStyle = document.createElement('style')
 newsAnimationStyle.textContent = `
 @keyframes newsSlideUp {
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(30px) scale(0.95);
+    transform: translateX(-50%) translateY(50px) scale(0.92);
   }
-  to {
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px) scale(1.01);
+  }
+  100% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
   }
@@ -1080,7 +1084,7 @@ const overlayDim: React.CSSProperties = {
     background:'rgba(0,0,0,0.5)',
     display:'grid', alignItems:'center', justifyItems:'center',
     zIndex: 70,
-    animation: 'newsOverlayFadeIn 250ms ease-out'
+    animation: 'newsOverlayFadeIn 400ms ease-out'
 }
 
 const newsPopup: React.CSSProperties = {
@@ -1096,7 +1100,7 @@ const newsPopup: React.CSSProperties = {
     left: '50%',
     top: '50%',
     transform: 'translate(-50%, -50%)',
-    animation: 'newsSlideUp 350ms cubic-bezier(.2,.8,.2,1)'
+    animation: 'newsSlideUp 500ms cubic-bezier(.34,.97,.63,.99)'
 }
 
 const newsPopupHeader: React.CSSProperties = {
