@@ -648,7 +648,7 @@ export function GameScreen() {
             )}
             {newsOpen && (
                 <div style={{...overlay, bottom: 0}}>
-                    <div style={sheet}>
+                    <div style={newsSheet}>
                         <div style={menuHeaderWrap}>
                             <button style={menuHeaderBackBtn} onClick={() => setNewsOpen(false)}>‹</button>
                             <div style={menuHeaderTitle}>WCOIN новости</div>
@@ -1066,6 +1066,16 @@ const sheet: React.CSSProperties = {
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
     padding: 12,
     transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
+    overflowY:'auto'
+}
+
+const newsSheet: React.CSSProperties = {
+    position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
+    width:'96%', maxWidth: 460, maxHeight:'72vh',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderTopLeftRadius: 16, borderTopRightRadius: 16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35)',
+    padding: 12,
     overflowY:'auto'
 }
 
