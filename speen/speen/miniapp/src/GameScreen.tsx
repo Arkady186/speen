@@ -352,8 +352,8 @@ export function GameScreen() {
 
     return (
         <div style={root}>
-            <div style={{display:'grid', placeItems:'center', width:'100%', minHeight:'100dvh'}}>
-                <div style={{width: BASE_W, height: BASE_H, transform: `scale(${scale})`, transformOrigin: 'top center', display:'grid', gridTemplateRows:'auto 1fr auto'}}>
+            <div style={{display:'grid', alignItems:'end', justifyItems:'center', width:'100%', minHeight:'100dvh'}}>
+                <div style={{width: BASE_W, height: BASE_H, transform: `scale(${scale})`, transformOrigin: 'bottom center', display:'grid', gridTemplateRows:'auto 1fr auto'}}>
             <div style={topBar}>
                 <div style={leftUser}>
                     <div style={avatar}>
