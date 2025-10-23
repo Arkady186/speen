@@ -409,11 +409,25 @@ export function GameScreen() {
                             {/* Mid W ticker */}
                             <div style={midCounterShell}>
                                 <div style={midCounterInner}>
-                                    <div style={midValue}>{midW}</div>
-                                    <div style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center'}}>
+                                    <div 
+                                        style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor:'pointer'}}
+                                        onClick={() => {
+                                            if (midW > 0) {
+                                                const toAdd = Math.floor(midW)
+                                                saveBalances(balanceW + toAdd, balanceB)
+                                                setMidW(0)
+                                                try {
+                                                    localStorage.setItem('mid_w', '0')
+                                                    localStorage.setItem('mid_w_last_ts', String(Date.now()))
+                                                } catch {}
+                                                setToast(`+${toAdd} W собрано`)
+                                            }
+                                        }}
+                                    >
                                         <img src="/coin-w.png" alt="W" style={{width:44,height:44, transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
+                                    <div style={midValue}>{midW.toFixed(2)}</div>
                                 </div>
                             </div>
                         </div>
