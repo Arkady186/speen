@@ -1192,15 +1192,15 @@ const menuHeaderWrap: React.CSSProperties = { display:'grid', gridTemplateColumn
 const menuHeaderBackBtn: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const menuHeaderTitle: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, letterSpacing:1, fontFamily:'"Russo One", Inter, system-ui' }
 
-const menuList: React.CSSProperties = { display:'grid', gap:14, height:'100%', alignContent:'stretch' }
+const menuList: React.CSSProperties = { display:'grid', gap:7, height:'100%', alignContent:'stretch' }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
-    gridTemplateColumns:'64px 1fr',
+    gridTemplateColumns:'32px 1fr',
     alignItems:'center',
-    gap:12,
-    padding:'16px 14px',
-    minHeight:90,
+    gap:6,
+    padding:'8px 7px',
+    minHeight:45,
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderRadius:14,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
@@ -1209,7 +1209,7 @@ const menuCard: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrap: React.CSSProperties = { width:64, height:64, display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:32, height:32, display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
