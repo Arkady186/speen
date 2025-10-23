@@ -328,16 +328,16 @@ export function GameScreen() {
 
     // Responsive scale for entire layout
     const BASE_W = 390
-    const BASE_H = 844
+    const BASE_H = 780
     const [scale, setScale] = React.useState<number>(1)
     React.useEffect(() => {
         function updateScale(){
             try {
                 const vw = window.innerWidth || document.documentElement.clientWidth || 390
-                const vh = window.innerHeight || document.documentElement.clientHeight || 844
+                const vh = window.innerHeight || document.documentElement.clientHeight || 780
                 const scaleW = vw / BASE_W
                 const scaleH = vh / BASE_H
-                const s = Math.max(scaleW, scaleH)
+                const s = Math.min(scaleW, scaleH)
                 setScale(s > 0 ? s : 1)
             } catch {
                 setScale(1)
