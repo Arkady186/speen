@@ -468,11 +468,11 @@ export function GameScreen() {
                     </>
                 ) : (
                     <div style={{padding:12}}>
-                    <div style={menuList}>
+                    <div style={isMenuOpen ? menuList : menuListRight}>
                         {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
-                                    style={{...menuCard, transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
+                                    style={{...(isMenuOpen ? menuCard : menuCardRight), transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
@@ -492,7 +492,7 @@ export function GameScreen() {
                                 }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
-                                    <div style={menuIconWrap}>{item.icon}</div>
+                                    <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
@@ -1211,6 +1211,26 @@ const menuCard: React.CSSProperties = {
 
 const menuIconWrap: React.CSSProperties = { width:38, height:38, display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
+
+// Right menu styles (increased by 20% for 5->6 card effect)
+const menuListRight: React.CSSProperties = { display:'grid', gap:10, height:'100%', alignContent:'stretch' }
+
+const menuCardRight: React.CSSProperties = {
+    display:'grid',
+    gridTemplateColumns:'46px 1fr',
+    alignItems:'center',
+    gap:8,
+    padding:'12px 10px',
+    minHeight:64,
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderRadius:14,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
+    position:'relative',
+    overflow:'visible',
+    transition:'transform 120ms ease'
+}
+
+const menuIconWrapRight: React.CSSProperties = { width:46, height:46, display:'grid', placeItems:'center' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
 const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:1, textAlign:'center' }
