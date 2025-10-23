@@ -16,14 +16,29 @@ type ImageWheelProps = {
 }
 
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
-    const [rotation, setRotation] = React.useState<number>(0)
-    const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
-    const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Pointer offsets from original top-center position
     const POINTER_DX = 100 // px to the right from center
     const POINTER_DY = 30  // px down from original top (-16 + 30 => top: 14)
+    
+    // Вычисляем начальное вращение для сектора 0
+    const getInitialRotation = () => {
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
+        const pointerCorrectionDeg = pointerAzimuth + 90
+        const physIndex = (0 - SECTOR_OFFSET + labels.length) % labels.length
+        const center = physIndex * seg + seg / 2
+        return -(center + startOffsetDeg - pointerCorrectionDeg)
+    }
+    
+    const [rotation, setRotation] = React.useState<number>(getInitialRotation())
+    const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
+    const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
 
@@ -313,11 +328,16 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const cy = size / 2
                         const rOuter = size * 0.49
                         const rInner = size * 0.30
-                        // смещение клина с учётом реального положения сектора под указателем
-                        const a = normalizeDeg(-rotation - startOffsetDeg)
+                        // смещение клина с учётом реального положения сектора под указателем (с учётом смещённого указателя)
+                        const pointerTop = -16 + POINTER_DY
+                        const px = cx + POINTER_DX
+                        const py = pointerTop
+                        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
+                        const pointerCorrectionDeg = pointerAzimuth + 90
+                        const a = normalizeDeg(-rotation - startOffsetDeg + pointerCorrectionDeg)
                         const sectorStart = Math.floor(a / seg) * seg
                         const sectorCenter = sectorStart + seg / 2
-                        const offsetDeg = sectorCenter - a // (-seg/2..+seg/2)
+                        const offsetDeg = sectorCenter - a - pointerCorrectionDeg // (-seg/2..+seg/2)
                         const startDeg = offsetDeg - seg / 2 - 90
                         const endDeg = offsetDeg + seg / 2 - 90
                         const toRad = (d: number) => (Math.PI / 180) * d
