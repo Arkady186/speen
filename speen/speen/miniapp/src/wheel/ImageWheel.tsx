@@ -337,9 +337,9 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const a = normalizeDeg(-rotation - startOffsetDeg + pointerCorrectionDeg)
                         const sectorStart = Math.floor(a / seg) * seg
                         const sectorCenter = sectorStart + seg / 2
-                        const offsetDeg = sectorCenter - a - pointerCorrectionDeg // (-seg/2..+seg/2)
-                        const startDeg = offsetDeg - seg / 2 - 90
-                        const endDeg = offsetDeg + seg / 2 - 90
+                        const offsetDeg = sectorCenter - a // (-seg/2..+seg/2) - смещение относительно сектора
+                        const startDeg = offsetDeg - seg / 2 - 90 + pointerCorrectionDeg
+                        const endDeg = offsetDeg + seg / 2 - 90 + pointerCorrectionDeg
                         const toRad = (d: number) => (Math.PI / 180) * d
                         const sx = cx + rOuter * Math.cos(toRad(startDeg))
                         const sy = cy + rOuter * Math.sin(toRad(startDeg))
