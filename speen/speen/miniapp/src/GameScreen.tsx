@@ -326,36 +326,8 @@ export function GameScreen() {
         } catch {}
     }, [])
 
-    // Responsive scale for entire layout
-    const BASE_W = 390
-    const BASE_H = 780
-    const [scale, setScale] = React.useState<number>(1)
-    React.useEffect(() => {
-        function updateScale(){
-            try {
-                const vw = window.innerWidth || document.documentElement.clientWidth || 390
-                const vh = window.innerHeight || document.documentElement.clientHeight || 780
-                const scaleW = vw / BASE_W
-                const scaleH = vh / BASE_H
-                const s = Math.min(scaleW, scaleH)
-                setScale(s > 0 ? s : 1)
-            } catch {
-                setScale(1)
-            }
-        }
-        updateScale()
-        window.addEventListener('resize', updateScale)
-        window.addEventListener('orientationchange', updateScale)
-        return () => {
-            window.removeEventListener('resize', updateScale)
-            window.removeEventListener('orientationchange', updateScale)
-        }
-    }, [])
-
     return (
         <div style={root}>
-            <div style={{display:'grid', placeItems:'center', width:'100%', minHeight:'100dvh', overflow:'hidden'}}>
-                <div style={{width: BASE_W, height: BASE_H, transform: `scale(${scale})`, transformOrigin: 'center', display:'grid', gridTemplateRows:'auto 1fr auto'}}>
             <div style={topBar}>
                 <div style={leftUser}>
                     <div style={avatar}>
@@ -560,8 +532,6 @@ export function GameScreen() {
                     }}
                 >
                     <img src="/shop.png" alt="Магазин" style={navIcon} />
-                </div>
-            </div>
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
