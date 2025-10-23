@@ -265,7 +265,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     })()}
                 </svg>
             )}
-            {!isSpinning && typeof selectedBonusIndex === 'number' && (
+            {!isSpinning && typeof selectedBonusIndex === 'number' && selectedBonusIndex != null && (
                 <svg
                     width={size}
                     height={size}

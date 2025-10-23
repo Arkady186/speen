@@ -80,7 +80,11 @@ export function GameScreen() {
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
     const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
-    const getSectorBonusIndex = (i: number) => SECTOR_TO_BONUS[((i % 10) + 10) % 10]
+    const getSectorBonusIndex = (i: number): number => {
+        const idx = ((i % 10) + 10) % 10
+        const val = SECTOR_TO_BONUS[idx]
+        return (typeof val === 'number' ? val : 0)
+    }
     const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
     const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
     const MID_RATE_PER_SEC = 0.01
@@ -247,7 +251,8 @@ export function GameScreen() {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                 const inv: string[] = JSON.parse(invRaw)
-                const bonusName = BONUS_LABELS[sectorBonusIdx] || `Бонус ${sectorBonusIdx}`
+                const idxSafe = Math.max(0, Math.min(BONUS_LABELS.length - 1, Number(sectorBonusIdx) || 0))
+                const bonusName = BONUS_LABELS[idxSafe] || `Бонус ${idxSafe}`
                 inv.push(bonusName)
                 localStorage.setItem('bonuses_inv', JSON.stringify(inv))
             } catch {}
@@ -321,8 +326,34 @@ export function GameScreen() {
         } catch {}
     }, [])
 
+    // Responsive scale for entire layout
+    const BASE_W = 390
+    const BASE_H = 800
+    const [scale, setScale] = React.useState<number>(1)
+    React.useEffect(() => {
+        function updateScale(){
+            try {
+                const vw = window.innerWidth || document.documentElement.clientWidth || 390
+                const vh = window.innerHeight || document.documentElement.clientHeight || 800
+                const s = Math.min(vw/BASE_W, vh/BASE_H)
+                setScale(s > 0 ? s : 1)
+            } catch {
+                setScale(1)
+            }
+        }
+        updateScale()
+        window.addEventListener('resize', updateScale)
+        window.addEventListener('orientationchange', updateScale)
+        return () => {
+            window.removeEventListener('resize', updateScale)
+            window.removeEventListener('orientationchange', updateScale)
+        }
+    }, [])
+
     return (
         <div style={root}>
+            <div style={{display:'grid', placeItems:'center', width:'100%', minHeight:'100dvh'}}>
+                <div style={{width: BASE_W, height: BASE_H, transform: `scale(${scale})`, transformOrigin: 'top center', display:'grid', gridTemplateRows:'auto 1fr auto'}}>
             <div style={topBar}>
                 <div style={leftUser}>
                     <div style={avatar}>
@@ -421,7 +452,7 @@ export function GameScreen() {
                                 onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
                                  onOpenBonuses={() => setBonusesOpen(true)}
                                  selectedBonusIndex={selectedBonusSector}
-                                 onSelectBonusSector={(idx) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
+                                 onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
                         </div>
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
@@ -527,6 +558,8 @@ export function GameScreen() {
                     }}
                 >
                     <img src="/shop.png" alt="Магазин" style={navIcon} />
+                </div>
+            </div>
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
@@ -685,6 +718,12 @@ export function GameScreen() {
                                 if (tg?.openTelegramLink) tg.openTelegramLink(share)
                                 else window.open(share, '_blank')
                             } catch {}
+                        }} onReward={(rw)=>{
+                            const w = Number(localStorage.getItem('balance_w')||'0') + (rw.W||0)
+                            const b = Number(localStorage.getItem('balance_b')||'0') + (rw.B||0)
+                            saveBalances(w, b)
+                            if (rw.W) setToast(`+${rw.W} W`) 
+                            if (rw.B) setToast(`+${rw.B} B`)
                         }} />
                     </div>
                 </div>
@@ -760,7 +799,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
     )
 }
 
-function TasksPanel({ onClose, onShare5 }: { onClose: () => void, onShare5: () => void }){
+function TasksPanel({ onClose, onShare5, onReward }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void }){
     const spins = Number(localStorage.getItem('task_spins') || '0')
     const loginStreak = (()=>{
         try {
@@ -780,8 +819,7 @@ function TasksPanel({ onClose, onShare5 }: { onClose: () => void, onShare5: () =
     function claim(name: string, reward: {W?:number, B?:number}){
         const key = `task_done_${name}`
         if (localStorage.getItem(key) === '1') return
-        if (reward.W) saveBalances(Number(localStorage.getItem('balance_w')||'0') + reward.W, Number(localStorage.getItem('balance_b')||'0'))
-        if (reward.B) saveBalances(Number(localStorage.getItem('balance_w')||'0'), Number(localStorage.getItem('balance_b')||'0') + reward.B)
+        onReward(reward)
         try { localStorage.setItem(key,'1') } catch {}
     }
     const card = (title: string, progress: string, canClaim: boolean, onClick: () => void) => (
