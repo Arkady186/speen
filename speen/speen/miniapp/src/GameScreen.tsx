@@ -588,8 +588,8 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={{...overlay, bottom: 0}}>
-                    <div style={sheet}>
+                <div style={overlayDimModal} onClick={() => setInviteOpen(false)}>
+                    <div style={modalSheet} onClick={(e) => e.stopPropagation()}>
                         <div style={menuHeaderWrap}>
                             <button style={menuHeaderBackBtn} onClick={() => setInviteOpen(false)}>‹</button>
                             <div style={menuHeaderTitle}>Пригласи друга</div>
@@ -1140,6 +1140,26 @@ const overlayDim: React.CSSProperties = {
     display:'grid', alignItems:'center', justifyItems:'center',
     zIndex: 70,
     animation: 'newsOverlayFadeIn 400ms ease-out'
+}
+
+const overlayDimModal: React.CSSProperties = {
+    position:'fixed', left:0, right:0, top:0, bottom:0,
+    background:'rgba(0,0,0,0.6)',
+    display:'grid', alignItems:'center', justifyItems:'center',
+    zIndex: 80,
+    animation: 'overlayFadeIn 300ms ease-out'
+}
+
+const modalSheet: React.CSSProperties = {
+    width:'92%',
+    maxWidth: 420,
+    maxHeight:'70vh',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderRadius: 16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
+    padding: 12,
+    overflowY:'auto' as const,
+    animation: 'slideUpFromBottom 400ms cubic-bezier(0.34, 1.56, 0.64, 1)'
 }
 
 const newsPopup: React.CSSProperties = {
