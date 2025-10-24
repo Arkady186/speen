@@ -37,6 +37,14 @@ animationStyle.textContent = `
   from { opacity: 0; }
   to { opacity: 1; }
 }
+@keyframes bottomSheetUp {
+  0% { transform: translateX(-50%) translateY(100%); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+@keyframes bottomSheetDown {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(100%); }
+}
 `
 if (!document.head.querySelector('#animation-styles')) {
     animationStyle.id = 'animation-styles'
@@ -84,6 +92,7 @@ export function GameScreen() {
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
+    const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
@@ -588,12 +597,12 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDimModal} onClick={() => setInviteOpen(false)}>
-                    <div style={modalSheet} onClick={(e) => e.stopPropagation()}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => setInviteOpen(false)}>‹</button>
+                <div style={overlayDimModal} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
+                    <div style={{...inviteSheet, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={inviteSheetHeader}>
+                            <div />
                             <div style={menuHeaderTitle}>Пригласи друга</div>
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>›</button>
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
@@ -632,9 +641,7 @@ export function GameScreen() {
                                     navigator.clipboard?.writeText(url).then(()=> setToast('Ссылка скопирована'))
                                 }}>Поделиться</button>
                             </div>
-                            <div style={{display:'grid', placeItems:'center'}}>
-                                <button style={inviteSecondaryBtn} onClick={() => setInviteOpen(false)}>Закрыть</button>
-                            </div>
+                            <div style={{height:6}} />
                         </div>
                     </div>
                 </div>
@@ -1145,7 +1152,7 @@ const overlayDim: React.CSSProperties = {
 const overlayDimModal: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
     background:'rgba(0,0,0,0.6)',
-    display:'grid', alignItems:'center', justifyItems:'center',
+    display:'grid', alignItems:'end', justifyItems:'center',
     zIndex: 80,
     animation: 'overlayFadeIn 300ms ease-out'
 }
@@ -1161,6 +1168,19 @@ const modalSheet: React.CSSProperties = {
     overflowY:'auto' as const,
     animation: 'slideUpFromBottom 400ms cubic-bezier(0.34, 1.56, 0.64, 1)'
 }
+
+const inviteSheet: React.CSSProperties = {
+    position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
+    width:'96%', maxWidth: 460, maxHeight:'64vh',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderTopLeftRadius: 16, borderTopRightRadius: 16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35) ',
+    padding: 12,
+    overflowY:'auto' as const
+}
+
+const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 36px', alignItems:'center', marginBottom:10 }
+const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 
 const newsPopup: React.CSSProperties = {
     width:'92%',
