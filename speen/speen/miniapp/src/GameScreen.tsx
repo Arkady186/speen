@@ -2,9 +2,9 @@ import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
 import { ImageWheel } from './wheel/ImageWheel'
 
-// CSS анимация для всплытия новостей
-const newsAnimationStyle = document.createElement('style')
-newsAnimationStyle.textContent = `
+// CSS анимации для всплывающих окон
+const animationStyle = document.createElement('style')
+animationStyle.textContent = `
 @keyframes newsSlideUp {
   0% {
     opacity: 0;
@@ -23,10 +23,24 @@ newsAnimationStyle.textContent = `
   from { opacity: 0; }
   to { opacity: 1; }
 }
+@keyframes slideUpFromBottom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(100px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
+  }
+}
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 `
-if (!document.head.querySelector('#news-animation-styles')) {
-    newsAnimationStyle.id = 'news-animation-styles'
-    document.head.appendChild(newsAnimationStyle)
+if (!document.head.querySelector('#animation-styles')) {
+    animationStyle.id = 'animation-styles'
+    document.head.appendChild(animationStyle)
 }
 
 function Toast({ text, onClose }: { text: string, onClose?: () => void }) {
@@ -1116,7 +1130,8 @@ const overlay: React.CSSProperties = {
     background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
     transition:'opacity 220ms ease',
     display:'grid', alignItems:'stretch',
-    zIndex: 50
+    zIndex: 50,
+    animation: 'overlayFadeIn 300ms ease-out'
 }
 
 const overlayDim: React.CSSProperties = {
@@ -1188,7 +1203,8 @@ const sheet: React.CSSProperties = {
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
     padding: 12,
     transition:'transform 260ms cubic-bezier(.2,.8,.2,1)',
-    overflowY:'auto'
+    overflowY:'auto',
+    animation: 'slideUpFromBottom 400ms cubic-bezier(0.34, 1.56, 0.64, 1)'
 }
 
 const newsSheet: React.CSSProperties = {
