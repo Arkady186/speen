@@ -154,10 +154,11 @@ export function GameScreen() {
 
     // TON Connect UI integration
     const tonUIRef = React.useRef<any>(null)
+    const [tonScriptReady, setTonScriptReady] = React.useState<boolean>(false)
     const [tonReady, setTonReady] = React.useState<boolean>(false)
     React.useEffect(() => {
         // lazy load script with CDN fallback
-        const existing = (window as any).TonConnectUI
+        const existing = (window as any).TON_CONNECT_UI
         if (existing) { setTonReady(true); return }
         function load(src: string, onOk: () => void, onErr: () => void){
             const s = document.createElement('script')
@@ -169,21 +170,23 @@ export function GameScreen() {
             s.onerror = onErr
             document.head.appendChild(s)
         }
-        load('https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => setTonReady(true), () => {
-            load('https://unpkg.com/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => setTonReady(true), () => setTonReady(false))
+        load('https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => { setTonScriptReady(true); setTonReady(true) }, () => {
+            load('https://unpkg.com/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => { setTonScriptReady(true); setTonReady(true) }, () => setTonReady(false))
         })
         return () => {}
     }, [])
     async function openTonConnect() {
         try {
             // ensure UI instance
-            const g: any = (window as any).TonConnectUI
+            const g: any = (window as any).TON_CONNECT_UI
             if (!g || !tonReady) { setToast('Загрузка TON Connect...'); setTimeout(openTonConnect, 600); return }
             if (!tonUIRef.current) {
                 const base = window.location.origin
-                tonUIRef.current = new g.TonConnectUI({ manifestUrl: `${base}/tonconnect-manifest.json` })
+                tonUIRef.current = new g.TonConnectUI({ manifestUrl: `${base}/tonconnect-manifest.json`, uiPreferences: { theme: 'SYSTEM' } })
             }
-            await tonUIRef.current.openModal()
+            // explicit mount target to avoid WebView overlay issues
+            const container = document.body
+            await tonUIRef.current.openModal({ restoreConnection: true, container })
         } catch {
             setToast('Не удалось открыть TON Connect')
         }
@@ -957,29 +960,75 @@ function Coin(){
 }
 
 function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amount: number) => void }){
-    const [todayClaimed, setTodayClaimed] = React.useState<boolean>(() => {
+    // 7-дневная цепочка, сбрасывается при пропуске дня
+    const rewards = [250, 500, 1000, 2500, 5000, 7500, 10000]
+    const todayStr = () => new Date().toDateString()
+    const yestStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return d.toDateString() }
+
+    const [state, setState] = React.useState(() => {
         try {
-            const d = localStorage.getItem('daily_claim_date')
-            const today = new Date().toDateString()
-            return d === today
-        } catch { return false }
+            const last = localStorage.getItem('daily_last') || ''
+            const streak = Math.max(0, Math.min(7, Number(localStorage.getItem('daily_streak') || '0') || 0))
+            const claimedToday = last === todayStr()
+            let current = 1
+            if (claimedToday) current = Math.min(7, streak) // уже получили сегодня
+            else if (last === yestStr()) current = Math.min(7, streak + 1) // продолжаем
+            else current = 1 // пропуск — начинаем заново
+            return { last, streak, claimedToday, current }
+        } catch { return { last:'', streak:0, claimedToday:false, current:1 } }
     })
-    const amount = 50
-    function handleClaim(){
-        if (todayClaimed) return
-        try { localStorage.setItem('daily_claim_date', new Date().toDateString()) } catch {}
-        setTodayClaimed(true)
-        onClaim(amount)
+
+    function save(last: string, streak: number){
+        try { localStorage.setItem('daily_last', last); localStorage.setItem('daily_streak', String(streak)) } catch {}
     }
-    return (
-        <div style={{display:'grid', gap:12}}>
-            <div style={{textAlign:'center', color:'#fff', fontWeight:900}}>Заходи каждый день и получай +{amount} W</div>
-            <div style={{display:'grid', placeItems:'center'}}>
-                <button style={{ padding:'10px 14px', borderRadius:10, border:'none', background: todayClaimed ? '#889bb9' : '#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: todayClaimed ? 'default' : 'pointer' }} onClick={handleClaim} disabled={todayClaimed}>
-                    {todayClaimed ? 'Уже получено сегодня' : 'Забрать бонус'}
-                </button>
+
+    function handleClaim(day: number){
+        if (state.claimedToday) return
+        if (day !== state.current) return
+        const amount = rewards[day-1] || 0
+        onClaim(amount)
+        const nextStreak = Math.min(7, (state.last === yestStr() ? state.streak + 1 : 1))
+        save(todayStr(), nextStreak)
+        setState({ last: todayStr(), streak: nextStreak, claimedToday: true, current: nextStreak })
+    }
+
+    // Styles под дизайн
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)', marginTop:8 }
+    const descr: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.35, textShadow:'0 2px 0 rgba(0,0,0,0.35)', margin:'8px 0 14px' }
+    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
+    const cardBase: React.CSSProperties = { background:'linear-gradient(135deg,#6ad14b 0%, #2a67b7 100%)', borderRadius:22, boxShadow:'0 10px 24px rgba(0,0,0,0.25), inset 0 0 0 3px rgba(11,47,104,0.9)', padding:'12px 10px', display:'grid', placeItems:'center', cursor:'pointer' }
+    const dayLbl: React.CSSProperties = { color:'#e8f1ff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)', marginBottom:6 }
+    const amountLbl: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+    const day7: React.CSSProperties = { ...cardBase, gridColumn:'1 / -1', borderRadius:36, padding:'16px 12px' }
+
+    const renderCard = (day: number) => {
+        const claimed = state.claimedToday && day <= state.current || (!state.claimedToday && day < state.current)
+        const isCurrent = !state.claimedToday && day === state.current
+        const style = { ...(day===7 ? day7 : cardBase), boxShadow: isCurrent ? '0 0 0 3px #ffd23a, 0 10px 24px rgba(0,0,0,0.25)' : (cardBase.boxShadow as any), opacity: claimed && !isCurrent ? .85 : 1 }
+        return (
+            <div key={day} style={style as React.CSSProperties} onClick={() => handleClaim(day)}>
+                <div style={dayLbl}>{`День ${day}`}</div>
+                <div style={{display:'grid', placeItems:'center', marginBottom:6}}>
+                    <img src="/coin-w.png" alt="coin" style={{width:32,height:32,filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))'}} />
+                </div>
+                <div style={amountLbl}>{day<7 ? (day===3? '1к': day===4? '2,5к' : day===5? '5к' : day===6? '7,5к' : String(rewards[day-1])) : '10к'}</div>
             </div>
+        )
+    }
+
+    return (
+        <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
+                <img src="/press3.png" alt="daily" style={{width:160, height:160, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={title}>Ежедневная награда</div>
+            <div style={descr}>Забирай монеты за ежедневный вход в игру без пропусков. Кнопку «Забрать» нужно нажимать ежедневно, иначе счётчик дней сбросится и нужно будет начинать всё заново.</div>
+            <div style={grid}>
+                {[1,2,3,4,5,6].map(renderCard)}
+                {renderCard(7)}
+            </div>
+            <div style={{display:'grid', placeItems:'center', marginTop:12}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
             </div>
         </div>
