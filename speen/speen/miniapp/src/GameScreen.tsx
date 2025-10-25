@@ -151,6 +151,36 @@ export function GameScreen() {
             else tg.HapticFeedback.notificationOccurred('success')
         } catch {}
     }
+
+    // TON Connect UI integration
+    const tonUIRef = React.useRef<any>(null)
+    const [tonReady, setTonReady] = React.useState<boolean>(false)
+    React.useEffect(() => {
+        // lazy load script
+        const existing = (window as any).TonConnectUI
+        if (existing) { setTonReady(true); return }
+        const s = document.createElement('script')
+        s.src = 'https://unpkg.com/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js'
+        s.async = true
+        s.onload = () => setTonReady(true)
+        document.head.appendChild(s)
+        return () => {}
+    }, [])
+    async function openTonConnect() {
+        try {
+            // ensure UI instance
+            const g: any = (window as any).TonConnectUI
+            if (!g) { setToast('Загрузка TON Connect...'); return }
+            if (!tonUIRef.current) {
+                tonUIRef.current = new g.TonConnectUI({
+                    manifestUrl: '/tonconnect-manifest.json'
+                })
+            }
+            await tonUIRef.current.openModal()
+        } catch {
+            setToast('Не удалось открыть TON Connect')
+        }
+    }
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
@@ -578,7 +608,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
-                                        if (act === 'stars') setStarsOpen(true)
+                                        if (act === 'stars') { openTonConnect(); return }
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
