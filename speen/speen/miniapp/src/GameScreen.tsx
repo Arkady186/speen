@@ -93,7 +93,9 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
-    const [inviteExpanded, setInviteExpanded] = React.useState<boolean>(false)
+    const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(64)
+    const inviteDragStartY = React.useRef<number | null>(null)
+    const inviteDragStartHeightVh = React.useRef<number>(64)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
@@ -599,8 +601,22 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
-                    <div style={{...inviteSheet, height: inviteExpanded ? '80vh' : '64vh', animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={inviteGrabWrap} onClick={() => setInviteExpanded(v=>!v)}>
+                    <div style={{...inviteSheet, height: `${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e) => {
+                                inviteDragStartY.current = e.clientY
+                                inviteDragStartHeightVh.current = inviteHeightVh
+                            }}
+                            onPointerMove={(e) => {
+                                if (inviteDragStartY.current == null) return
+                                const dy = inviteDragStartY.current - e.clientY // вверх = положительно
+                                const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy / (window.innerHeight / 100)))
+                                setInviteHeightVh(vh)
+                            }}
+                            onPointerUp={() => { inviteDragStartY.current = null }}
+                            onPointerCancel={() => { inviteDragStartY.current = null }}
+                        >
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
