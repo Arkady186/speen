@@ -95,7 +95,19 @@ export function GameScreen() {
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
     const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(64)
     const inviteDragStartY = React.useRef<number | null>(null)
+    const inviteDragStartTs = React.useRef<number>(0)
     const inviteDragStartHeightVh = React.useRef<number>(64)
+    const inviteLastY = React.useRef<number>(0)
+    const inviteLastTs = React.useRef<number>(0)
+
+    function triggerHaptic(kind: 'impact' | 'success' = 'impact'){
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            if (!tg?.HapticFeedback) return
+            if (kind === 'impact') tg.HapticFeedback.impactOccurred('light')
+            else tg.HapticFeedback.notificationOccurred('success')
+        } catch {}
+    }
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
@@ -600,21 +612,44 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDimModal} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
                     <div style={{...inviteSheet, height: `${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e) => {
                                 inviteDragStartY.current = e.clientY
+                                inviteDragStartTs.current = Date.now()
                                 inviteDragStartHeightVh.current = inviteHeightVh
+                                inviteLastY.current = e.clientY
+                                inviteLastTs.current = Date.now()
                             }}
                             onPointerMove={(e) => {
                                 if (inviteDragStartY.current == null) return
                                 const dy = inviteDragStartY.current - e.clientY // вверх = положительно
                                 const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy / (window.innerHeight / 100)))
                                 setInviteHeightVh(vh)
+                                inviteLastY.current = e.clientY
+                                inviteLastTs.current = Date.now()
                             }}
-                            onPointerUp={() => { inviteDragStartY.current = null }}
+                            onPointerUp={() => {
+                                if (inviteDragStartY.current == null) return
+                                const totalDy = inviteDragStartY.current - (inviteLastY.current || inviteDragStartY.current)
+                                const dt = Math.max(1, Date.now() - (inviteDragStartTs.current || Date.now()))
+                                const velocity = (totalDy / dt) // px per ms (вверх положительно)
+                                // быстрый свайп вниз -> закрыть
+                                if (velocity < -0.8) { // порог скорости
+                                    triggerHaptic('impact')
+                                    setInviteAnimatingOut(true)
+                                    setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 250)
+                                } else {
+                                    // снап к ближайшей точке
+                                    const snaps = [40, 60, 80, 90]
+                                    const next = snaps.reduce((a,b)=> Math.abs(b - inviteHeightVh) < Math.abs(a - inviteHeightVh) ? b : a, snaps[0])
+                                    setInviteHeightVh(next)
+                                    triggerHaptic('impact')
+                                }
+                                inviteDragStartY.current = null
+                            }}
                             onPointerCancel={() => { inviteDragStartY.current = null }}
                         >
                             <div style={inviteGrabBar} />
