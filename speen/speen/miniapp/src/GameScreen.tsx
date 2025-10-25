@@ -93,6 +93,7 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
+    const [inviteExpanded, setInviteExpanded] = React.useState<boolean>(false)
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
@@ -598,11 +599,11 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
-                    <div style={{...inviteSheet, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{...inviteSheet, height: inviteExpanded ? '80vh' : '64vh', animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
                         <div style={inviteSheetHeader}>
-                            <div />
+                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>‹</button>
                             <div style={menuHeaderTitle}>Пригласи друга</div>
-                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>›</button>
+                            <button style={sheetToggle} onClick={() => setInviteExpanded(v=>!v)}>{inviteExpanded ? '﹀' : '︿'}</button>
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
@@ -1171,7 +1172,7 @@ const modalSheet: React.CSSProperties = {
 
 const inviteSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'96%', maxWidth: 460, maxHeight:'64vh',
+    width:'96%', maxWidth: 460, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35) ',
@@ -1179,8 +1180,9 @@ const inviteSheet: React.CSSProperties = {
     overflowY:'auto' as const
 }
 
-const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 36px', alignItems:'center', marginBottom:10 }
+const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', marginBottom:10 }
 const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const sheetToggle: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 
 const newsPopup: React.CSSProperties = {
     width:'92%',
