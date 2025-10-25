@@ -100,6 +100,33 @@ export function GameScreen() {
     const inviteLastY = React.useRef<number>(0)
     const inviteLastTs = React.useRef<number>(0)
 
+    // Stars bottom-sheet state
+    const [starsAnimatingOut, setStarsAnimatingOut] = React.useState<boolean>(false)
+    const [starsHeightVh, setStarsHeightVh] = React.useState<number>(64)
+    const starsDragStartY = React.useRef<number | null>(null)
+    const starsDragStartTs = React.useRef<number>(0)
+    const starsDragStartHeightVh = React.useRef<number>(64)
+    const starsLastY = React.useRef<number>(0)
+    const starsLastTs = React.useRef<number>(0)
+
+    // Daily bottom-sheet state
+    const [dailyAnimatingOut, setDailyAnimatingOut] = React.useState<boolean>(false)
+    const [dailyHeightVh, setDailyHeightVh] = React.useState<number>(64)
+    const dailyDragStartY = React.useRef<number | null>(null)
+    const dailyDragStartTs = React.useRef<number>(0)
+    const dailyDragStartHeightVh = React.useRef<number>(64)
+    const dailyLastY = React.useRef<number>(0)
+    const dailyLastTs = React.useRef<number>(0)
+
+    // Shop bottom-sheet state
+    const [shopAnimatingOut, setShopAnimatingOut] = React.useState<boolean>(false)
+    const [shopHeightVh, setShopHeightVh] = React.useState<number>(64)
+    const shopDragStartY = React.useRef<number | null>(null)
+    const shopDragStartTs = React.useRef<number>(0)
+    const shopDragStartHeightVh = React.useRef<number>(64)
+    const shopLastY = React.useRef<number>(0)
+    const shopLastTs = React.useRef<number>(0)
+
     function triggerHaptic(kind: 'impact' | 'success' = 'impact'){
         try {
             const tg = (window as any).Telegram?.WebApp
@@ -588,10 +615,19 @@ export function GameScreen() {
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
             {starsOpen && (
-                <div style={{...overlay, bottom: 0}}>
-                    <div style={sheet}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => setStarsOpen(false)}>‹</button>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setStarsOpen(false) }}>
+                    <div style={{...inviteSheet, height:`${starsHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ starsDragStartY.current = e.clientY; starsDragStartTs.current=Date.now(); starsDragStartHeightVh.current = starsHeightVh; starsLastY.current=e.clientY; starsLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (starsDragStartY.current==null) return; const dy = starsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, starsDragStartHeightVh.current + dy/(window.innerHeight/100))); setStarsHeightVh(vh); starsLastY.current=e.clientY; starsLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (starsDragStartY.current==null) return; const totalDy = starsDragStartY.current - (starsLastY.current || starsDragStartY.current); const dt = Math.max(1, Date.now() - (starsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setStarsOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-starsHeightVh)<Math.abs(a-starsHeightVh)?b:a,snaps[0]); setStarsHeightVh(next); triggerHaptic('impact') } starsDragStartY.current=null }}
+                            onPointerCancel={()=>{ starsDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={inviteSheetHeader}>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setStarsOpen(false) }}>‹</button>
                             <div style={menuHeaderTitle}>Пополнить за ⭐</div>
                             <div style={{width:36}} />
                         </div>
@@ -702,10 +738,19 @@ export function GameScreen() {
                 </div>
             )}
             {shopOpen && (
-                <div style={{...overlay, bottom: 0}}>
-                    <div style={sheet}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => setShopOpen(false)}>‹</button>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setShopOpen(false) }}>
+                    <div style={{...inviteSheet, height:`${shopHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ shopDragStartY.current = e.clientY; shopDragStartTs.current=Date.now(); shopDragStartHeightVh.current = shopHeightVh; shopLastY.current=e.clientY; shopLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (shopDragStartY.current==null) return; const dy = shopDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, shopDragStartHeightVh.current + dy/(window.innerHeight/100))); setShopHeightVh(vh); shopLastY.current=e.clientY; shopLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (shopDragStartY.current==null) return; const totalDy = shopDragStartY.current - (shopLastY.current || shopDragStartY.current); const dt = Math.max(1, Date.now() - (shopDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setShopOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-shopHeightVh)<Math.abs(a-shopHeightVh)?b:a,snaps[0]); setShopHeightVh(next); triggerHaptic('impact') } shopDragStartY.current=null }}
+                            onPointerCancel={()=>{ shopDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={inviteSheetHeader}>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopOpen(false) }}>‹</button>
                             <div style={menuHeaderTitle}>Покупки и бонусы</div>
                             <div style={{width:36}} />
                         </div>
@@ -802,10 +847,19 @@ export function GameScreen() {
                 </div>
             )}
             {dailyOpen && (
-                <div style={{...overlay, bottom: 0}}>
-                    <div style={sheet}>
-                        <div style={menuHeaderWrap}>
-                            <button style={menuHeaderBackBtn} onClick={() => setDailyOpen(false)}>‹</button>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setDailyOpen(false) }}>
+                    <div style={{...inviteSheet, height:`${dailyHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ dailyDragStartY.current = e.clientY; dailyDragStartTs.current=Date.now(); dailyDragStartHeightVh.current = dailyHeightVh; dailyLastY.current=e.clientY; dailyLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (dailyDragStartY.current==null) return; const dy = dailyDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, dailyDragStartHeightVh.current + dy/(window.innerHeight/100))); setDailyHeightVh(vh); dailyLastY.current=e.clientY; dailyLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (dailyDragStartY.current==null) return; const totalDy = dailyDragStartY.current - (dailyLastY.current || dailyDragStartY.current); const dt = Math.max(1, Date.now() - (dailyDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setDailyOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-dailyHeightVh)<Math.abs(a-dailyHeightVh)?b:a,snaps[0]); setDailyHeightVh(next); triggerHaptic('impact') } dailyDragStartY.current=null }}
+                            onPointerCancel={()=>{ dailyDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={inviteSheetHeader}>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setDailyOpen(false) }}>‹</button>
                             <div style={menuHeaderTitle}>Ежедневный бонус</div>
                             <div style={{width:36}} />
                         </div>
