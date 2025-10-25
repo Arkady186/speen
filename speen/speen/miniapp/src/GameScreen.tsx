@@ -600,10 +600,13 @@ export function GameScreen() {
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
                     <div style={{...inviteSheet, height: inviteExpanded ? '80vh' : '64vh', animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={inviteGrabWrap} onClick={() => setInviteExpanded(v=>!v)}>
+                            <div style={inviteGrabBar} />
+                        </div>
                         <div style={inviteSheetHeader}>
                             <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>‹</button>
                             <div style={menuHeaderTitle}>Пригласи друга</div>
-                            <button style={sheetToggle} onClick={() => setInviteExpanded(v=>!v)}>{inviteExpanded ? '﹀' : '︿'}</button>
+                            <div style={{width:36}} />
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
@@ -1182,7 +1185,8 @@ const inviteSheet: React.CSSProperties = {
 
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', marginBottom:10 }
 const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
-const sheetToggle: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center', paddingTop:6, paddingBottom:2, cursor:'pointer' }
+const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
 
 const newsPopup: React.CSSProperties = {
     width:'92%',
