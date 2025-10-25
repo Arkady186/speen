@@ -156,25 +156,32 @@ export function GameScreen() {
     const tonUIRef = React.useRef<any>(null)
     const [tonReady, setTonReady] = React.useState<boolean>(false)
     React.useEffect(() => {
-        // lazy load script
+        // lazy load script with CDN fallback
         const existing = (window as any).TonConnectUI
         if (existing) { setTonReady(true); return }
-        const s = document.createElement('script')
-        s.src = 'https://unpkg.com/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js'
-        s.async = true
-        s.onload = () => setTonReady(true)
-        document.head.appendChild(s)
+        function load(src: string, onOk: () => void, onErr: () => void){
+            const s = document.createElement('script')
+            s.src = src
+            s.async = true
+            s.crossOrigin = 'anonymous'
+            s.referrerPolicy = 'no-referrer'
+            s.onload = onOk
+            s.onerror = onErr
+            document.head.appendChild(s)
+        }
+        load('https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => setTonReady(true), () => {
+            load('https://unpkg.com/@tonconnect/ui@2.0.7/dist/tonconnect-ui.min.js', () => setTonReady(true), () => setTonReady(false))
+        })
         return () => {}
     }, [])
     async function openTonConnect() {
         try {
             // ensure UI instance
             const g: any = (window as any).TonConnectUI
-            if (!g) { setToast('Загрузка TON Connect...'); return }
+            if (!g || !tonReady) { setToast('Загрузка TON Connect...'); setTimeout(openTonConnect, 600); return }
             if (!tonUIRef.current) {
-                tonUIRef.current = new g.TonConnectUI({
-                    manifestUrl: '/tonconnect-manifest.json'
-                })
+                const base = window.location.origin
+                tonUIRef.current = new g.TonConnectUI({ manifestUrl: `${base}/tonconnect-manifest.json` })
             }
             await tonUIRef.current.openModal()
         } catch {
@@ -608,7 +615,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
-                                        if (act === 'stars') { openTonConnect(); return }
+                                        if (act === 'ton') { openTonConnect(); return }
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
@@ -1493,8 +1500,8 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'stars' }> = [
-    { title: 'Подключай свой кошелек TON', action: 'stars', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> = [
+    { title: 'Подключай свой кошелек TON', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
     { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
