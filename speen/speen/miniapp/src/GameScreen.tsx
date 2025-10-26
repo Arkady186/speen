@@ -197,6 +197,9 @@ export function GameScreen() {
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
+    // Friends/invites
+    type FriendEntry = { id: number, name: string, photo?: string, rewardW: number }
+    const [friends, setFriends] = React.useState<FriendEntry[]>([])
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -443,6 +446,41 @@ export function GameScreen() {
                 const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
                 setInitials(ini.toUpperCase())
                 if (u.id) setUserId(Number(u.id))
+                // Load friends for current user (if any)
+                try {
+                    const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
+                    setFriends(JSON.parse(raw))
+                } catch { setFriends([]) }
+            }
+            // Process referral start param (ref_XXXX)
+            const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
+            const curId: number | null = tg?.initDataUnsafe?.user?.id ? Number(tg.initDataUnsafe.user.id) : null
+            if (startParam && String(startParam).startsWith('ref_') && curId) {
+                const inviterId = Number(String(startParam).slice(4))
+                if (inviterId && inviterId !== curId) {
+                    const invitee: FriendEntry = { id: curId, name: (u?.username || uname) || 'Unknown account', photo: u?.photo_url, rewardW: 5000 }
+                    const inviterKey = `friends_${inviterId}`
+                    try {
+                        const raw = localStorage.getItem(inviterKey) || '[]'
+                        const list: FriendEntry[] = JSON.parse(raw)
+                        if (!list.some(x => x.id === invitee.id)) {
+                            list.push(invitee)
+                            localStorage.setItem(inviterKey, JSON.stringify(list))
+                        }
+                    } catch {}
+                    // Also add inviter to current user's list for symmetric display
+                    try {
+                        const invName = 'Unknown account'
+                        const curKey = `friends_${curId}`
+                        const raw2 = localStorage.getItem(curKey) || '[]'
+                        const list2: FriendEntry[] = JSON.parse(raw2)
+                        if (!list2.some(x => x.id === inviterId)) {
+                            list2.push({ id: inviterId, name: invName, rewardW: 5000 })
+                            localStorage.setItem(curKey, JSON.stringify(list2))
+                            setFriends(list2)
+                        }
+                    } catch {}
+                }
             }
         } catch {}
     }, [])
@@ -787,11 +825,15 @@ export function GameScreen() {
                                         <button style={friendsRefreshBtn} onClick={()=> setToast('Обновлено')}>↻</button>
                                     </div>
                                     <div style={{display:'grid', gap:12}}>
-                                        {[0,1,2].map((i)=> (
-                                            <div key={`fr-${i}`} style={friendRow}>
-                                                <div style={friendAvatar}><div style={{width:'100%',height:'100%',borderRadius:'50%',background:'#ffdc8b',boxShadow:'inset 0 0 0 3px #7a4e06'}} /></div>
-                                                <div style={friendName}>Unknown account</div>
-                                                <div style={friendAmount}><img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> 5.0K</div>
+                                        {friends.length === 0 ? (
+                                            <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>Пока пусто</div>
+                                        ) : friends.map((f)=> (
+                                            <div key={`fr-${f.id}`} style={friendRow}>
+                                                <div style={friendAvatar}>
+                                                    {f.photo ? <img src={f.photo} alt="avatar" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} /> : <div style={{width:'100%',height:'100%',borderRadius:'50%',background:'#ffdc8b',boxShadow:'inset 0 0 0 3px #7a4e06'}} />}
+                                                </div>
+                                                <div style={friendName}>{f.name || 'Unknown account'}</div>
+                                                <div style={friendAmount}><img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> {(f.rewardW/1000).toFixed(1)}K</div>
                                             </div>
                                         ))}
                                     </div>
