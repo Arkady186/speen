@@ -751,45 +751,53 @@ export function GameScreen() {
                             <div style={menuHeaderTitle}>Пригласи друга</div>
                             <div style={{width:36}} />
                         </div>
-                        <div style={{display:'grid', gap:10}}>
-                            <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:800}}>Поделись ссылкой на игру и получай бонусы за друзей</div>
-                            <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, alignItems:'center'}}>
-                                <input readOnly value={(() => {
-                                    try {
-                                        const tg = (window as any).Telegram?.WebApp
-                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
-                                        const uid = tg?.initDataUnsafe?.user?.id
-                                        const payload = uid ? `ref_${uid}` : 'invite'
-                                        return `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
-                                    } catch { return 'https://t.me' }
-                                })() as any} style={inviteInput} />
-                                <button style={inviteBtn} onClick={() => {
-                                    let url = 'https://t.me'
-                                    try {
-                                        const tg = (window as any).Telegram?.WebApp
-                                        const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
-                                        const uid = tg?.initDataUnsafe?.user?.id
-                                        const payload = uid ? `ref_${uid}` : 'invite'
-                                        url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
-                                    } catch {}
-                                    const text = 'Присоединяйся в игру!'
-                                    try {
-                                        const tg = (window as any).Telegram?.WebApp
-                                        if (tg?.openTelegramLink) {
-                                            const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
-                                            tg.openTelegramLink(share)
-                                            return
-                                        }
-                                    } catch {}
-                                    if ((navigator as any)?.share) {
-                                        (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{})
+                        {(() => {
+                            const tg = (window as any).Telegram?.WebApp
+                            const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
+                            const uid = tg?.initDataUnsafe?.user?.id
+                            const payload = uid ? `ref_${uid}` : 'invite'
+                            const url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
+                            const handleShare = () => {
+                                const text = 'Присоединяйся в игру!'
+                                try {
+                                    if (tg?.openTelegramLink) {
+                                        const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+                                        tg.openTelegramLink(share)
                                         return
                                     }
-                                    navigator.clipboard?.writeText(url).then(()=> setToast('Ссылка скопирована'))
-                                }}>Поделиться</button>
-                            </div>
-                            <div style={{height:6}} />
-                        </div>
+                                } catch {}
+                                if ((navigator as any)?.share) { (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{}); return }
+                                navigator.clipboard?.writeText(url).then(()=> setToast('Ссылка скопирована'))
+                            }
+                            return (
+                                <div style={{display:'grid', gap:14}}>
+                                    <div style={{display:'grid', placeItems:'center'}}>
+                                        <img src="/press2.png" alt="invite" style={inviteHeroImg} />
+                                    </div>
+                                    <div style={inviteTitleLarge}>Пригласите друзей</div>
+                                    <div style={{display:'grid', placeItems:'center'}}>
+                                        <div style={inviteSubtitlePill}>Вы и ваш друг получите бонусы</div>
+                                    </div>
+                                    <button style={inviteCtaPill} onClick={handleShare}>
+                                        <img src="/coin-w.png" alt="coin" style={{width:26,height:26, filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
+                                        <span style={{marginLeft:10}}>+5 000 для вас и вашего друга</span>
+                                    </button>
+                                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center'}}>
+                                        <div style={friendsHeaderLbl}>Список ваших друзей:</div>
+                                        <button style={friendsRefreshBtn} onClick={()=> setToast('Обновлено')}>↻</button>
+                                    </div>
+                                    <div style={{display:'grid', gap:12}}>
+                                        {[0,1,2].map((i)=> (
+                                            <div key={`fr-${i}`} style={friendRow}>
+                                                <div style={friendAvatar}><div style={{width:'100%',height:'100%',borderRadius:'50%',background:'#ffdc8b',boxShadow:'inset 0 0 0 3px #7a4e06'}} /></div>
+                                                <div style={friendName}>Unknown account</div>
+                                                <div style={friendAmount}><img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> 5.0K</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })()}
                     </div>
                 </div>
             )}
@@ -1412,6 +1420,17 @@ const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateCol
 const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center', paddingTop:6, paddingBottom:2, cursor:'pointer' }
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
+// Invite redesign styles
+const inviteHeroImg: React.CSSProperties = { width:160, height:160, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
+const inviteTitleLarge: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:24, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+const inviteSubtitlePill: React.CSSProperties = { padding:'6px 10px', background:'#ffffff', borderRadius:10, display:'inline-block', boxShadow:'0 3px 0 rgba(0,0,0,0.2)', color:'#0b2f68', fontWeight:900 }
+const inviteCtaPill: React.CSSProperties = { display:'grid', gridAutoFlow:'column', alignItems:'center', justifyContent:'center', gap:6, padding:'14px 16px', background:'linear-gradient(180deg,#5aa2ff,#2b66b9)', color:'#fff', border:'none', borderRadius:26, fontWeight:900, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const friendsHeaderLbl: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+const friendsRefreshBtn: React.CSSProperties = { width:32, height:32, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const friendRow: React.CSSProperties = { display:'grid', gridTemplateColumns:'56px 1fr auto', alignItems:'center', gap:12, padding:'12px 14px', background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68' }
+const friendAvatar: React.CSSProperties = { width:56, height:56, borderRadius:'50%', display:'grid', placeItems:'center', background:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68' }
+const friendName: React.CSSProperties = { color:'#fff', fontWeight:900, letterSpacing:1, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+const friendAmount: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)', display:'grid', gridAutoFlow:'column', alignItems:'center' }
 
 const newsPopup: React.CSSProperties = {
     width:'92%',
