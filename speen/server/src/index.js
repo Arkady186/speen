@@ -8,9 +8,8 @@ app.use(cors())
 app.use(express.json())
 
 let db
-const DATA_PATH = process.env.SQLITE_PATH || './data.sqlite'
 async function init(){
-  db = await open({ filename: DATA_PATH, driver: sqlite3.Database })
+  db = await open({ filename: './data.sqlite', driver: sqlite3.Database })
   await db.exec(`CREATE TABLE IF NOT EXISTS leaderboard(
     id INTEGER PRIMARY KEY,
     name TEXT,
