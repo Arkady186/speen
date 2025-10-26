@@ -197,6 +197,25 @@ export function GameScreen() {
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
+    // Leaderboard (Рейтинг игроков)
+    const [rankOpen, setRankOpen] = React.useState<boolean>(false)
+    type RankEntry = { id: number, name: string, photo?: string, coins: number }
+    const [rankList, setRankList] = React.useState<RankEntry[]>([])
+    const [rankHeightVh, setRankHeightVh] = React.useState<number>(64)
+    const rankDragStartY = React.useRef<number | null>(null)
+    const rankDragStartTs = React.useRef<number>(0)
+    const rankDragStartHeightVh = React.useRef<number>(64)
+    const rankLastY = React.useRef<number>(0)
+    const rankLastTs = React.useRef<number>(0)
+    const [rankOpen, setRankOpen] = React.useState<boolean>(false)
+    type RankEntry = { id: number, name: string, photo?: string, coins: number }
+    const [rankList, setRankList] = React.useState<RankEntry[]>([])
+    const [rankHeightVh, setRankHeightVh] = React.useState<number>(64)
+    const rankDragStartY = React.useRef<number | null>(null)
+    const rankDragStartTs = React.useRef<number>(0)
+    const rankDragStartHeightVh = React.useRef<number>(64)
+    const rankLastY = React.useRef<number>(0)
+    const rankLastTs = React.useRef<number>(0)
     // Friends/invites
     type FriendEntry = { id: number, name: string, photo?: string, rewardW: number }
     const [friends, setFriends] = React.useState<FriendEntry[]>([])
@@ -273,6 +292,16 @@ export function GameScreen() {
         try {
             localStorage.setItem('balance_w', String(nextW))
             localStorage.setItem('balance_b', String(nextB))
+        } catch {}
+        // report to server leaderboard (if available)
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            const uid = tg?.initDataUnsafe?.user?.id
+            const name = username
+            const photo = avatarUrl
+            if (uid) {
+                fetch('/api/leaderboard/upsert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: Number(uid), name, photo, coins: nextW }) }).catch(()=>{})
+            }
         } catch {}
     }
 
@@ -656,6 +685,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
+                                        if (act === 'rank') setRankOpen(true)
                                         if (act === 'ton') { openTonConnect(); return }
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
@@ -879,6 +909,27 @@ export function GameScreen() {
                             }}
                             onBuyStars={(stars, toB) => openStarsPurchase(stars, toB)}
                         />
+                    </div>
+                </div>
+            )}
+            {rankOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setRankOpen(false) }}>
+                    <div style={{...inviteSheet, height:`${rankHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ rankDragStartY.current = e.clientY; rankDragStartTs.current=Date.now(); rankDragStartHeightVh.current = rankHeightVh; rankLastY.current=e.clientY; rankLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (rankDragStartY.current==null) return; const dy = rankDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, rankDragStartHeightVh.current + dy/(window.innerHeight/100))); setRankHeightVh(vh); rankLastY.current=e.clientY; rankLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (rankDragStartY.current==null) return; const totalDy = rankDragStartY.current - (rankLastY.current || rankDragStartY.current); const dt = Math.max(1, Date.now() - (rankDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setRankOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-rankHeightVh)<Math.abs(a-rankHeightVh)?b:a,snaps[0]); setRankHeightVh(next); triggerHaptic('impact') } rankDragStartY.current=null }}
+                            onPointerCancel={()=>{ rankDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={inviteSheetHeader}>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setRankOpen(false) }}>‹</button>
+                            <div style={menuHeaderTitle}>Рейтинг игроков</div>
+                            <div style={{width:36}} />
+                        </div>
+                        <Leaderboard rankList={rankList} userId={userId} />
                     </div>
                 </div>
             )}
@@ -1129,6 +1180,34 @@ function TasksPanel({ onClose, onShare5, onReward }: { onClose: () => void, onSh
             {card('Поделись с 5 друзьями — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
             <div style={{display:'grid', placeItems:'center'}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+            </div>
+        </div>
+    )
+}
+
+function Leaderboard({ rankList, userId }: { rankList: Array<{id:number,name:string,photo?:string,coins:number}>, userId: number | null }){
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)', marginTop:8 }
+    const descr: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.35, textShadow:'0 2px 0 rgba(0,0,0,0.35)', margin:'8px 0 14px' }
+    const row: React.CSSProperties = { display:'grid', gridTemplateColumns:'64px 1fr auto', alignItems:'center', gap:10, padding:'12px 14px', background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68' }
+    const avatar: React.CSSProperties = { width:64, height:64, borderRadius:'50%', display:'grid', placeItems:'center', background:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68' }
+    const name: React.CSSProperties = { color:'#fff', fontWeight:900, letterSpacing:1, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+    const place: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+    return (
+        <div style={wrap}>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <img src="/press4.png" alt="rank" style={{width:140,height:140,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={title}>Рейтинг игроков</div>
+            <div style={descr}>Отслеживай свои достижения в рейтинге среди игроков по всему миру. Стань лучшим — займи верхнюю строчку.</div>
+            <div style={{display:'grid', gap:12}}>
+                {rankList.map((r, i) => (
+                    <div key={r.id} style={{...row, boxShadow: r.id===userId ? '0 0 0 3px #ffd23a, inset 0 0 0 3px #0b2f68' : (row.boxShadow as any)}}>
+                        <div style={avatar}>{r.photo ? <img src={r.photo} alt="a" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} /> : <div style={{width:'100%',height:'100%',borderRadius:'50%',background:'#ffdc8b',boxShadow:'inset 0 0 0 3px #7a4e06'}} />}</div>
+                        <div style={name}>{r.name || 'Unknown account'}<div style={{color:'#fffb', fontWeight:900}}><img src="/coin-w.png" alt="c" style={{width:20,height:20,marginRight:6,verticalAlign:'-4px'}}/> {r.coins.toLocaleString('ru-RU')} M</div></div>
+                        <div style={place}>{i+1}</div>
+                    </div>
+                ))}
             </div>
         </div>
     )
@@ -1610,11 +1689,11 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> = [
+    const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'rank' }> = [
     { title: 'Подключай свой кошелек TON', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
     { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
     { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
-    { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+    { title: 'Отслеживай свой рейтинг', action: 'rank', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
     { title: 'Мои покупки и бонусы в игре', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
     { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
