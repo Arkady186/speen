@@ -1193,39 +1193,28 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
 }
 
 function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void }){
-    const items: Array<{ title: string, priceB: number, img?: string }> = [
-        { title: 'VIP значок', priceB: 3, img:'/press10.png' },
-        { title: 'Скин колеса', priceB: 4, img:'/press8.png' },
-    ]
-    const purchases: Array<{title:string, priceB:number, ts:number}> = (()=>{
-        try { return JSON.parse(localStorage.getItem('purchases') || '[]') } catch { return [] }
-    })()
+    // визуальный инвентарь в стиле макета
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const descrPill: React.CSSProperties = { color:'#0b2f68', background:'#ffffff', borderRadius:12, padding:'6px 10px', textAlign:'center', fontWeight:900, lineHeight:1.35, boxShadow:'0 3px 0 rgba(0,0,0,0.25)', margin:'0 auto', width:'95%' }
+    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
+    const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center' }
+    const iconImg: React.CSSProperties = { width:64, height:64, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }
+    const plusWrap: React.CSSProperties = { ...cellBase, background:'linear-gradient(180deg,#4b90d6,#2b66b9)', position:'relative' }
+    const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'radial-gradient(circle, #9aff6b, #63d723)', boxShadow:'0 0 18px rgba(99,215,35,0.9), inset 0 0 0 3px #0a5d2b', color:'#0b2f68', fontWeight:900, fontSize:28 }
+
     return (
-        <div style={{display:'grid', gap:12}}>
-            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Покупки за B</div>
-            <div style={{display:'grid', gap:8}}>
-                {items.map((it, i) => (
-                    <div key={i} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-                        <img src={it.img} alt={it.title} style={{width:44,height:44,objectFit:'contain'}} />
-                        <div style={{color:'#fff', fontWeight:800}}>{it.title}</div>
-                        <button style={{ padding:'8px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onPurchase(it.title, it.priceB)}>
-                            Купить {it.priceB} B
-                        </button>
-                    </div>
-                ))}
+        <div style={wrap}>
+            <div style={{display:'grid', placeItems:'center'}}>
+                <img src="/press5.png" alt="bag" style={{width:140,height:140,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            {/* Покупка бонусов перенесена в Wheel Shop (правое меню) */}
-            {/* блок Stars перемещен в отдельную модалку */}
-            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Мои бонусы и покупки</div>
-            <div style={{display:'grid', gap:6}}>
-                {purchases.length === 0 ? (
-                    <div style={{color:'#e8f1ff', textAlign:'center', opacity:.8}}>Пока пусто</div>
-                ) : purchases.map((p, idx) => (
-                    <div key={idx} style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, alignItems:'center', background:'rgba(0,0,0,0.15)', borderRadius:10, padding:'6px 8px', boxShadow:'inset 0 0 0 2px #0b2f68'}}>
-                        <div style={{color:'#fff', fontWeight:800}}>{p.title}</div>
-                        <div style={{color:'#ffd23a', fontWeight:900}}>{p.priceB} B</div>
-                    </div>
-                ))}
+            <div style={title}>Покупки и бонусы</div>
+            <div style={descrPill}>Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.</div>
+            <div style={grid}>
+                <div style={cellBase}><img src="/heardwh.png" alt="heart" style={iconImg} /></div>
+                <div style={cellBase}><img src="/spacewh.png" alt="rocket" style={iconImg} /></div>
+                <div style={plusWrap}><div style={plusInner}>+</div></div>
+                {Array.from({length:9}).map((_,i)=> (<div key={`p-${i}`} style={plusWrap}><div style={plusInner}>+</div></div>))}
             </div>
             <div style={{display:'grid', placeItems:'center'}}>
                 <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
