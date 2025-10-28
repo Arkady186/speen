@@ -239,13 +239,49 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
                 }}
             >
-                {/* цельное кольцо бонусов поверх колеса */}
-                <img
-                    src="/bonus.png"
-                    alt="bonus-ring"
-                    style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
-                />
+                {/* цельное кольцо бонусов поверх колеса (прячем во время спина) */}
+                {!isSpinning && (
+                    <img
+                        src="/bonus.png"
+                        alt="bonus-ring"
+                        style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
+                    />
+                )}
             </div>
+            {/* Во время вращения закрываем цифры/бонусы вопросительными знаками */}
+            {isSpinning && (
+                <svg
+                    width={size}
+                    height={size}
+                    style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                    viewBox={`0 0 ${size} ${size}`}
+                >
+                    {(() => {
+                        const cx = size / 2
+                        const cy = size / 2
+                        const rOuterText = size * 0.405 // примерно центр по радиусу кольца цифр
+                        const rInnerText = size * 0.205 // центр по радиусу кольца бонусов
+                        const toRad = (d: number) => (Math.PI / 180) * d
+                        const nodes: JSX.Element[] = []
+                        for (let i = 0; i < labels.length; i++) {
+                            const center = i * seg + seg / 2
+                            const centerScreen = ((center + rotation + startOffsetDeg) % 360 + 360) % 360
+                            const ang = centerScreen - 90
+                            const x1 = cx + rOuterText * Math.cos(toRad(ang))
+                            const y1 = cy + rOuterText * Math.sin(toRad(ang))
+                            const x2 = cx + rInnerText * Math.cos(toRad(ang))
+                            const y2 = cy + rInnerText * Math.sin(toRad(ang))
+                            nodes.push(
+                                <text key={`q-out-${i}`} x={x1} y={y1} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" stroke="#0b2f68" strokeWidth={3} fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.08)}>?</text>
+                            )
+                            nodes.push(
+                                <text key={`q-in-${i}`} x={x2} y={y2} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" stroke="#0b2f68" strokeWidth={3} fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.07)}>?</text>
+                            )
+                        }
+                        return <g>{nodes}</g>
+                    })()}
+                </svg>
+            )}
             {!isSpinning && typeof selectedIndex === 'number' && (
                 <svg
                     width={size}
