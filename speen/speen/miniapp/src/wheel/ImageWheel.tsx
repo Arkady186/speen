@@ -90,6 +90,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     // Функция воспроизведения глухого звука
     function playTickSound() {
         try {
+            try { if (localStorage.getItem('opt_sound') === '0') return } catch {}
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
             }
@@ -114,6 +115,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     // Функция вибрации
     function vibrate() {
         try {
+            try { if (localStorage.getItem('opt_vibro') === '0') return } catch {}
             const tg = (window as any).Telegram?.WebApp
             if (tg?.HapticFeedback?.impactOccurred) {
                 tg.HapticFeedback.impactOccurred('light')

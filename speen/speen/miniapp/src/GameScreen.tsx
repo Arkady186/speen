@@ -216,6 +216,7 @@ export function GameScreen() {
     const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
     const [midW, setMidW] = React.useState<number>(() => parseFloat(localStorage.getItem('mid_w') || '0') || 0)
     const [midAnim, setMidAnim] = React.useState<boolean>(false)
+    const [settingsOpen, setSettingsOpen] = React.useState<boolean>(false)
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
     // Catch-up accrual based on time away with 3h cap
@@ -567,7 +568,7 @@ export function GameScreen() {
 
                             {/* Mid W ticker */}
                             <div style={midCounterShell}>
-                                <div style={midCounterInner}>
+                            <div style={midCounterInner}>
                                     <div 
                                         style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor:'pointer'}}
                                         onClick={() => {
@@ -587,6 +588,13 @@ export function GameScreen() {
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
                                     <div style={midValue}>{midW.toFixed(2)}</div>
+                                    <button
+                                        aria-label="settings"
+                                        onClick={()=> setSettingsOpen(true)}
+                                        style={{ marginLeft:8, width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }}
+                                    >
+                                        <img src="/satting.png" alt="settings" style={{width:24,height:24,objectFit:'contain'}} />
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -967,6 +975,28 @@ export function GameScreen() {
                             <button style={newsCloseBtn} onClick={() => setNewsOpen(false)}>✕</button>
                         </div>
                         <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
+                    </div>
+                </div>
+            )}
+            {settingsOpen && (
+                <div style={overlayDim} onClick={()=> setSettingsOpen(false)}>
+                    <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
+                        <div style={newsPopupHeader}>
+                            <div style={newsPopupTitle}>Настройки</div>
+                            <button style={newsCloseBtn} onClick={()=> setSettingsOpen(false)}>✕</button>
+                        </div>
+                        <div style={{display:'grid', gap:10}}>
+                            <label style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', color:'#fff', fontWeight:800}}>
+                                Звук
+                                <input type="checkbox" defaultChecked={localStorage.getItem('opt_sound') !== '0'} onChange={(e)=>{ try { localStorage.setItem('opt_sound', e.target.checked ? '1':'0') } catch {} }} />
+                            </label>
+                            <label style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', color:'#fff', fontWeight:800}}>
+                                Вибрация
+                                <input type="checkbox" defaultChecked={localStorage.getItem('opt_vibro') !== '0'} onChange={(e)=>{ try { localStorage.setItem('opt_vibro', e.target.checked ? '1':'0') } catch {} }} />
+                            </label>
+                            <div style={{height:10}} />
+                            <button style={{ padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }} onClick={()=> window.open('https://t.me/TestCodeTg_bot', '_blank')}>Политика конфиденциальности</button>
+                        </div>
                     </div>
                 </div>
             )}
