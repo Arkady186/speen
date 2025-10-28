@@ -1138,14 +1138,24 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     const [title, setTitle] = React.useState('')
     const [text, setText] = React.useState('')
     const [images, setImages] = React.useState<string[]>([])
-    const list: Array<{title:string, text:string, images:string[], ts:number}> = (()=>{
-        try { return JSON.parse(localStorage.getItem('news_list') || '[]') } catch { return [] }
-    })()
-    function addNews(){
+    const [list, setList] = React.useState<Array<{title:string, text:string, images:string[], ts:number}>>([])
+    React.useEffect(() => {
+        fetch('/api/news').then(r=>r.json()).then(d=>{
+            if (Array.isArray(d?.items)) setList(d.items)
+        }).catch(()=>{})
+    }, [])
+    async function addNews(){
         if (!isAdmin) return
-        const next = [{ title, text, images, ts: Date.now() }, ...list]
-        try { localStorage.setItem('news_list', JSON.stringify(next)) } catch {}
-        setTitle(''); setText(''); setImages([])
+        try{
+            const tg = (window as any).Telegram?.WebApp
+            const adminId = tg?.initDataUnsafe?.user?.id
+            const res = await fetch('/api/news', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ adminId, title, text, images }) })
+            if (res.ok) {
+                setTitle(''); setText(''); setImages([])
+                const d = await fetch('/api/news').then(r=>r.json()).catch(()=>null)
+                if (Array.isArray(d?.items)) setList(d.items)
+            }
+        } catch {}
     }
     function addImage(){
         const url = prompt('Ссылка на картинку') || ''
