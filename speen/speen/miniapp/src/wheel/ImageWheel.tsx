@@ -258,22 +258,16 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         {(() => {
                             const cx = size / 2
                             const cy = size / 2
-                            const rOuterText = size * 0.405
                             const rInnerText = size * 0.205
                             const toRad = (d: number) => (Math.PI / 180) * d
                             const nodes: JSX.Element[] = []
                             for (let i = 0; i < labels.length; i++) {
                                 const center = i * seg + seg / 2
                                 const ang = center - 90 // внутри transform родителя, поэтому без rotation
-                                const x1 = cx + rOuterText * Math.cos(toRad(ang))
-                                const y1 = cy + rOuterText * Math.sin(toRad(ang))
                                 const x2 = cx + rInnerText * Math.cos(toRad(ang))
                                 const y2 = cy + rInnerText * Math.sin(toRad(ang))
                                 nodes.push(
-                                    <text key={`q-out-${i}`} x={x1} y={y1} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" stroke="#0b2f68" strokeWidth={3} fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.08)}>?</text>
-                                )
-                                nodes.push(
-                                    <text key={`q-in-${i}`} x={x2} y={y2} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" stroke="#0b2f68" strokeWidth={3} fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.07)}>?</text>
+                                    <text key={`q-in-${i}`} x={x2} y={y2} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.07)} transform={`rotate(${ang+180}, ${x2}, ${y2})`}>?</text>
                                 )
                             }
                             return <g>{nodes}</g>
