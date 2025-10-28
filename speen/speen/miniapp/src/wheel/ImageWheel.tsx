@@ -267,7 +267,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                                 const x2 = cx + rInnerText * Math.cos(toRad(ang))
                                 const y2 = cy + rInnerText * Math.sin(toRad(ang))
                                 nodes.push(
-                                    <text key={`q-in-${i}`} x={x2} y={y2} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.07)} transform={`rotate(${ang+180}, ${x2}, ${y2})`}>?</text>
+                                    <text key={`q-in-${i}`} x={x2} y={y2} textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontWeight={900} fontFamily="'Russo One', Inter, system-ui" fontSize={Math.round(size*0.07)} transform={`rotate(${ang+90}, ${x2}, ${y2})`}>?</text>
                                 )
                             }
                             return <g>{nodes}</g>
