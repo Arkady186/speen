@@ -588,13 +588,12 @@ export function GameScreen() {
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
                                     <div style={midValue}>{midW.toFixed(2)}</div>
-                                    <button
-                                        aria-label="settings"
+                                    <div
                                         onClick={()=> setSettingsOpen(true)}
-                                        style={{ marginLeft:8, width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }}
+                                        style={{ marginLeft:'auto', width:40, height:40, display:'grid', placeItems:'center', cursor:'pointer' }}
                                     >
-                                        <img src="/satting.png" alt="settings" style={{width:24,height:24,objectFit:'contain'}} />
-                                    </button>
+                                        <img src="/satting.png" alt="settings" style={{width:'100%',height:'100%',objectFit:'contain', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))'}} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1371,7 +1370,7 @@ const currencyCell: React.CSSProperties = {
 const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
 const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
 const midCounterShell: React.CSSProperties = { width:'88%', margin:'2px auto 0', display:'grid' }
-const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridAutoFlow:'column', alignItems:'center', gap:8, background:'transparent', padding:0, borderRadius:0, boxShadow:'none' }
+const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridTemplateColumns:'auto 1fr auto', alignItems:'center', gap:8, background:'transparent', padding:0, borderRadius:0, boxShadow:'none', width:'88%' }
 const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', fontSize:48, lineHeight:1 }
 const midPlusOne: React.CSSProperties = { position:'absolute', bottom:24, color:'#22c55e', fontWeight:900, animation:'midpop 900ms ease forwards', textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
 
