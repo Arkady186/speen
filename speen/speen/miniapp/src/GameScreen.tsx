@@ -1488,7 +1488,7 @@ const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateCol
 const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center', paddingTop:6, paddingBottom:2, cursor:'pointer' }
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
-const settingsFloatBtn: React.CSSProperties = { position:'fixed', right:8, top: '45%', width:40, height:40, zIndex:90, cursor:'pointer' }
+const settingsFloatBtn: React.CSSProperties = { position:'fixed', right:24, top: '35%', width:80, height:80, zIndex:90, cursor:'pointer' }
 // Invite redesign styles
 const inviteHeroImg: React.CSSProperties = { width:160, height:160, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
 const inviteTitleLarge: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:24, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
