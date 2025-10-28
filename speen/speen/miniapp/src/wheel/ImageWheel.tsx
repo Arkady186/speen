@@ -432,7 +432,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             })()}
 
 
-            {/* центральная кнопка старта */}
+            {/* центральная кнопка старта (меняет изображение при спине) */}
             <button
                 type="button"
                 onClick={() => spin()}
@@ -447,10 +447,9 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
                     border: 'none',
-                    background: `url(/center.png) center/contain no-repeat`,
+                    background: `url(${isSpinning ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
                     boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
                     cursor: isSpinning ? 'default' : 'pointer',
-                    display: isSpinning ? 'none' : 'block',
                 }}
             />
         </div>
