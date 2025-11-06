@@ -1254,8 +1254,8 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
 
 const root: React.CSSProperties = {
     minHeight: '100dvh',
-    // Более тёмный синий фон
-    background: 'linear-gradient(180deg, #0b2f68 0%, #1a3e80 60%, #0f2f66 100%)',
+    // Возврат к прежнему фону приложения
+    background: 'linear-gradient(180deg, #68b1ff 0%, #3f7ddb 60%, #2e63bf 100%)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
 }
