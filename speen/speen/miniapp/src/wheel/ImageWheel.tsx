@@ -19,8 +19,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Pointer offsets from original top-center position
-    const POINTER_DX = 100 // px to the right from center
-    const POINTER_DY = 30  // px down from original top (-16 + 30 => top: 14)
+    const POINTER_DX = 110 // px to the right from center (diagonal with plus)
+    const POINTER_DY = 20  // closer to top edge
     
     // Вычисляем начальное вращение для сектора 0
     const getInitialRotation = () => {
@@ -41,6 +41,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
+    const centerBtnRef = React.useRef<HTMLButtonElement | null>(null)
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -171,6 +172,12 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         if (wheelRef.current) {
             wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
+        // синхронно чуть-чуть повернем центральную кнопку
+        if (centerBtnRef.current) {
+            centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
+            const delta = (base - rotation)
+            centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${delta * 0.25}deg)`
+        }
         requestAnimationFrame(() => setRotation(target))
 
         // безопасный коллбэк результата по окончанию анимации
@@ -239,6 +246,10 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     setHighlightVisible(true)
                     if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
+                    if (centerBtnRef.current) {
+                        centerBtnRef.current.style.transition = 'transform 200ms ease'
+                        centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
+                    }
                 }}
             >
                 {/* цельное кольцо бонусов поверх колеса (прячем во время спина) */}
@@ -469,6 +480,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 onClick={() => spin()}
                 disabled={isSpinning}
                 aria-label={isSpinning ? 'Крутится' : 'Крутить'}
+                ref={centerBtnRef}
                 style={{
                     position: 'absolute',
                     left: '50%',
