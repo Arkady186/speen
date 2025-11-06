@@ -790,7 +790,7 @@ export function GameScreen() {
                         </div>
                         <div style={inviteSheetHeader}>
                             <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>‹</button>
-                            <div style={menuHeaderTitle}>Пригласи друга</div>
+                            <div style={{width:36}} />
                             <div style={{width:36}} />
                         </div>
                         {(() => {
@@ -814,7 +814,7 @@ export function GameScreen() {
                             return (
                                 <div style={{display:'grid', gap:14}}>
                                     <div style={{display:'grid', placeItems:'center'}}>
-                                        <img src="/press2.png" alt="invite" style={inviteHeroImg} />
+                                        <img src="/press2.png" alt="invite" style={{...inviteHeroImg, width:140, height:140}} />
                                     </div>
                                     <div style={inviteTitleLarge}>Пригласите друзей</div>
                                     <div style={{display:'grid', placeItems:'center'}}>
@@ -1091,7 +1091,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
     return (
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/press3.png" alt="daily" style={{width:160, height:160, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/press3.png" alt="daily" style={{width:140, height:140, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={title}>Ежедневная награда</div>
             <div style={descr}>Забирай монеты за ежедневный вход в игру без пропусков. Кнопку «Забрать» нужно нажимать ежедневно, иначе счётчик дней сбросится и нужно будет начинать всё заново.</div>
@@ -1237,7 +1237,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
     return (
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/press5.png" alt="bag" style={{width:140,height:140,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/press5.png" alt="bag" style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={title}>Покупки и бонусы</div>
             <div style={descrPill}>Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.</div>
@@ -1592,7 +1592,7 @@ const menuCard: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrap: React.CSSProperties = { width:38, height:38, display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:34, height:34, display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 // Right menu styles (increased by 20% for 5->6 card effect)
@@ -1616,8 +1616,8 @@ const menuCardRight: React.CSSProperties = {
 const menuIconWrapRight: React.CSSProperties = { width:46, height:46, display:'grid', placeItems:'center' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
-const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:1, textAlign:'center' }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:12, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.8, textAlign:'center', fontSize:14 }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:11, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 

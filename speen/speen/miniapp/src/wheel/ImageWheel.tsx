@@ -19,7 +19,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Pointer offsets from original top-center position
-    const POINTER_DX = 110 // px to the right from center (diagonal with plus)
+    const POINTER_DX = 102 // чуть ближе к центру
     const POINTER_DY = 20  // closer to top edge
     
     // Вычисляем начальное вращение для сектора 0
