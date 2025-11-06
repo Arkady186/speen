@@ -1381,7 +1381,7 @@ function PanelShell({ children }: { children: React.ReactNode }){
             borderRadius: 10,
             padding: 6,
             boxShadow: 'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
-            width:'88%', margin:'0 auto'
+            width:'82%', margin:'0 auto'
         }}>
             {children}
         </div>
