@@ -318,16 +318,9 @@ export function GameScreen() {
         }
     }
 
-    function getLimits(m: GameMode, cur: 'W'|'B') {
-        // General limits
-        const general = cur === 'W' ? { min: 100, max: 1_000_000_000 } : { min: 1, max: 1000 }
-        // Mode-specific limits per spec
-        const modeLimits = (
-            m === 'allin'
-                ? (cur === 'W' ? { min: 1000, max: 10000 } : { min: 3, max: 10 })
-                : (cur === 'W' ? { min: 100, max: 1000 } : { min: 1, max: 3 })
-        )
-        return { min: Math.max(general.min, modeLimits.min), max: Math.min(general.max, modeLimits.max) }
+    function getLimits(_m: GameMode, _cur: 'W'|'B') {
+        // Unified limits for both currencies and all modes
+        return { min: 100, max: 10_000 }
     }
 
     // Clamp bet when mode/currency changes
