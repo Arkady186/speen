@@ -93,7 +93,7 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
-    const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(64)
+    const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(72)
     const inviteDragStartY = React.useRef<number | null>(null)
     const inviteDragStartTs = React.useRef<number>(0)
     const inviteDragStartHeightVh = React.useRef<number>(64)
@@ -102,7 +102,7 @@ export function GameScreen() {
 
     // Stars bottom-sheet state
     const [starsAnimatingOut, setStarsAnimatingOut] = React.useState<boolean>(false)
-    const [starsHeightVh, setStarsHeightVh] = React.useState<number>(64)
+    const [starsHeightVh, setStarsHeightVh] = React.useState<number>(72)
     const starsDragStartY = React.useRef<number | null>(null)
     const starsDragStartTs = React.useRef<number>(0)
     const starsDragStartHeightVh = React.useRef<number>(64)
@@ -111,7 +111,7 @@ export function GameScreen() {
 
     // Daily bottom-sheet state
     const [dailyAnimatingOut, setDailyAnimatingOut] = React.useState<boolean>(false)
-    const [dailyHeightVh, setDailyHeightVh] = React.useState<number>(64)
+    const [dailyHeightVh, setDailyHeightVh] = React.useState<number>(72)
     const dailyDragStartY = React.useRef<number | null>(null)
     const dailyDragStartTs = React.useRef<number>(0)
     const dailyDragStartHeightVh = React.useRef<number>(64)
@@ -120,7 +120,7 @@ export function GameScreen() {
 
     // Shop bottom-sheet state
     const [shopAnimatingOut, setShopAnimatingOut] = React.useState<boolean>(false)
-    const [shopHeightVh, setShopHeightVh] = React.useState<number>(64)
+    const [shopHeightVh, setShopHeightVh] = React.useState<number>(72)
     const shopDragStartY = React.useRef<number | null>(null)
     const shopDragStartTs = React.useRef<number>(0)
     const shopDragStartHeightVh = React.useRef<number>(64)
@@ -128,7 +128,7 @@ export function GameScreen() {
     const shopLastTs = React.useRef<number>(0)
 
     // WheelShop bottom-sheet state (right menu)
-    const [wheelSheetHeightVh, setWheelSheetHeightVh] = React.useState<number>(64)
+    const [wheelSheetHeightVh, setWheelSheetHeightVh] = React.useState<number>(72)
     const wheelDragStartY = React.useRef<number | null>(null)
     const wheelDragStartTs = React.useRef<number>(0)
     const wheelDragStartHeightVh = React.useRef<number>(64)
@@ -136,7 +136,7 @@ export function GameScreen() {
     const wheelLastTs = React.useRef<number>(0)
 
     // Tasks bottom-sheet state (right menu)
-    const [tasksSheetHeightVh, setTasksSheetHeightVh] = React.useState<number>(64)
+    const [tasksSheetHeightVh, setTasksSheetHeightVh] = React.useState<number>(72)
     const tasksDragStartY = React.useRef<number | null>(null)
     const tasksDragStartTs = React.useRef<number>(0)
     const tasksDragStartHeightVh = React.useRef<number>(64)
@@ -318,9 +318,11 @@ export function GameScreen() {
         }
     }
 
-    function getLimits(_m: GameMode, _cur: 'W'|'B') {
-        // Unified limits for both currencies and all modes
-        return { min: 100, max: 10_000 }
+    function getLimits(m: GameMode, _cur: 'W'|'B') {
+        // x2 / x3 из 10: от 100; x5: от 1000. Верхняя граница 100_000
+        const max = 100_000
+        const min = m === 'allin' ? 1000 : 100
+        return { min, max }
     }
 
     // Clamp bet when mode/currency changes
@@ -1004,11 +1006,6 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setDailyOpen(false) }}>‹</button>
-                            <div style={menuHeaderTitle}>Ежедневный бонус</div>
-                            <div style={{width:36}} />
-                        </div>
                         <DailyBonus
                             onClose={() => setDailyOpen(false)}
                             onClaim={(amount) => {
@@ -1257,8 +1254,8 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
 
 const root: React.CSSProperties = {
     minHeight: '100dvh',
-    // Более светлый синий фон
-    background: 'linear-gradient(180deg, #68b1ff 0%, #3f7ddb 60%, #2e63bf 100%)',
+    // Более тёмный синий фон
+    background: 'linear-gradient(180deg, #0b2f68 0%, #1a3e80 60%, #0f2f66 100%)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
 }
@@ -1434,7 +1431,7 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
 
 const overlay: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:96,
-    background:'linear-gradient(180deg, #3c76cc 0%, #2356a8 100%)',
+    background:'linear-gradient(180deg, #183a78 0%, #163368 100%)',
     transition:'opacity 220ms ease',
     display:'grid', alignItems:'stretch',
     zIndex: 50,
@@ -1443,7 +1440,7 @@ const overlay: React.CSSProperties = {
 
 const overlayDim: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
-    background:'rgba(0,0,0,0.5)',
+    background:'rgba(0,0,0,0.66)',
     display:'grid', alignItems:'center', justifyItems:'center',
     zIndex: 70,
     animation: 'newsOverlayFadeIn 400ms ease-out'
@@ -1451,7 +1448,7 @@ const overlayDim: React.CSSProperties = {
 
 const overlayDimModal: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
-    background:'rgba(0,0,0,0.6)',
+    background:'rgba(0,0,0,0.75)',
     display:'grid', alignItems:'end', justifyItems:'center',
     zIndex: 80,
     animation: 'overlayFadeIn 300ms ease-out'
