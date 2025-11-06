@@ -128,6 +128,7 @@ export function GameScreen() {
     const shopLastTs = React.useRef<number>(0)
 
     // WheelShop bottom-sheet state (right menu)
+    const [wheelAnimatingOut, setWheelAnimatingOut] = React.useState<boolean>(false)
     const [wheelSheetHeightVh, setWheelSheetHeightVh] = React.useState<number>(80)
     const wheelDragStartY = React.useRef<number | null>(null)
     const wheelDragStartTs = React.useRef<number>(0)
@@ -136,6 +137,7 @@ export function GameScreen() {
     const wheelLastTs = React.useRef<number>(0)
 
     // Tasks bottom-sheet state (right menu)
+    const [tasksAnimatingOut, setTasksAnimatingOut] = React.useState<boolean>(false)
     const [tasksSheetHeightVh, setTasksSheetHeightVh] = React.useState<number>(80)
     const tasksDragStartY = React.useRef<number | null>(null)
     const tasksDragStartTs = React.useRef<number>(0)
@@ -846,24 +848,24 @@ export function GameScreen() {
                 </div>
             )}
             {shopOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setShopOpen(false) }}>
-                    <div style={{...inviteSheet, height:`${shopHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${shopHeightVh}vh`, animation: shopAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ shopDragStartY.current = e.clientY; shopDragStartTs.current=Date.now(); shopDragStartHeightVh.current = shopHeightVh; shopLastY.current=e.clientY; shopLastTs.current=Date.now() }}
                             onPointerMove={(e)=>{ if (shopDragStartY.current==null) return; const dy = shopDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, shopDragStartHeightVh.current + dy/(window.innerHeight/100))); setShopHeightVh(vh); shopLastY.current=e.clientY; shopLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (shopDragStartY.current==null) return; const totalDy = shopDragStartY.current - (shopLastY.current || shopDragStartY.current); const dt = Math.max(1, Date.now() - (shopDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setShopOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-shopHeightVh)<Math.abs(a-shopHeightVh)?b:a,snaps[0]); setShopHeightVh(next); triggerHaptic('impact') } shopDragStartY.current=null }}
+                            onPointerUp={()=>{ if (shopDragStartY.current==null) return; const totalDy = shopDragStartY.current - (shopLastY.current || shopDragStartY.current); const dt = Math.max(1, Date.now() - (shopDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-shopHeightVh)<Math.abs(a-shopHeightVh)?b:a,snaps[0]); setShopHeightVh(next); triggerHaptic('impact') } shopDragStartY.current=null }}
                             onPointerCancel={()=>{ shopDragStartY.current=null }}
                         >
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopOpen(false) }}>‹</button>
-                            <div style={menuHeaderTitle}>Покупки и бонусы</div>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}>‹</button>
+                            <div style={{width:36}} />
                             <div style={{width:36}} />
                         </div>
                         <ShopPanel
-                            onClose={() => setShopOpen(false)}
+                            onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
                             onPurchase={(title, priceB) => {
@@ -885,19 +887,19 @@ export function GameScreen() {
                 </div>
             )}
             {wheelShopOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setWheelShopOpen(false) }}>
-                    <div style={{...inviteSheet, height:`${wheelSheetHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${wheelSheetHeightVh}vh`, animation: wheelAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ wheelDragStartY.current = e.clientY; wheelDragStartTs.current=Date.now(); wheelDragStartHeightVh.current = wheelSheetHeightVh; wheelLastY.current=e.clientY; wheelLastTs.current=Date.now() }}
                             onPointerMove={(e)=>{ if (wheelDragStartY.current==null) return; const dy = wheelDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, wheelDragStartHeightVh.current + dy/(window.innerHeight/100))); setWheelSheetHeightVh(vh); wheelLastY.current=e.clientY; wheelLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (wheelDragStartY.current==null) return; const totalDy = wheelDragStartY.current - (wheelLastY.current || wheelDragStartY.current); const dt = Math.max(1, Date.now() - (wheelDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setWheelShopOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-wheelSheetHeightVh)<Math.abs(a-wheelSheetHeightVh)?b:a,snaps[0]); setWheelSheetHeightVh(next); triggerHaptic('impact') } wheelDragStartY.current=null }}
+                            onPointerUp={()=>{ if (wheelDragStartY.current==null) return; const totalDy = wheelDragStartY.current - (wheelLastY.current || wheelDragStartY.current); const dt = Math.max(1, Date.now() - (wheelDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-wheelSheetHeightVh)<Math.abs(a-wheelSheetHeightVh)?b:a,snaps[0]); setWheelSheetHeightVh(next); triggerHaptic('impact') } wheelDragStartY.current=null }}
                             onPointerCancel={()=>{ wheelDragStartY.current=null }}
                         >
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelShopOpen(false) }}>‹</button>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}>‹</button>
                             <div style={menuHeaderTitle}>WHEEL SHOP</div>
                             <div style={{width:36}} />
                         </div>
@@ -927,23 +929,23 @@ export function GameScreen() {
                 </div>
             )}
             {tasksOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setTasksOpen(false) }}>
-                    <div style={{...inviteSheet, height:`${tasksSheetHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${tasksSheetHeightVh}vh`, animation: tasksAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ tasksDragStartY.current = e.clientY; tasksDragStartTs.current=Date.now(); tasksDragStartHeightVh.current = tasksSheetHeightVh; tasksLastY.current=e.clientY; tasksLastTs.current=Date.now() }}
                             onPointerMove={(e)=>{ if (tasksDragStartY.current==null) return; const dy = tasksDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, tasksDragStartHeightVh.current + dy/(window.innerHeight/100))); setTasksSheetHeightVh(vh); tasksLastY.current=e.clientY; tasksLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (tasksDragStartY.current==null) return; const totalDy = tasksDragStartY.current - (tasksLastY.current || tasksDragStartY.current); const dt = Math.max(1, Date.now() - (tasksDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setTasksOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-tasksSheetHeightVh)<Math.abs(a-tasksSheetHeightVh)?b:a,snaps[0]); setTasksSheetHeightVh(next); triggerHaptic('impact') } tasksDragStartY.current=null }}
+                            onPointerUp={()=>{ if (tasksDragStartY.current==null) return; const totalDy = tasksDragStartY.current - (tasksLastY.current || tasksDragStartY.current); const dt = Math.max(1, Date.now() - (tasksDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-tasksSheetHeightVh)<Math.abs(a-tasksSheetHeightVh)?b:a,snaps[0]); setTasksSheetHeightVh(next); triggerHaptic('impact') } tasksDragStartY.current=null }}
                             onPointerCancel={()=>{ tasksDragStartY.current=null }}
                         >
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksOpen(false) }}>‹</button>
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }}>‹</button>
                             <div style={menuHeaderTitle}>Задания</div>
                             <div style={{width:36}} />
                         </div>
-                        <TasksPanel onClose={() => setTasksOpen(false)} onShare5={() => {
+                        <TasksPanel onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
                                 const tg = (window as any).Telegram?.WebApp
                                 const url = window.location.href
