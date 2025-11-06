@@ -93,7 +93,7 @@ export function GameScreen() {
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
-    const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(72)
+    const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(80)
     const inviteDragStartY = React.useRef<number | null>(null)
     const inviteDragStartTs = React.useRef<number>(0)
     const inviteDragStartHeightVh = React.useRef<number>(64)
@@ -102,7 +102,7 @@ export function GameScreen() {
 
     // Stars bottom-sheet state
     const [starsAnimatingOut, setStarsAnimatingOut] = React.useState<boolean>(false)
-    const [starsHeightVh, setStarsHeightVh] = React.useState<number>(72)
+    const [starsHeightVh, setStarsHeightVh] = React.useState<number>(80)
     const starsDragStartY = React.useRef<number | null>(null)
     const starsDragStartTs = React.useRef<number>(0)
     const starsDragStartHeightVh = React.useRef<number>(64)
@@ -111,7 +111,7 @@ export function GameScreen() {
 
     // Daily bottom-sheet state
     const [dailyAnimatingOut, setDailyAnimatingOut] = React.useState<boolean>(false)
-    const [dailyHeightVh, setDailyHeightVh] = React.useState<number>(72)
+    const [dailyHeightVh, setDailyHeightVh] = React.useState<number>(80)
     const dailyDragStartY = React.useRef<number | null>(null)
     const dailyDragStartTs = React.useRef<number>(0)
     const dailyDragStartHeightVh = React.useRef<number>(64)
@@ -120,7 +120,7 @@ export function GameScreen() {
 
     // Shop bottom-sheet state
     const [shopAnimatingOut, setShopAnimatingOut] = React.useState<boolean>(false)
-    const [shopHeightVh, setShopHeightVh] = React.useState<number>(72)
+    const [shopHeightVh, setShopHeightVh] = React.useState<number>(80)
     const shopDragStartY = React.useRef<number | null>(null)
     const shopDragStartTs = React.useRef<number>(0)
     const shopDragStartHeightVh = React.useRef<number>(64)
@@ -128,7 +128,7 @@ export function GameScreen() {
     const shopLastTs = React.useRef<number>(0)
 
     // WheelShop bottom-sheet state (right menu)
-    const [wheelSheetHeightVh, setWheelSheetHeightVh] = React.useState<number>(72)
+    const [wheelSheetHeightVh, setWheelSheetHeightVh] = React.useState<number>(80)
     const wheelDragStartY = React.useRef<number | null>(null)
     const wheelDragStartTs = React.useRef<number>(0)
     const wheelDragStartHeightVh = React.useRef<number>(64)
@@ -136,7 +136,7 @@ export function GameScreen() {
     const wheelLastTs = React.useRef<number>(0)
 
     // Tasks bottom-sheet state (right menu)
-    const [tasksSheetHeightVh, setTasksSheetHeightVh] = React.useState<number>(72)
+    const [tasksSheetHeightVh, setTasksSheetHeightVh] = React.useState<number>(80)
     const tasksDragStartY = React.useRef<number | null>(null)
     const tasksDragStartTs = React.useRef<number>(0)
     const tasksDragStartHeightVh = React.useRef<number>(64)
@@ -995,19 +995,19 @@ export function GameScreen() {
                 </div>
             )}
             {dailyOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setDailyOpen(false) }}>
-                    <div style={{...inviteSheet, height:`${dailyHeightVh}vh`, animation:'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${dailyHeightVh}vh`, animation: dailyAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ dailyDragStartY.current = e.clientY; dailyDragStartTs.current=Date.now(); dailyDragStartHeightVh.current = dailyHeightVh; dailyLastY.current=e.clientY; dailyLastTs.current=Date.now() }}
                             onPointerMove={(e)=>{ if (dailyDragStartY.current==null) return; const dy = dailyDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, dailyDragStartHeightVh.current + dy/(window.innerHeight/100))); setDailyHeightVh(vh); dailyLastY.current=e.clientY; dailyLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (dailyDragStartY.current==null) return; const totalDy = dailyDragStartY.current - (dailyLastY.current || dailyDragStartY.current); const dt = Math.max(1, Date.now() - (dailyDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setDailyOpen(false) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-dailyHeightVh)<Math.abs(a-dailyHeightVh)?b:a,snaps[0]); setDailyHeightVh(next); triggerHaptic('impact') } dailyDragStartY.current=null }}
+                            onPointerUp={()=>{ if (dailyDragStartY.current==null) return; const totalDy = dailyDragStartY.current - (dailyLastY.current || dailyDragStartY.current); const dt = Math.max(1, Date.now() - (dailyDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-dailyHeightVh)<Math.abs(a-dailyHeightVh)?b:a,snaps[0]); setDailyHeightVh(next); triggerHaptic('impact') } dailyDragStartY.current=null }}
                             onPointerCancel={()=>{ dailyDragStartY.current=null }}
                         >
                             <div style={inviteGrabBar} />
                         </div>
                         <DailyBonus
-                            onClose={() => setDailyOpen(false)}
+                            onClose={() => { setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) }}
                             onClaim={(amount) => {
                                 saveBalances(balanceW + amount, balanceB)
                                 setToast(`+${amount} W за ежедневный вход`)
