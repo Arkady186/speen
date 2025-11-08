@@ -219,6 +219,118 @@ export function GameScreen() {
     const [midW, setMidW] = React.useState<number>(() => parseFloat(localStorage.getItem('mid_w') || '0') || 0)
     const [midAnim, setMidAnim] = React.useState<boolean>(false)
     const [settingsOpen, setSettingsOpen] = React.useState<boolean>(false)
+    const [lang, setLang] = React.useState<'ru'|'en'>(() => (localStorage.getItem('lang') as 'ru'|'en') || 'ru')
+    const STR: Record<'ru'|'en', Record<string, string>> = {
+        ru: {
+            settings: 'Настройки',
+            sound: 'Звук',
+            vibration: 'Вибрация',
+            privacy: 'Политика конфиденциальности',
+            close: 'Закрыть',
+            invite_title: 'Пригласите друзей',
+            invite_subtitle: 'Вы и ваш друг получите бонусы',
+            invite_cta: '+5 000 для вас и вашего друга',
+            friends_list: 'Список ваших друзей:',
+            empty: 'Пока пусто',
+            updated: 'Обновлено',
+            copied: 'Ссылка скопирована',
+            daily_title: 'Ежедневная награда',
+            daily_descr: 'Забирай монеты за ежедневный вход в игру без пропусков. Кнопку «Забрать» нужно нажимать ежедневно, иначе счётчик дней сбросится и нужно будет начинать всё заново.',
+            day: 'День',
+            shop_title: 'Покупки и бонусы',
+            news_title: '📰 WCOIN новости',
+            choose_bonus: 'Выбор бонусов',
+            topup_stars: 'Пополнить за ⭐',
+            not_enough_W: 'Недостаточно W',
+            not_enough_B: 'Недостаточно B',
+            ton_loading: 'Загрузка TON Connect...',
+            ton_error: 'Не удалось открыть TON Connect',
+            pay_link_unavailable: 'Платёжная ссылка недоступна',
+            pay_open_error: 'Ошибка открытия оплаты',
+            pick_number: 'Выбери число 0–9',
+            number_ok_refund: 'Цифра угадана! Ставка возвращена',
+            bonus_gained: 'Бонус получен!',
+            collected_w: '+{amount} W собрано',
+            get: 'Забрать',
+            language: 'Язык',
+            ru: 'Русский',
+            en: 'English',
+            mode_x3_of10: 'x3 из 10',
+            press1_title: 'Подключай свой кошелек TON',
+            press2_title: 'Приглашай друзей и поднимай свой уровень в игре',
+            press3_title: 'Заходи каждый день и получай дополнительные бонусы',
+            press4_title: 'Отслеживай свой рейтинг',
+            press5_title: 'Мои покупки и бонусы в игре',
+            press6_title: 'Официальная группа в Telegram',
+            press7_title: 'WHEEL SHOP',
+            press7_sub: 'прокачай удачу',
+            press8_title: 'WHEEL конвертер',
+            press8_sub: 'покупка и обмен игровой волюты',
+            press9_title: 'Получай WCOIN',
+            press9_sub: 'выполняя задания',
+            press10_title: 'Повысил уровень?',
+            press10_sub: 'Забирай бонусы!',
+            press11_title: 'WCOIN новости',
+            press11_sub: 'будь в курсе всех событий',
+        },
+        en: {
+            settings: 'Settings',
+            sound: 'Sound',
+            vibration: 'Vibration',
+            privacy: 'Privacy Policy',
+            close: 'Close',
+            invite_title: 'Invite friends',
+            invite_subtitle: 'You and your friend will get bonuses',
+            invite_cta: '+5,000 for you and your friend',
+            friends_list: 'Your friends:',
+            empty: 'Empty for now',
+            updated: 'Updated',
+            copied: 'Link copied',
+            daily_title: 'Daily reward',
+            daily_descr: 'Claim coins every day without skipping. You must press “Claim” daily, otherwise the streak resets and you start again.',
+            day: 'Day',
+            shop_title: 'Purchases and bonuses',
+            news_title: '📰 WCOIN news',
+            choose_bonus: 'Choose bonuses',
+            topup_stars: 'Top up with ⭐',
+            not_enough_W: 'Not enough W',
+            not_enough_B: 'Not enough B',
+            ton_loading: 'Loading TON Connect...',
+            ton_error: 'Failed to open TON Connect',
+            pay_link_unavailable: 'Payment link unavailable',
+            pay_open_error: 'Failed to open payment',
+            pick_number: 'Pick a number 0–9',
+            number_ok_refund: 'Number correct! Bet returned',
+            bonus_gained: 'Bonus received!',
+            collected_w: '+{amount} W collected',
+            get: 'Claim',
+            language: 'Language',
+            ru: 'Russian',
+            en: 'English',
+            mode_x3_of10: 'x3 of 10',
+            press1_title: 'Connect your TON wallet',
+            press2_title: 'Invite friends and level up',
+            press3_title: 'Log in daily and get extra bonuses',
+            press4_title: 'Track your rating',
+            press5_title: 'My purchases and bonuses',
+            press6_title: 'Official Telegram group',
+            press7_title: 'WHEEL SHOP',
+            press7_sub: 'boost your luck',
+            press8_title: 'WHEEL converter',
+            press8_sub: 'buy & exchange game currency',
+            press9_title: 'Earn WCOIN',
+            press9_sub: 'by completing tasks',
+            press10_title: 'Leveled up?',
+            press10_sub: 'Claim bonuses!',
+            press11_title: 'WCOIN news',
+            press11_sub: 'stay tuned',
+        }
+    }
+    function t(key: string, vars?: Record<string, string | number>) {
+        const raw = (STR[lang] && STR[lang][key]) || key
+        if (!vars) return raw
+        return Object.keys(vars).reduce((s,k)=> s.replace(new RegExp(`\\{${k}\\}`,'g'), String(vars[k]!))), raw)
+    }
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
     // Catch-up accrual based on time away with 3h cap
@@ -299,7 +411,7 @@ export function GameScreen() {
                 } catch {}
             }
             if (!invoiceLink) {
-                setToast('Платёжная ссылка недоступна')
+            setToast(t('pay_link_unavailable'))
                 return
             }
             const onPaid = () => {
@@ -316,7 +428,7 @@ export function GameScreen() {
                 window.open(invoiceLink, '_blank')
             }
         } catch {
-            setToast('Ошибка открытия оплаты')
+            setToast(t('pay_open_error'))
         }
     }
 
@@ -339,15 +451,15 @@ export function GameScreen() {
 
     function onBeforeSpin() {
         if (spinning) return false
-        if (pickedDigit == null) { setToast('Выбери число 0–9'); return false }
+        if (pickedDigit == null) { setToast(t('pick_number')); return false }
         const { min, max } = getLimits(mode, currency)
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
         if (b !== bet) setBet(b)
         if (currency === 'W') {
-            if (balanceW < b) { setToast('Недостаточно W'); return false }
+            if (balanceW < b) { setToast(t('not_enough_W')); return false }
             saveBalances(balanceW - b, balanceB)
         } else {
-            if (balanceB < b) { setToast('Недостаточно B'); return false }
+            if (balanceB < b) { setToast(t('not_enough_B')); return false }
             saveBalances(balanceW, balanceB - b)
         }
         return true
@@ -364,7 +476,7 @@ export function GameScreen() {
         if (numCorrect && !bonusCorrect) {
             if (currency === 'W') saveBalances(balanceW + b, balanceB)
             else saveBalances(balanceW, balanceB + b)
-            setToast('Цифра угадана! Ставка возвращена')
+            setToast(t('number_ok_refund'))
             return
         }
 
@@ -378,7 +490,7 @@ export function GameScreen() {
                 inv.push(bonusName)
                 localStorage.setItem('bonuses_inv', JSON.stringify(inv))
             } catch {}
-            setToast('Бонус получен!')
+            setToast(t('bonus_gained'))
             return
         }
 
@@ -527,7 +639,7 @@ export function GameScreen() {
                             <PanelShell>
                                 <div style={rowGrid}>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} dir="left" />
-                                    <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? 'x3 из 10' : 'x5'}</div>
+                                    <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? 'x3 из 10' : 'x3 of 10') : 'x5'}</div>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} dir="right" />
                                 </div>
                                 <div
@@ -727,7 +839,7 @@ export function GameScreen() {
                         </div>
                         <div style={inviteSheetHeader}>
                             <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setStarsOpen(false) }}>‹</button>
-                            <div style={menuHeaderTitle}>Пополнить за ⭐</div>
+                            <div style={menuHeaderTitle}>{t('topup_stars')}</div>
                             <div style={{width:36}} />
                         </div>
                         <div style={{display:'grid', gap:10}}>
@@ -801,7 +913,7 @@ export function GameScreen() {
                             const payload = uid ? `ref_${uid}` : 'invite'
                             const url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
                             const handleShare = () => {
-                                const text = 'Присоединяйся в игру!'
+                                    const text = lang==='ru' ? 'Присоединяйся в игру!' : 'Join the game!'
                                 try {
                                     if (tg?.openTelegramLink) {
                                         const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
@@ -810,28 +922,28 @@ export function GameScreen() {
                                     }
                                 } catch {}
                                 if ((navigator as any)?.share) { (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{}); return }
-                                navigator.clipboard?.writeText(url).then(()=> setToast('Ссылка скопирована'))
+                                        navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
                             }
                             return (
                                 <div style={{display:'grid', gap:14}}>
                                     <div style={{display:'grid', placeItems:'center'}}>
                                         <img src="/press2.png" alt="invite" style={{...inviteHeroImg, width:140, height:140}} />
                                     </div>
-                                    <div style={inviteTitleLarge}>Пригласите друзей</div>
+                            <div style={inviteTitleLarge}>{t('invite_title')}</div>
                                     <div style={{display:'grid', placeItems:'center'}}>
-                                        <div style={inviteSubtitlePill}>Вы и ваш друг получите бонусы</div>
+                                        <div style={inviteSubtitlePill}>{t('invite_subtitle')}</div>
                                     </div>
                                     <button style={inviteCtaPill} onClick={handleShare}>
                                         <img src="/coin-w.png" alt="coin" style={{width:26,height:26, filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
-                                        <span style={{marginLeft:10}}>+5 000 для вас и вашего друга</span>
+                                        <span style={{marginLeft:10}}>{t('invite_cta')}</span>
                                     </button>
                                     <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center'}}>
-                                        <div style={friendsHeaderLbl}>Список ваших друзей:</div>
-                                        <button style={friendsRefreshBtn} onClick={()=> setToast('Обновлено')}>↻</button>
+                                        <div style={friendsHeaderLbl}>{t('friends_list')}</div>
+                                        <button style={friendsRefreshBtn} onClick={()=> setToast(t('updated'))}>↻</button>
                                     </div>
                                     <div style={{display:'grid', gap:12}}>
                                         {friends.length === 0 ? (
-                                            <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>Пока пусто</div>
+                                            <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>{t('empty')}</div>
                                         ) : friends.map((f)=> (
                                             <div key={`fr-${f.id}`} style={friendRow}>
                                                 <div style={friendAvatar}>
@@ -968,7 +1080,7 @@ export function GameScreen() {
                 <div style={overlayDim} onClick={() => setNewsOpen(false)}>
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
-                            <div style={newsPopupTitle}>📰 WCOIN новости</div>
+                            <div style={newsPopupTitle}>{t('news_title')}</div>
                             <button style={newsCloseBtn} onClick={() => setNewsOpen(false)}>✕</button>
                         </div>
                         <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
@@ -979,20 +1091,25 @@ export function GameScreen() {
                 <div style={overlayDim} onClick={()=> setSettingsOpen(false)}>
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
-                            <div style={newsPopupTitle}>Настройки</div>
+                            <div style={newsPopupTitle}>{t('settings')}</div>
                             <button style={newsCloseBtn} onClick={()=> setSettingsOpen(false)}>✕</button>
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <label style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', color:'#fff', fontWeight:800}}>
-                                Звук
+                                {t('sound')}
                                 <input type="checkbox" defaultChecked={localStorage.getItem('opt_sound') !== '0'} onChange={(e)=>{ try { localStorage.setItem('opt_sound', e.target.checked ? '1':'0') } catch {} }} />
                             </label>
                             <label style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', color:'#fff', fontWeight:800}}>
-                                Вибрация
+                                {t('vibration')}
                                 <input type="checkbox" defaultChecked={localStorage.getItem('opt_vibro') !== '0'} onChange={(e)=>{ try { localStorage.setItem('opt_vibro', e.target.checked ? '1':'0') } catch {} }} />
                             </label>
+                            <div style={{display:'grid', gridTemplateColumns:'1fr auto auto', alignItems:'center', gap:10, color:'#fff', fontWeight:800}}>
+                                <div>{t('language')}</div>
+                                <button onClick={()=>{ setLang('ru'); try{ localStorage.setItem('lang','ru') } catch{} }} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: lang==='ru' ? '#ffd23a' : '#244e96', color: lang==='ru' ? '#0b2f68' : '#fff', fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }}>{t('ru')}</button>
+                                <button onClick={()=>{ setLang('en'); try{ localStorage.setItem('lang','en') } catch{} }} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: lang==='en' ? '#ffd23a' : '#244e96', color: lang==='en' ? '#0b2f68' : '#fff', fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }}>{t('en')}</button>
+                            </div>
                             <div style={{height:10}} />
-                            <button style={{ padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }} onClick={()=> window.open('https://t.me/TestCodeTg_bot', '_blank')}>Политика конфиденциальности</button>
+                            <button style={{ padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }} onClick={()=> window.open('https://t.me/TestCodeTg_bot', '_blank')}>{t('privacy')}</button>
                         </div>
                     </div>
                 </div>
@@ -1094,8 +1211,8 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/press3.png" alt="daily" style={{width:140, height:140, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            <div style={title}>Ежедневная награда</div>
-            <div style={descr}>Забирай монеты за ежедневный вход в игру без пропусков. Кнопку «Забрать» нужно нажимать ежедневно, иначе счётчик дней сбросится и нужно будет начинать всё заново.</div>
+            <div style={title}>{t('daily_title')}</div>
+            <div style={descr}>{t('daily_descr')}</div>
             <div style={grid}>
                 {[1,2,3,4,5,6].map(renderCard)}
                 {renderCard(7)}
