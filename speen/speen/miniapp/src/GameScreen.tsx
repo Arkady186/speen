@@ -227,6 +227,7 @@ export function GameScreen() {
             vibration: 'Вибрация',
             privacy: 'Политика конфиденциальности',
             close: 'Закрыть',
+            tasks_title: 'Задания',
             invite_title: 'Пригласите друзей',
             invite_subtitle: 'Вы и ваш друг получите бонусы',
             invite_cta: '+5 000 для вас и вашего друга',
@@ -241,6 +242,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN новости',
             choose_bonus: 'Выбор бонусов',
             topup_stars: 'Пополнить за ⭐',
+            buy_bonus_1b: 'Купить бонусы за 1 B',
             not_enough_W: 'Недостаточно W',
             not_enough_B: 'Недостаточно B',
             ton_loading: 'Загрузка TON Connect...',
@@ -279,6 +281,7 @@ export function GameScreen() {
             vibration: 'Vibration',
             privacy: 'Privacy Policy',
             close: 'Close',
+            tasks_title: 'Tasks',
             invite_title: 'Invite friends',
             invite_subtitle: 'You and your friend will get bonuses',
             invite_cta: '+5,000 for you and your friend',
@@ -293,6 +296,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN news',
             choose_bonus: 'Choose bonuses',
             topup_stars: 'Top up with ⭐',
+            buy_bonus_1b: 'Buy bonuses for 1 B',
             not_enough_W: 'Not enough W',
             not_enough_B: 'Not enough B',
             ton_loading: 'Loading TON Connect...',
@@ -760,9 +764,9 @@ export function GameScreen() {
                         
                     </>
                 ) : (
-                    <div style={{padding:12}}>
+                        <div style={{padding:12}}>
                     <div style={isMenuOpen ? menuList : menuListRight}>
-                        {(isMenuOpen ? menuItemsLeft : menuItemsRight).map((item, idx) => (
+                        {(isMenuOpen ? createMenuItemsLeft(t) : createMenuItemsRight(t)).map((item, idx) => (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
                                     style={{...(isMenuOpen ? menuCard : menuCardRight), transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
@@ -1753,22 +1757,26 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
-const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> = [
-    { title: t('press1_title'), action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-    { title: t('press2_title'), action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-    { title: t('press3_title'), action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
-    { title: t('press4_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-    { title: t('press5_title'), action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
-    { title: t('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
-]
+function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> {
+    return [
+        { title: tr('press1_title'), action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+        { title: tr('press2_title'), action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+        { title: tr('press3_title'), action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+        { title: tr('press4_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+        { title: tr('press5_title'), action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+        { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
+    ]
+}
 
-const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> = [
-    { title: t('press7_title'), subtitle: t('press7_sub'), action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
-    { title: t('press8_title'), subtitle: t('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
-    { title: t('press9_title'), subtitle: t('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
-    { title: t('press10_title'), subtitle: t('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
-    { title: t('press11_title'), subtitle: t('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
-]
+function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> {
+    return [
+        { title: tr('press7_title'), subtitle: tr('press7_sub'), action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+        { title: tr('press8_title'), subtitle: tr('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
+        { title: tr('press9_title'), subtitle: tr('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
+        { title: tr('press10_title'), subtitle: tr('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+        { title: tr('press11_title'), subtitle: tr('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
+    ]
+}
 
 
 
