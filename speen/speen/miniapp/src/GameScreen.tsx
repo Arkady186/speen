@@ -985,6 +985,8 @@ export function GameScreen() {
                             <div style={{width:36}} />
                         </div>
                         <ShopPanel
+                            t={t}
+                            lang={lang}
                             onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
@@ -1065,7 +1067,7 @@ export function GameScreen() {
                             <div style={menuHeaderTitle}>{t('tasks_title')}</div>
                             <div style={{width:36}} />
                         </div>
-                        <TasksPanel onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
+                        <TasksPanel t={t} lang={lang} onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
                                 const tg = (window as any).Telegram?.WebApp
                                 const url = window.location.href
@@ -1135,6 +1137,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <DailyBonus
+                            t={t}
+                            lang={lang}
                             onClose={() => { setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) }}
                             onClaim={(amount) => {
                                 saveBalances(balanceW + amount, balanceB)
@@ -1156,7 +1160,7 @@ function Coin(){
     )
 }
 
-function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amount: number) => void }){
+function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClaim: (amount: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // 7-дневная цепочка, сбрасывается при пропуске дня
     const rewards = [250, 500, 1000, 2500, 5000, 7500, 10000]
     const todayStr = () => new Date().toDateString()
@@ -1205,7 +1209,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
         const style = { ...(day===7 ? day7 : cardBase), boxShadow: isCurrent ? '0 0 0 3px #ffd23a, 0 10px 24px rgba(0,0,0,0.25)' : (cardBase.boxShadow as any), opacity: claimed && !isCurrent ? .85 : 1 }
         return (
             <div key={day} style={style as React.CSSProperties} onClick={() => handleClaim(day)}>
-                <div style={dayLbl}>{`День ${day}`}</div>
+                <div style={dayLbl}>{`${t('day')} ${day}`}</div>
                 <div style={{display:'grid', placeItems:'center', marginBottom:6}}>
                     <img src="/coin-w.png" alt="coin" style={{width:32,height:32,filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))'}} />
                 </div>
@@ -1232,7 +1236,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
     )
 }
 
-function TasksPanel({ onClose, onShare5, onReward }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void }){
+function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     const spins = Number(localStorage.getItem('task_spins') || '0')
     const loginStreak = (()=>{
         try {
@@ -1323,9 +1327,9 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
                         {images.map((src,i)=>(<img key={i} src={src} alt="img" style={{width:72,height:72,objectFit:'cover',borderRadius:10,boxShadow:'0 4px 12px rgba(0,0,0,0.25)'}} />))}
                         <button style={{...newsAddBtn, fontSize:13}} onClick={addImage}>📷 Фото</button>
                     </div>
-                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:10}}>
-                        <div />
-                        <button style={newsAddBtn} onClick={addNews}>🚀 Опубликовать</button>
+            <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:10}}>
+                <div />
+                <button style={newsAddBtn} onClick={addNews}>{lang==='ru' ? '🚀 Опубликовать' : '🚀 Publish'}</button>
                     </div>
                 </div>
             )}
@@ -1349,7 +1353,7 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     )
 }
 
-function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // визуальный инвентарь в стиле макета
     const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
