@@ -525,10 +525,16 @@ export function GameScreen() {
                         <div style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
-                                <div style={rowGrid}>
+                                <div style={{...rowGrid, gridTemplateColumns:'36px 1fr 36px 30px'}}>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} dir="left" />
                                     <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? 'x3 из 10' : 'x5'}</div>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} dir="right" />
+                                    <div
+                                        onClick={()=> setSettingsOpen(true)}
+                                        style={{ width:30, height:24, display:'grid', placeItems:'center', cursor:'pointer' }}
+                                    >
+                                        <img src="/satting.png" alt="settings" style={{width:'22px',height:'22px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
+                                    </div>
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
@@ -585,12 +591,7 @@ export function GameScreen() {
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
                                     <div style={midValue}>{midW.toFixed(2)}</div>
-                                    <div
-                                        onClick={()=> setSettingsOpen(true)}
-                                        style={{ justifySelf:'end', width:40, height:40, display:'grid', placeItems:'center', cursor:'pointer' }}
-                                    >
-                                        <img src="/satting.png" alt="settings" style={{width:'100%',height:'100%',objectFit:'contain', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))'}} />
-                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
