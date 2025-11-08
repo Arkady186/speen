@@ -525,16 +525,16 @@ export function GameScreen() {
                         <div style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
-                                <div style={{...rowGrid, gridTemplateColumns:'36px 1fr 36px 30px'}}>
+                                <div style={rowGrid}>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} dir="left" />
                                     <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? 'x3 из 10' : 'x5'}</div>
                                     <Arrow onClick={() => setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} dir="right" />
-                                    <div
-                                        onClick={()=> setSettingsOpen(true)}
-                                        style={{ width:30, height:24, display:'grid', placeItems:'center', cursor:'pointer' }}
-                                    >
-                                        <img src="/satting.png" alt="settings" style={{width:'22px',height:'22px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
-                                    </div>
+                                </div>
+                                <div
+                                    onClick={()=> setSettingsOpen(true)}
+                                    style={{ position:'absolute', right:-12, top:'50%', transform:'translateY(-50%)', width:28, height:28, display:'grid', placeItems:'center', cursor:'pointer' }}
+                                >
+                                    <img src="/satting.png" alt="settings" style={{width:'22px',height:'22px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
@@ -1374,7 +1374,7 @@ function PanelShell({ children }: { children: React.ReactNode }){
             borderRadius: 10,
             padding: 6,
             boxShadow: 'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
-            width:'82%', margin:'0 auto'
+            width:'82%', margin:'0 auto', position:'relative'
         }}>
             {children}
         </div>
