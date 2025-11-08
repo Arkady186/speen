@@ -532,9 +532,9 @@ export function GameScreen() {
                                 </div>
                                 <div
                                     onClick={()=> setSettingsOpen(true)}
-                                    style={{ position:'absolute', right:-12, top:'50%', transform:'translateY(-50%)', width:28, height:28, display:'grid', placeItems:'center', cursor:'pointer' }}
+                                    style={{ position:'absolute', right:-20, top:'50%', transform:'translateY(-50%)', width:36, height:36, display:'grid', placeItems:'center', cursor:'pointer' }}
                                 >
-                                    <img src="/satting.png" alt="settings" style={{width:'22px',height:'22px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
+                                    <img src="/satting.png" alt="settings" style={{width:'28px',height:'28px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
