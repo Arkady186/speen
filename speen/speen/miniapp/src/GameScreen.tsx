@@ -329,7 +329,10 @@ export function GameScreen() {
     function t(key: string, vars?: Record<string, string | number>) {
         const raw = (STR[lang] && STR[lang][key]) || key
         if (!vars) return raw
-        return Object.keys(vars).reduce((s,k)=> s.replace(new RegExp(`\\{${k}\\}`,'g'), String(vars[k]!))), raw)
+        return Object.keys(vars).reduce(
+            (s, k) => s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(vars[k]!)),
+            raw
+        )
     }
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
