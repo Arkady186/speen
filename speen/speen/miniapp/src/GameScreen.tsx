@@ -724,7 +724,7 @@ export function GameScreen() {
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
-                                    <div style={bonusHeader}>Выбор бонусов</div>
+                                    <div style={bonusHeader}>{t('choose_bonus')}</div>
                                     <div style={{...bonusGrid, gridTemplateColumns:'repeat(2, 1fr)'}}>
                                          {BONUS_LABELS.map((b, i) => (
                                             <div
@@ -752,7 +752,7 @@ export function GameScreen() {
                                         ))}
                                     </div>
                                     <div style={{display:'grid', placeItems:'center', marginTop:10}}>
-                                        <button style={bonusCloseBtn} onClick={()=>setBonusesOpen(false)}>Закрыть</button>
+                                        <button style={bonusCloseBtn} onClick={()=>setBonusesOpen(false)}>{t('close')}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1016,11 +1016,11 @@ export function GameScreen() {
                         </div>
                         <div style={inviteSheetHeader}>
                             <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}>‹</button>
-                            <div style={menuHeaderTitle}>WHEEL SHOP</div>
+                            <div style={menuHeaderTitle}>{t('press7_title')}</div>
                             <div style={{width:36}} />
                         </div>
                         <div style={{display:'grid', gap:12}}>
-                            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>Купить бонусы за 1 B</div>
+                            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>{t('buy_bonus_1b')}</div>
                             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
                                 {BONUS_LABELS.map((b, i) => (
                                     <div key={`wb-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
@@ -1058,14 +1058,15 @@ export function GameScreen() {
                         </div>
                         <div style={inviteSheetHeader}>
                             <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }}>‹</button>
-                            <div style={menuHeaderTitle}>Задания</div>
+                            <div style={menuHeaderTitle}>{t('tasks_title')}</div>
                             <div style={{width:36}} />
                         </div>
                         <TasksPanel onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
                                 const tg = (window as any).Telegram?.WebApp
                                 const url = window.location.href
-                                const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Присоединяйся в игру!')}`
+                                const shareText = lang==='ru' ? 'Присоединяйся в игру!' : 'Join the game!'
+                                const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`
                                 if (tg?.openTelegramLink) tg.openTelegramLink(share)
                                 else window.open(share, '_blank')
                             } catch {}
@@ -1221,7 +1222,7 @@ function DailyBonus({ onClose, onClaim }: { onClose: () => void, onClaim: (amoun
                 {renderCard(7)}
             </div>
             <div style={{display:'grid', placeItems:'center', marginTop:12}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
             </div>
         </div>
     )
@@ -1256,7 +1257,7 @@ function TasksPanel({ onClose, onShare5, onReward }: { onClose: () => void, onSh
                 <div style={{color:'#fff', fontWeight:900}}>{title}</div>
                 <div style={{color:'#e8f1ff', opacity:.9, fontSize:12}}>{progress}</div>
             </div>
-            <button disabled={!canClaim} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: canClaim ? '#22c55e' : '#889bb9', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: canClaim ? 'pointer' : 'default' }} onClick={onClick}>Забрать</button>
+            <button disabled={!canClaim} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: canClaim ? '#22c55e' : '#889bb9', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: canClaim ? 'pointer' : 'default' }} onClick={onClick}>{t('get')}</button>
         </div>
     )
     const spin50Done = (localStorage.getItem('task_done_spin50') === '1')
@@ -1265,12 +1266,12 @@ function TasksPanel({ onClose, onShare5, onReward }: { onClose: () => void, onSh
     const share5Done = (localStorage.getItem('task_done_share5') === '1')
     return (
         <div style={{display:'grid', gap:10}}>
-            {card('50 прокрутов — 1000 W', `${Math.min(50, spins)}/50`, !spin50Done && spins >= 50, () => claim('spin50', {W:1000}))}
-            {card('100 прокрутов — 1 B', `${Math.min(100, spins)}/100`, !spin100Done && spins >= 100, () => claim('spin100', {B:1}))}
-            {card('Заходи 7 дней подряд — 1 B', `${Math.min(7, loginStreak)}/7`, !streak7Done && loginStreak >= 7, () => claim('streak7', {B:1}))}
-            {card('Поделись с 5 друзьями — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
+            {card(lang==='ru' ? '50 прокрутов — 1000 W' : '50 spins — 1000 W', `${Math.min(50, spins)}/50`, !spin50Done && spins >= 50, () => claim('spin50', {W:1000}))}
+            {card(lang==='ru' ? '100 прокрутов — 1 B' : '100 spins — 1 B', `${Math.min(100, spins)}/100`, !spin100Done && spins >= 100, () => claim('spin100', {B:1}))}
+            {card(lang==='ru' ? 'Заходи 7 дней подряд — 1 B' : 'Login 7 days in a row — 1 B', `${Math.min(7, loginStreak)}/7`, !streak7Done && loginStreak >= 7, () => claim('streak7', {B:1}))}
+            {card(lang==='ru' ? 'Поделись с 5 друзьями — 5000 W' : 'Share with 5 friends — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
             <div style={{display:'grid', placeItems:'center'}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
             </div>
         </div>
     )
@@ -1360,8 +1361,8 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/press5.png" alt="bag" style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            <div style={title}>Покупки и бонусы</div>
-            <div style={descrPill}>Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.</div>
+            <div style={title}>{t('shop_title')}</div>
+            <div style={descrPill}>{lang==='ru' ? 'Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.' : 'This section is your backpack. Here are all your purchases and bonuses received in the game.'}</div>
             <div style={grid}>
                 <div style={cellBase}><img src="/heardwh.png" alt="heart" style={iconImg} /></div>
                 <div style={cellBase}><img src="/spacewh.png" alt="rocket" style={iconImg} /></div>
@@ -1369,7 +1370,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars }
                 {Array.from({length:9}).map((_,i)=> (<div key={`p-${i}`} style={plusWrap}><div style={plusInner}>+</div></div>))}
             </div>
             <div style={{display:'grid', placeItems:'center'}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>Закрыть</button>
+                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
             </div>
         </div>
     )
@@ -1753,20 +1754,20 @@ const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, bor
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 
 const menuItemsLeft: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> = [
-    { title: 'Подключай свой кошелек TON', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-    { title: 'Приглашай друзей и поднимай свой уровень в игре', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-    { title: 'Заходи каждый день и получай дополнительные бонусы', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
-    { title: 'Отслеживай свой рейтинг', badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-    { title: 'Мои покупки и бонусы в игре', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
-    { title: 'Официальная группа в Telegram', badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
+    { title: t('press1_title'), action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+    { title: t('press2_title'), action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+    { title: t('press3_title'), action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+    { title: t('press4_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+    { title: t('press5_title'), action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+    { title: t('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
 ]
 
 const menuItemsRight: Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> = [
-    { title: 'WHEEL SHOP', subtitle: 'прокачай удачу', action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
-    { title: 'WHEEL конвертер', subtitle: 'покупка и обмен игровой волюты', badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
-    { title: 'Получай WCOIN', subtitle: 'выполняя задания', action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
-    { title: 'Повысил уровень?', subtitle: 'Забирай бонусы!', badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
-    { title: 'WCOIN новости', subtitle: 'будь в курсе всех событий', action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
+    { title: t('press7_title'), subtitle: t('press7_sub'), action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+    { title: t('press8_title'), subtitle: t('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
+    { title: t('press9_title'), subtitle: t('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
+    { title: t('press10_title'), subtitle: t('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+    { title: t('press11_title'), subtitle: t('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
 ]
 
 
