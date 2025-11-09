@@ -19,8 +19,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя как было (диагональ: вправо и немного вниз от верхней точки)
-    const POINTER_DX = 86 // ещё левее: точная наводка острым углом на 0 при старте
-    const POINTER_DY = 20  // px вниз от верхней границы (верх = -16)
+    const POINTER_DX = 78 // левее: точная наводка острым углом на 0 при старте
+    const POINTER_DY = 8  // выше: ближе к верхней кромке (верх = -16)
 
     // Вычисляем начальное вращение для сектора 0
     const getInitialRotation = () => {
