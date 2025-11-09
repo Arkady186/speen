@@ -1411,7 +1411,7 @@ const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%
 
 const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
 const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 44, left: '50%', transform:'translateX(-50%) scale(1.16)' }
-const plusNearWheel: React.CSSProperties = { position:'absolute', left: -60, bottom: -14, width: 44, height: 44, objectFit:'contain', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
+const plusNearWheel: React.CSSProperties = { position:'absolute', left: -40, bottom: -28, width: 44, height: 44, objectFit:'contain', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
 // removed external plusOutsideWrap
 const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440 }
 
