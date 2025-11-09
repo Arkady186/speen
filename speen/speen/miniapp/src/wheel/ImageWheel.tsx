@@ -21,6 +21,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     // Положение указателя как было (диагональ: вправо и немного вниз от верхней точки)
     const POINTER_DX = 78 // левее: точная наводка острым углом на 0 при старте
     const POINTER_DY = 8  // выше: ближе к верхней кромке (верх = -16)
+    const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
     // Выставляем старт так, чтобы сектор 0 находился прямо под острым углом указателя
     const getInitialRotation = () => computeRotationForIndex(0)
@@ -44,7 +45,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const px = cx + POINTER_DX
         const py = pointerTop
         const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI // от центра к указателю
-        const pointerCorrectionDeg = pointerAzimuth + 90 // 0 соответствует верхней позиции
+        const pointerCorrectionDeg = pointerAzimuth + 90 + TIP_FINE_DEG // 0 соответствует верхней позиции + калибровка
         // Какой сектор под указателем при повороте rotDeg
         const a = normalizeDeg(-rotDeg - startOffsetDeg + pointerCorrectionDeg)
         const idx = Math.floor(a / seg) % labels.length
@@ -62,7 +63,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const px = cx + POINTER_DX
         const py = pointerTop
         const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
-        const pointerCorrectionDeg = pointerAzimuth + 90
+        const pointerCorrectionDeg = pointerAzimuth + 90 + TIP_FINE_DEG
         // Базовый угол, который приведет центр сектора к указателю
         const base = -(center + startOffsetDeg - pointerCorrectionDeg)
         return base
