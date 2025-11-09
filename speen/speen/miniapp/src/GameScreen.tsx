@@ -1291,19 +1291,24 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     const [images, setImages] = React.useState<string[]>([])
     const [list, setList] = React.useState<Array<{title:string, text:string, images:string[], ts:number}>>([])
     React.useEffect(() => {
-        fetch('/api/news').then(r=>r.json()).then(d=>{
-            if (Array.isArray(d?.items)) setList(d.items)
-        }).catch(()=>{})
+        const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+        const url = `${API_BASE}/api/news`.replace(/\/+api/,'/api')
+        fetch(url)
+            .then(async r => r.ok ? r.json() : Promise.resolve({ items: [] }))
+            .then(d => { if (Array.isArray(d?.items)) setList(d.items) })
+            .catch(() => {})
     }, [])
     async function addNews(){
         if (!isAdmin) return
         try{
             const tg = (window as any).Telegram?.WebApp
             const adminId = tg?.initDataUnsafe?.user?.id
-            const res = await fetch('/api/news', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ adminId, title, text, images }) })
+            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+            const url = `${API_BASE}/api/news`.replace(/\/+api/,'/api')
+            const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ adminId, title, text, images }) })
             if (res.ok) {
                 setTitle(''); setText(''); setImages([])
-                const d = await fetch('/api/news').then(r=>r.json()).catch(()=>null)
+                const d = await fetch(url).then(r=> r.ok ? r.json() : { items: [] }).catch(()=>null)
                 if (Array.isArray(d?.items)) setList(d.items)
             }
         } catch {}
