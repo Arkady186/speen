@@ -1783,7 +1783,8 @@ function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, su
         { title: tr('press8_title'), subtitle: tr('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
         { title: tr('press9_title'), subtitle: tr('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
         { title: tr('press10_title'), subtitle: tr('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
-        { title: tr('press11_title'), subtitle: tr('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
+        // WCOIN новости — временно недоступно: показываем Coming Soon и не открываем окно
+        { title: tr('press11_title'), subtitle: tr('press11_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
     ]
 }
 
