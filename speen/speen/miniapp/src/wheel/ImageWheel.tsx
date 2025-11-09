@@ -22,19 +22,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const POINTER_DX = 78 // левее: точная наводка острым углом на 0 при старте
     const POINTER_DY = 8  // выше: ближе к верхней кромке (верх = -16)
 
-    // Вычисляем начальное вращение для сектора 0
-    const getInitialRotation = () => {
-        const cx = size / 2
-        const cy = size / 2
-        const pointerTop = -16 + POINTER_DY
-        const px = cx + POINTER_DX
-        const py = pointerTop
-        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
-        const pointerCorrectionDeg = pointerAzimuth + 90
-        const physIndex = (0 - SECTOR_OFFSET + labels.length) % labels.length
-        const center = physIndex * seg + seg / 2
-        return -(center + startOffsetDeg - pointerCorrectionDeg)
-    }
+    // Выставляем старт так, чтобы сектор 0 находился прямо под острым углом указателя
+    const getInitialRotation = () => computeRotationForIndex(0)
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
