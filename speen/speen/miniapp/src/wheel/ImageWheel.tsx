@@ -18,27 +18,19 @@ type ImageWheelProps = {
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
-    // Заглушки для обратной совместимости (чтобы не было ReferenceError)
-    const POINTER_DX = 0
-    const POINTER_DY = 0
-    // Диагональное положение указателя (верхний-правый) — стабильно при любом размере
-    const POINTER_ANGLE_DEG = -45
-    const POINTER_R_SCALE = 0.52
+    // Положение указателя как было (диагональ: вправо и немного вниз от верхней точки)
+    const POINTER_DX = 102 // px вправо от центра
+    const POINTER_DY = 20  // px вниз от верхней границы (верх = -16)
 
-    function getPointerCorrectionDeg(): number {
-        const cx = size / 2
-        const cy = size / 2
-        const r = size * POINTER_R_SCALE
-        const toRad = (d: number) => (Math.PI / 180) * d
-        const px = cx + r * Math.cos(toRad(POINTER_ANGLE_DEG))
-        const py = cy + r * Math.sin(toRad(POINTER_ANGLE_DEG))
-        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
-        return pointerAzimuth + 90
-    }
-    
     // Вычисляем начальное вращение для сектора 0
     const getInitialRotation = () => {
-        const pointerCorrectionDeg = getPointerCorrectionDeg()
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
+        const pointerCorrectionDeg = pointerAzimuth + 90
         const physIndex = (0 - SECTOR_OFFSET + labels.length) % labels.length
         const center = physIndex * seg + seg / 2
         return -(center + startOffsetDeg - pointerCorrectionDeg)
@@ -56,8 +48,14 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     }
 
     function indexFromRotation(rotDeg: number) {
-        // Коррекция под диагональное положение указателя
-        const pointerCorrectionDeg = getPointerCorrectionDeg()
+        // Коррекция под положение указателя (как было)
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI // от центра к указателю
+        const pointerCorrectionDeg = pointerAzimuth + 90 // 0 соответствует верхней позиции
         // Какой сектор под указателем при повороте rotDeg
         const a = normalizeDeg(-rotDeg - startOffsetDeg + pointerCorrectionDeg)
         const idx = Math.floor(a / seg) % labels.length
@@ -65,11 +63,20 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     }
 
     function computeRotationForIndex(index: number) {
-        // Центр целевого сектора должен оказаться под диагональным указателем
+        // Центр целевого сектора должен оказаться под указателем (как было)
         const physIndex = (index - SECTOR_OFFSET + labels.length) % labels.length
         const center = physIndex * seg + seg / 2
-        const pointerCorrectionDeg = getPointerCorrectionDeg()
-        return -(center + startOffsetDeg - pointerCorrectionDeg)
+        // Учесть смещение указателя от верхней позиции
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
+        const pointerCorrectionDeg = pointerAzimuth + 90
+        // Базовый угол, который приведет центр сектора к указателю
+        const base = -(center + startOffsetDeg - pointerCorrectionDeg)
+        return base
     }
 
     const wheelRef = React.useRef<HTMLDivElement | null>(null)
