@@ -18,6 +18,9 @@ type ImageWheelProps = {
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
+    // Заглушки для обратной совместимости (чтобы не было ReferenceError)
+    const POINTER_DX = 0
+    const POINTER_DY = 0
     // Диагональное положение указателя (верхний-правый) — стабильно при любом размере
     const POINTER_ANGLE_DEG = -45
     const POINTER_R_SCALE = 0.52
