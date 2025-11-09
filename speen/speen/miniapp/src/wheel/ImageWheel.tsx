@@ -69,6 +69,21 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         return base
     }
 
+    // Позиция кнопки плюс: по диагонали через центр (противоположная сторона от указателя)
+    function getPlusCenter(): { x: number, y: number } {
+        const cx = size / 2
+        const cy = size / 2
+        const pointerTop = -16 + POINTER_DY
+        const px = cx + POINTER_DX
+        const py = pointerTop
+        const pointerAzimuth = Math.atan2(py - cy, px - cx) // рад
+        const plusAngle = pointerAzimuth + Math.PI // противоположное направление
+        const r = size * 0.62 // радиус размещения плюса чуть за границей колеса
+        const x = cx + r * Math.cos(plusAngle)
+        const y = cy + r * Math.sin(plusAngle)
+        return { x, y }
+    }
+
     const wheelRef = React.useRef<HTMLDivElement | null>(null)
     const timeoutRef = React.useRef<number | null>(null)
     const highlightTimeoutRef = React.useRef<number | null>(null)
@@ -486,6 +501,30 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 }}
             />
         </div>
+        {(() => {
+            const { x, y } = getPlusCenter()
+            const btnSize = Math.round(size * 0.18)
+            return onOpenBonuses ? (
+                <button
+                    type="button"
+                    aria-label="Выбрать бонус"
+                    onClick={(e) => { e.stopPropagation(); onOpenBonuses?.() }}
+                    style={{
+                        position:'absolute',
+                        left: x,
+                        top: y,
+                        transform:'translate(-50%, -50%)',
+                        width: btnSize,
+                        height: btnSize,
+                        border:'none',
+                        borderRadius: '50%',
+                        background: 'url(/plus.png) center/contain no-repeat',
+                        boxShadow:'0 6px 12px rgba(0,0,0,0.35)',
+                        cursor:'pointer'
+                    }}
+                />
+            ) : null
+        })()}
     )
 }
 
