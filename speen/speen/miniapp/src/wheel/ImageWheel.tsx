@@ -28,6 +28,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
+    // Вопросительные знаки на внутреннем (бонусном) кольце: по умолчанию скрываем бонусы
+    const [concealInner, setConcealInner] = React.useState<boolean>(true)
     const [highlightVisible, setHighlightVisible] = React.useState<boolean>(false)
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
@@ -87,10 +89,12 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const wheelRef = React.useRef<HTMLDivElement | null>(null)
     const timeoutRef = React.useRef<number | null>(null)
     const highlightTimeoutRef = React.useRef<number | null>(null)
+    const innerResetTimeoutRef = React.useRef<number | null>(null)
 
     React.useEffect(() => () => {
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
         if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
+        if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
     }, [])
 
     // Функция воспроизведения глухого звука
@@ -169,6 +173,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         while (target < rotation + minSpins * 360) target += 360
 
         setIsSpinning(true)
+        // во время спина и до результатов — держим вопросительные знаки
+        setConcealInner(true)
         try { onSpinningChange?.(true) } catch {}
         const degreesToTravel = target - rotation
         // дольше и более плавное замедление
@@ -195,9 +201,14 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             try { onSpinningChange?.(false) } catch {}
             const idx = indexFromRotation(target)
             onResult?.(idx, labels[idx])
+            // открыть бонусы (снять вопросительные знаки)
+            setConcealInner(false)
             setHighlightVisible(true)
             if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
             highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
+            // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
+            if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
+            innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
         }, duration * 1000 + 50)
     }
 
@@ -252,26 +263,30 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     try { onSpinningChange?.(false) } catch {}
                     const idx = indexFromRotation(rotation)
                     onResult?.(idx, labels[idx])
+                    // открыть бонусы (снять вопросительные знаки)
+                    setConcealInner(false)
                     setHighlightVisible(true)
                     if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
+                    // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
+                    if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
+                    innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
                     if (centerBtnRef.current) {
                         centerBtnRef.current.style.transition = 'transform 200ms ease'
                         centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
                     }
                 }}
             >
-                {/* цельное кольцо бонусов поверх колеса (прячем во время спина) */}
-                {!isSpinning && (
+                {/* цельное кольцо бонусов поверх колеса (прячем во время спина и когда скрыты знаки) */}
+                {!isSpinning && !concealInner && (
                     <img
                         src="/bonus.png"
                         alt="bonus-ring"
                         style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
                     />
                 )}
-                {/* убрали centerspin.png; во время спина показываются только вопросительные знаки в секторах */}
-                {/* Во время вращения закрываем цифры/бонусы вопросительными знаками (внутри колеса, чтобы вращались вместе) */}
-                {isSpinning && (
+                {/* Вопросительные знаки показываем во время спина или когда нужно скрыть бонусы (первый вход и после результата) */}
+                {(isSpinning || concealInner) && (
                     <svg
                         width={size}
                         height={size}
