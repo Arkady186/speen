@@ -32,7 +32,6 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
     const centerBtnRef = React.useRef<HTMLButtonElement | null>(null)
-    const arrowsRef = React.useRef<HTMLImageElement | null>(null)
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -178,10 +177,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         if (wheelRef.current) {
             wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
-        // синхронизируем скорость "стрелок" (кольцо) с колесом
-        if (arrowsRef.current) {
-            arrowsRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
-        }
+        // стрелок-оверлея нет; синхронизация не требуется
         // центральную кнопку не вращаем, оставляем статичной
         if (centerBtnRef.current) {
             centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
@@ -269,31 +265,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
                     />
                 )}
-                {/* стрелки по центру: centerspin.png, крутятся в ту же сторону, но медленнее; всегда в DOM для плавной анимации */}
-                {(() => {
-                    const ARROWS_RATIO = 0.35 // итоговый мировой угол = ARROWS_RATIO * rotation
-                    const localDeg = (ARROWS_RATIO - 1) * rotation // compose: parent(rot) + child((k-1)rot) = k*rot
-                    return (
-                        <img
-                            ref={arrowsRef}
-                            src="/centerspin.png"
-                            alt="center-arrows"
-                            style={{
-                                position:'absolute',
-                                left:'50%',
-                                top:'50%',
-                                width:'100%',
-                                height:'100%',
-                                objectFit:'contain',
-                                pointerEvents:'none',
-                                transform:`translate(-50%, -50%) scale(0.5) rotate(${localDeg}deg)`,
-                                opacity: isSpinning ? 1 : 0,
-                                transition: isSpinning ? undefined : 'opacity 150ms ease',
-                                zIndex: 2
-                            }}
-                        />
-                    )
-                })()}
+                {/* убрали centerspin.png; во время спина показываются только вопросительные знаки в секторах */}
                 {/* Во время вращения закрываем цифры/бонусы вопросительными знаками (внутри колеса, чтобы вращались вместе) */}
                 {isSpinning && (
                     <svg
