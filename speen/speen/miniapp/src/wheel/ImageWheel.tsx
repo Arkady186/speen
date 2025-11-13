@@ -181,7 +181,10 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         // центральную кнопку не вращаем, оставляем статичной
         if (centerBtnRef.current) {
             centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
-            centerBtnRef.current.style.transform = `translate(-50%, -50%)`
+            // плавно поворачиваем центр в ту же сторону, но медленнее
+            const CENTER_RATIO = 0.35
+            const delta = (base - rotation) * CENTER_RATIO
+            centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${delta}deg)`
         }
         requestAnimationFrame(() => setRotation(target))
 
