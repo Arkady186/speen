@@ -229,7 +229,8 @@ export function GameScreen() {
     }
     const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
     const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
-    const MID_RATE_PER_SEC = 0.01
+    // Минимальная базовая скорость автопополнения: 0.06 W/сек = 216 W/час = 648 W за 3 часа
+    const MID_RATE_PER_SEC = 0.06
     const MID_INTERVAL_MS = 1_000
     const MID_STOP_AFTER_MS = 3 * 60 * 60 * 1000
     const [midW, setMidW] = React.useState<number>(() => parseFloat(localStorage.getItem('mid_w') || '0') || 0)
