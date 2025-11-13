@@ -184,7 +184,8 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             // плавно поворачиваем центр в ту же сторону, но медленнее
             const CENTER_RATIO = 0.35
             const delta = (base - rotation) * CENTER_RATIO
-            centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${delta}deg)`
+            // крутим в противоположную сторону
+            centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${-delta}deg)`
         }
         requestAnimationFrame(() => setRotation(target))
 
