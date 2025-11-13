@@ -32,6 +32,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
     const centerBtnRef = React.useRef<HTMLButtonElement | null>(null)
+    const arrowsRef = React.useRef<HTMLImageElement | null>(null)
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -177,6 +178,10 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         if (wheelRef.current) {
             wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
+        // синхронизируем скорость "стрелок" (кольцо) с колесом
+        if (arrowsRef.current) {
+            arrowsRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
+        }
         // синхронно чуть-чуть повернем центральную кнопку
         if (centerBtnRef.current) {
             centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
@@ -257,14 +262,28 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     }
                 }}
             >
-                {/* цельное кольцо бонусов поверх колеса (прячем во время спина) */}
-                {!isSpinning && (
-                    <img
-                        src="/bonus.png"
-                        alt="bonus-ring"
-                        style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
-                    />
-                )}
+                {/* кольцо с "стрелками": крутится в ту же сторону, но медленнее */}
+                {(() => {
+                    const ARROWS_RATIO = 0.35 // итоговое вращение = 35% от колеса
+                    const localDeg = (ARROWS_RATIO - 1) * rotation // локальное (отрицательное) кручение относительно родителя
+                    return (
+                        <img
+                            ref={arrowsRef}
+                            src="/bonus.png"
+                            alt="bonus-ring"
+                            style={{
+                                position:'absolute',
+                                left: '50%',
+                                top: '50%',
+                                width: '100%',
+                                height: '100%',
+                                objectFit:'contain',
+                                pointerEvents:'none',
+                                transform: `translate(-50%, -50%) scale(0.5) rotate(${localDeg}deg)`
+                            }}
+                        />
+                    )
+                })()}
                 {/* Во время вращения закрываем цифры/бонусы вопросительными знаками (внутри колеса, чтобы вращались вместе) */}
                 {isSpinning && (
                     <svg
