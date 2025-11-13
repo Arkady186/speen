@@ -209,10 +209,9 @@ export function GameScreen() {
     // heardwh.png -> 4,8 (индекс 1)
     // moneywheel.png -> 1,3,5,7,9 (индекс 2)
     // battery.png -> 2 (индекс 0)
-    // spacewh.png -> 6 (индекс 3)
-    // 0 не указан — по умолчанию battery (индекс 0)
+    // spacewh.png -> 0,6 (индекс 3) — 0 теперь это spacewh.png
     const SECTOR_TO_BONUS: number[] = [
-        0, // 0 -> battery (default)
+        3, // 0 -> spacewh
         2, // 1 -> moneywheel
         0, // 2 -> battery
         2, // 3 -> moneywheel
