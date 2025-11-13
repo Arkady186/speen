@@ -458,24 +458,29 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             })()}
             {/* плюс-иконка слева снизу, параллельно треугольнику */}
             {(() => {
-                const PLUS_SIZE = 48
-                const cx = size / 2
-                const cy = size / 2
-                const pointerTop = -16 + POINTER_DY
-                const px = cx + POINTER_DX
-                const py = pointerTop
-                const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI
-                const rotateDeg = angleToCenter + 90
-                return (
-                    <div
-                        role="button"
-                        aria-label="Открыть бонусы"
+                const { x, y } = getPlusCenter()
+                const btnSize = Math.round(size * 0.18)
+                return onOpenBonuses ? (
+                    <button
+                        type="button"
+                        aria-label="Выбрать бонус"
                         onClick={(e) => { e.stopPropagation(); if (!isSpinning) onOpenBonuses?.() }}
-                        style={{ position:'absolute', left: 12, bottom: 12, width: PLUS_SIZE, height: PLUS_SIZE, transform:`rotate(${rotateDeg + 55}deg)`, transformOrigin:'50% 50%', cursor: isSpinning ? 'default' : 'pointer', zIndex: 3 }}
-                    >
-                        <img src="/plus.png" alt="plus" style={{ width: '100%', height: '100%', objectFit:'contain', filter:'drop-shadow(0 6px 10px rgba(0,0,0,0.25))', pointerEvents:'none' }} />
-                    </div>
-                )
+                        style={{
+                            position:'absolute',
+                            left: x,
+                            top: y,
+                            transform:'translate(-50%, -50%)',
+                            width: btnSize,
+                            height: btnSize,
+                            border:'none',
+                            borderRadius: '50%',
+                            background: 'url(/plus.png) center/contain no-repeat',
+                            boxShadow:'0 6px 12px rgba(0,0,0,0.35)',
+                            cursor: isSpinning ? 'default' : 'pointer',
+                            zIndex: 3
+                        }}
+                    />
+                ) : null
             })()}
 
 
@@ -501,30 +506,6 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                 }}
             />
         </div>
-        {(() => {
-            const { x, y } = getPlusCenter()
-            const btnSize = Math.round(size * 0.18)
-            return onOpenBonuses ? (
-                <button
-                    type="button"
-                    aria-label="Выбрать бонус"
-                    onClick={(e) => { e.stopPropagation(); onOpenBonuses?.() }}
-                    style={{
-                        position:'absolute',
-                        left: x,
-                        top: y,
-                        transform:'translate(-50%, -50%)',
-                        width: btnSize,
-                        height: btnSize,
-                        border:'none',
-                        borderRadius: '50%',
-                        background: 'url(/plus.png) center/contain no-repeat',
-                        boxShadow:'0 6px 12px rgba(0,0,0,0.35)',
-                        cursor:'pointer'
-                    }}
-                />
-            ) : null
-        })()}
     )
 }
 

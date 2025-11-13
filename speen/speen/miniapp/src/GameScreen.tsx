@@ -1402,8 +1402,8 @@ const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap
 
 const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }
 const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
-const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 800, fontSize:18, textShadow:'0 1px 0 rgba(255,255,255,0.6)', fontFamily:'"Rubik", Inter, system-ui' }
-const levelStyle: React.CSSProperties = { color:'#e8f1ff', fontWeight:800, fontSize:14, lineHeight:1.1, textShadow:'0 1px 0 rgba(0,0,0,0.25)' }
+const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 900, fontSize:22, letterSpacing:0.2, textShadow:'0 2px 0 rgba(255,255,255,0.7)', fontFamily:'"Rubik", Inter, system-ui' }
+const levelStyle: React.CSSProperties = { color:'#083068', fontWeight:900, fontSize:16, lineHeight:1.2, padding:'2px 10px', background:'linear-gradient(90deg,#ffe27a 0%, #ffbe3d 100%)', borderRadius:999, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.75), 0 2px 8px rgba(0,0,0,0.25)', textShadow:'none', justifySelf:'start' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
@@ -1663,7 +1663,6 @@ const newsPopupTitle: React.CSSProperties = {
     fontFamily:'"Russo One", Inter, system-ui',
     textShadow:'0 2px 8px rgba(0,0,0,0.35)'
 }
-
 const newsCloseBtn: React.CSSProperties = {
     width: 32,
     height: 32,
