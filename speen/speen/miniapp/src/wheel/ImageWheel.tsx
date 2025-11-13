@@ -262,25 +262,24 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     }
                 }}
             >
-                {/* кольцо с "стрелками": крутится в ту же сторону, но медленнее */}
-                {(() => {
-                    const ARROWS_RATIO = 0.35 // итоговое вращение = 35% от колеса
-                    const localDeg = (ARROWS_RATIO - 1) * rotation // локальное (отрицательное) кручение относительно родителя
+                {/* цельное кольцо бонусов поверх колеса (прячем во время спина) */}
+                {!isSpinning && (
+                    <img
+                        src="/bonus.png"
+                        alt="bonus-ring"
+                        style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
+                    />
+                )}
+                {/* стрелки по центру: centerspin.png, вращаются в ту же сторону, но медленнее, только во время спина */}
+                {isSpinning && (() => {
+                    const ARROWS_RATIO = 0.35
+                    const localDeg = (ARROWS_RATIO - 1) * rotation
                     return (
                         <img
                             ref={arrowsRef}
-                            src="/bonus.png"
-                            alt="bonus-ring"
-                            style={{
-                                position:'absolute',
-                                left: '50%',
-                                top: '50%',
-                                width: '100%',
-                                height: '100%',
-                                objectFit:'contain',
-                                pointerEvents:'none',
-                                transform: `translate(-50%, -50%) scale(0.5) rotate(${localDeg}deg)`
-                            }}
+                            src="/centerspin.png"
+                            alt="center-arrows"
+                            style={{ position:'absolute', left:'50%', top:'50%', width:'100%', height:'100%', objectFit:'contain', pointerEvents:'none', transform:`translate(-50%, -50%) scale(0.5) rotate(${localDeg}deg)` }}
                         />
                     )
                 })()}
@@ -519,7 +518,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
                     border: 'none',
-                    background: `url(${isSpinning ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
+                    background: `url('/center.png') center/contain no-repeat`,
                     boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
                     cursor: isSpinning ? 'default' : 'pointer',
                 }}
