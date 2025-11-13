@@ -205,7 +205,24 @@ export function GameScreen() {
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
-    const SECTOR_TO_BONUS: number[] = [0,1,2,3,0,1,2,3,0,1]
+    // Сопоставление сектора (цифры) к типу бонуса:
+    // heardwh.png -> 4,8 (индекс 1)
+    // moneywheel.png -> 1,3,5,7,9 (индекс 2)
+    // battery.png -> 2 (индекс 0)
+    // spacewh.png -> 6 (индекс 3)
+    // 0 не указан — по умолчанию battery (индекс 0)
+    const SECTOR_TO_BONUS: number[] = [
+        0, // 0 -> battery (default)
+        2, // 1 -> moneywheel
+        0, // 2 -> battery
+        2, // 3 -> moneywheel
+        1, // 4 -> heardwh
+        2, // 5 -> moneywheel
+        3, // 6 -> spacewh
+        2, // 7 -> moneywheel
+        1, // 8 -> heardwh
+        2  // 9 -> moneywheel
+    ]
     const getSectorBonusIndex = (i: number): number => {
         const idx = ((i % 10) + 10) % 10
         const val = SECTOR_TO_BONUS[idx]
