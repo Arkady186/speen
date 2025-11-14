@@ -772,13 +772,11 @@ export function GameScreen() {
                          <div style={{
                              position:'absolute', 
                              left: '50%', 
-                             top: '50%', 
-                             transform:'translate(-50%, -50%)',
+                             bottom: 44,
+                             transform:'translateX(-50%)',
                              display:'flex',
                              alignItems:'center',
                              justifyContent:'center',
-                             width: `${wheelSize}px`,
-                             height: `${wheelSize}px`,
                              zIndex: 1,
                              pointerEvents: 'none'
                          }}>
