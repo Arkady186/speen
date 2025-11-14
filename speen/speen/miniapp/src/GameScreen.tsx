@@ -150,8 +150,8 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     // State for 3/10 mode: track spin sequence
     const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
-    const [pyramidUsedNumbers, setPyramidUsedNumbers] = React.useState<number[]>([])
-    const [pyramidTotalWin, setPyramidTotalWin] = React.useState<number>(0)
+    const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
+    const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
@@ -537,8 +537,8 @@ export function GameScreen() {
         setBet(min)
         // Сбрасываем состояние pyramid при смене режима
         setPyramidSpinCount(0)
-        setPyramidUsedNumbers([])
-        setPyramidTotalWin(0)
+        setPyramidResults([])
+        setPyramidShowResults(false)
     }, [mode, currency])
 
     function onBeforeSpin() {
@@ -550,6 +550,8 @@ export function GameScreen() {
         
         // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
         if (mode === 'pyramid') {
+            // Проверяем, что выбран бонус
+            if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
             // Проверяем баланс
             if (currency === 'W') {
                 if (balanceW < b) { setToast(t('not_enough_W')); return false }
@@ -565,8 +567,8 @@ export function GameScreen() {
                 }
                 // Инициализируем состояние для 3 вращений
                 setPyramidSpinCount(1)
-                setPyramidUsedNumbers([])
-                setPyramidTotalWin(0)
+                setPyramidResults([])
+                setPyramidShowResults(false)
             }
             return true
         }
@@ -587,33 +589,15 @@ export function GameScreen() {
 
         // Специальная логика для режима 3/10 (pyramid)
         if (mode === 'pyramid' && pyramidSpinCount > 0) {
-            let resultNumber = Number(label)
+            const resultNumber = Number(label)
             
-            // Если число уже было использовано, пропускаем до следующего уникального
-            // Пример: если выпало 7 и оно уже было, то берем следующее после него - 8
-            // Если 8 тоже было, берем 9, и так далее по кругу
-            while (pyramidUsedNumbers.includes(resultNumber)) {
-                resultNumber = (resultNumber + 1) % 10
-            }
-            
-            // Добавляем число в список использованных
-            const newUsedNumbers = [...pyramidUsedNumbers, resultNumber]
-            setPyramidUsedNumbers(newUsedNumbers)
-            
-            // Определяем множитель в зависимости от номера вращения
-            // 1-е вращение: +100%, 2-е: +50%, 3-е: +25%
-            let multiplier = 1.0
-            if (pyramidSpinCount === 1) multiplier = 1.0  // +100% = ставка * 1.0
-            else if (pyramidSpinCount === 2) multiplier = 0.5  // +50% = ставка * 0.5
-            else if (pyramidSpinCount === 3) multiplier = 0.25  // +25% = ставка * 0.25
-            
-            const win = Math.floor(b * multiplier)
-            const newTotalWin = pyramidTotalWin + win
-            setPyramidTotalWin(newTotalWin)
+            // Добавляем результат в массив
+            const newResults = [...pyramidResults, resultNumber]
+            setPyramidResults(newResults)
             
             // Показываем результат текущего вращения
             const spinNum = pyramidSpinCount
-            setToast(`Вращение ${spinNum}: ${resultNumber} (+${win} ${currency})`)
+            setToast(`Вращение ${spinNum}: ${resultNumber}`)
             
             // Если это не последнее вращение, запускаем следующее
             if (pyramidSpinCount < 3) {
@@ -623,26 +607,33 @@ export function GameScreen() {
                 const currentMode = mode
                 setTimeout(() => {
                     if (wheelRef.current && currentMode === 'pyramid') {
-                        // Генерируем случайное число, но если оно уже использовано, пропустим его в onSpinResult
                         wheelRef.current.spin()
                     }
                 }, 1500)
             } else {
-                // Это было последнее вращение - завершаем и показываем итог
-                if (newTotalWin > 0) {
+                // Это было последнее вращение - завершаем и показываем результаты
+                const selectedNum = pickedDigit
+                const matches = newResults.filter(n => n === selectedNum).length
+                
+                // Вычисляем выигрыш: +100% за первое совпадение, +50% за второе, +25% за третье
+                let totalWin = 0
+                if (matches >= 1) totalWin += Math.floor(b * 1.0)  // +100%
+                if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
+                if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
+                
+                if (totalWin > 0) {
                     if (currency === 'W') {
-                        saveBalances(balanceW + newTotalWin, balanceB)
+                        saveBalances(balanceW + totalWin, balanceB)
                     } else {
-                        saveBalances(balanceW, balanceB + newTotalWin)
+                        saveBalances(balanceW, balanceB + totalWin)
                     }
-                    setToast(`Итог: +${newTotalWin} ${currency}`)
+                    setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
                 } else {
-                    setToast('Итог: 0')
+                    setToast(`Проигрыш. Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}`)
                 }
-                // Сбрасываем состояние
-                setPyramidSpinCount(0)
-                setPyramidUsedNumbers([])
-                setPyramidTotalWin(0)
+                
+                // Показываем результаты на барабане
+                setPyramidShowResults(true)
             }
             return
         }
@@ -976,6 +967,51 @@ export function GameScreen() {
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
                              </div>
                         </div>
+                        {pyramidShowResults && pyramidResults.length === 3 && (
+                            <div style={bonusOverlay} onClick={() => { setPyramidShowResults(false); setPyramidSpinCount(0); setPyramidResults([]) }}>
+                                <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
+                                    <div style={bonusHeader}>Результаты 3/10</div>
+                                    <div style={{color:'#fff', textAlign:'center', marginBottom:20, fontSize:18, fontWeight:700}}>
+                                        <div style={{marginBottom:15, padding:'12px', background:'rgba(255,255,255,0.1)', borderRadius:12}}>
+                                            <div style={{marginBottom:8, fontSize:16, opacity:0.9}}>Выбрано:</div>
+                                            <div style={{color:'#ffe27a', fontSize:48, fontWeight:900, textShadow:'0 2px 8px rgba(0,0,0,0.5)'}}>{pickedDigit}</div>
+                                        </div>
+                                        <div style={{marginBottom:15, padding:'12px', background:'rgba(255,255,255,0.1)', borderRadius:12}}>
+                                            <div style={{marginBottom:8, fontSize:16, opacity:0.9}}>Выпало:</div>
+                                            <div style={{display:'flex', gap:12, justifyContent:'center', alignItems:'center', flexWrap:'wrap'}}>
+                                                {pyramidResults.map((num, idx) => (
+                                                    <div 
+                                                        key={idx}
+                                                        style={{
+                                                            width:50,
+                                                            height:50,
+                                                            borderRadius:'50%',
+                                                            background: num === pickedDigit 
+                                                                ? 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)' 
+                                                                : 'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+                                                            display:'grid',
+                                                            placeItems:'center',
+                                                            fontSize:28,
+                                                            fontWeight:900,
+                                                            color:'#fff',
+                                                            boxShadow: num === pickedDigit 
+                                                                ? '0 4px 12px rgba(34, 197, 94, 0.5), inset 0 0 0 3px #0b2f68' 
+                                                                : '0 4px 12px rgba(0,0,0,0.3), inset 0 0 0 3px #0b2f68',
+                                                            border: num === pickedDigit ? '2px solid #ffe27a' : 'none'
+                                                        }}
+                                                    >
+                                                        {num}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{display:'grid', placeItems:'center'}}>
+                                        <button style={bonusCloseBtn} onClick={() => { setPyramidShowResults(false); setPyramidSpinCount(0); setPyramidResults([]) }}>{t('close')}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
