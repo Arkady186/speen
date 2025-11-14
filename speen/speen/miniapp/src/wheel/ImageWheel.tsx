@@ -80,7 +80,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         const py = pointerTop
         const pointerAzimuth = Math.atan2(py - cy, px - cx) // рад
         const plusAngle = pointerAzimuth + Math.PI // противоположное направление
-        const r = size * 0.45 // радиус размещения плюса - уменьшен с 0.62 до 0.45, чтобы был на колесе
+        const r = size * 0.48 // радиус размещения плюса - чуть ниже, но все еще на колесе
         const x = cx + r * Math.cos(plusAngle)
         const y = cy + r * Math.sin(plusAngle)
         return { x, y }
