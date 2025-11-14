@@ -18,9 +18,9 @@ type ImageWheelProps = {
 export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
-    // Положение указателя как было (диагональ: вправо и немного вниз от верхней точки)
-    const POINTER_DX = 78 // левее: точная наводка острым углом на 0 при старте
-    const POINTER_DY = 8  // выше: ближе к верхней кромке (верх = -16)
+    // Положение указателя (пропорционально размеру колеса для адаптивности)
+    const POINTER_DX = size * 0.30 // левее: точная наводка острым углом на 0 при старте (было 78 для 260px)
+    const POINTER_DY = size * 0.031 // выше: ближе к верхней кромке (было 8 для 260px)
     const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
     // Выставляем старт так, чтобы сектор 0 находился прямо под острым углом указателя
@@ -61,7 +61,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
         // Учесть смещение указателя от верхней позиции
         const cx = size / 2
         const cy = size / 2
-        const pointerTop = -16 + POINTER_DY
+        const pointerTop = -(size * 0.062) + POINTER_DY // пропорционально размеру (было -16 для 260px)
         const px = cx + POINTER_DX
         const py = pointerTop
         const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
@@ -396,7 +396,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                         const rOuter = size * 0.49
                         const rInner = size * 0.30
                         // смещение клина с учётом реального положения сектора под указателем (с учётом смещённого указателя)
-                        const pointerTop = -16 + POINTER_DY
+                        const pointerTop = -(size * 0.062) + POINTER_DY // пропорционально размеру (было -16 для 260px)
                         const px = cx + POINTER_DX
                         const py = pointerTop
                         const pointerAzimuth = Math.atan2(py - cy, px - cx) * 180 / Math.PI
@@ -457,14 +457,16 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             {(() => {
                 const cx = size / 2
                 const cy = size / 2
-                const pointerTop = -16 + POINTER_DY
+                const pointerTop = -(size * 0.062) + POINTER_DY // пропорционально размеру (было -16 для 260px)
                 const px = cx + POINTER_DX
                 const py = pointerTop
                 const angleToCenter = Math.atan2(cy - py, cx - px) * 180 / Math.PI // от указателя к центру
                 const rotateDeg = angleToCenter + 90 // апекс вверх => +90 чтобы смотреть по вектору
+                const pointerSize = Math.round(size * 0.13) // пропорционально размеру колеса (было 34 для 260px)
+                const pointerHeight = Math.round(size * 0.154) // пропорционально размеру колеса (было 40 для 260px)
                 return (
                     <div style={{ position: 'absolute', left: `calc(50% + ${POINTER_DX}px)`, top: pointerTop, transform: `translateX(-50%) rotate(${rotateDeg}deg)`, filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}>
-                        <svg width="34" height="40" viewBox="0 0 34 40">
+                        <svg width={pointerSize} height={pointerHeight} viewBox="0 0 34 40">
                             <defs>
                                 <linearGradient id="g2" x1="0" x2="1">
                                     <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />

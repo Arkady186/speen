@@ -69,6 +69,44 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
+    const [wheelSize, setWheelSize] = React.useState<number>(260)
+    
+    // Адаптивный размер колеса с учетом доступного пространства
+    React.useEffect(() => {
+        function updateWheelSize() {
+            // Учитываем отступы и размеры других элементов
+            const contentMargin = 20 // margin content (8px * 2 + padding)
+            const topBarHeight = 80 // примерная высота topBar
+            const panelsHeight = 280 // примерная высота панелей сверху
+            const bottomNavHeight = 70 // примерная высота bottomNav
+            const padding = 15 // уменьшенный отступ для большего использования пространства
+            
+            const availableWidth = window.innerWidth - contentMargin - padding * 2
+            const availableHeight = window.innerHeight - topBarHeight - panelsHeight - bottomNavHeight - padding * 2
+            
+            // Увеличиваем процент использования пространства и максимальный размер
+            // Берем минимум из доступной ширины и высоты, но не больше 420px (было 320px)
+            const maxSize = Math.min(
+                Math.min(availableWidth * 0.95, availableHeight * 0.95), // было 0.85, теперь 0.95
+                420 // было 320, теперь 420
+            )
+            setWheelSize(Math.max(220, Math.floor(maxSize))) // минимум 220px (было 200px)
+        }
+        updateWheelSize()
+        // Используем ResizeObserver если доступен, иначе только window events
+        let resizeObserver: ResizeObserver | null = null
+        if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(updateWheelSize)
+            resizeObserver.observe(document.body)
+        }
+        window.addEventListener('resize', updateWheelSize)
+        window.addEventListener('orientationchange', updateWheelSize)
+        return () => {
+            if (resizeObserver) resizeObserver.disconnect()
+            window.removeEventListener('resize', updateWheelSize)
+            window.removeEventListener('orientationchange', updateWheelSize)
+        }
+    }, [])
     const [userId, setUserId] = React.useState<number | null>(null)
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
@@ -731,16 +769,33 @@ export function GameScreen() {
                                 </div>
                             </div>
                         </div>
-                         <div style={wheelWrap}>
-                             <ImageWheel imageSrc="/wheel.png" labels={["0","1","2","3","4","5","6","7","8","9"]}
-                                onBeforeSpin={onBeforeSpin}
-                                onResult={onSpinResult}
-                                selectedIndex={pickedDigit}
-                                onSelectIndex={(idx)=> setPickedDigit(idx)}
-                                onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
-                                 onOpenBonuses={() => setBonusesOpen(true)}
-                                 selectedBonusIndex={selectedBonusSector}
-                                 onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
+                         <div style={{
+                             position:'absolute', 
+                             left: '50%', 
+                             top: '50%', 
+                             transform:'translate(-50%, -50%)',
+                             display:'flex',
+                             alignItems:'center',
+                             justifyContent:'center',
+                             width: `${wheelSize}px`,
+                             height: `${wheelSize}px`,
+                             zIndex: 1,
+                             pointerEvents: 'none'
+                         }}>
+                             <div style={{ pointerEvents: 'auto' }}>
+                                 <ImageWheel 
+                                    size={wheelSize}
+                                    imageSrc="/wheel.png" 
+                                    labels={["0","1","2","3","4","5","6","7","8","9"]}
+                                    onBeforeSpin={onBeforeSpin}
+                                    onResult={onSpinResult}
+                                    selectedIndex={pickedDigit}
+                                    onSelectIndex={(idx)=> setPickedDigit(idx)}
+                                    onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
+                                     onOpenBonuses={() => setBonusesOpen(true)}
+                                     selectedBonusIndex={selectedBonusSector}
+                                     onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
+                             </div>
                         </div>
                         {bonusesOpen && (
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
@@ -1426,11 +1481,11 @@ const balances: React.CSSProperties = { display:'grid', gap:8 }
 const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
 const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%', objectFit: 'contain' }
 
-const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative' }
-const wheelWrap: React.CSSProperties = { position:'absolute', bottom: 44, left: '50%', transform:'translateX(-50%) scale(1.16)' }
+const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative', display:'flex', flexDirection:'column', minHeight:0 }
+// wheelWrap будет создан динамически с учетом размера колеса
 const plusNearWheel: React.CSSProperties = { position:'absolute', left: -10, bottom: -40, width: 48, height: 48, objectFit:'contain', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
 // removed external plusOutsideWrap
-const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440 }
+const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440, zIndex: 2 }
 
 const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8, transform:'translateY(-10px)' }
 const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'4px 4px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68', transition:'transform 140ms ease, background 160ms ease, box-shadow 160ms ease' }
