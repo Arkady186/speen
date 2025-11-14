@@ -80,10 +80,11 @@ export function GameScreen() {
             if (!contentEl) return
             const panelsHeight = panelsRef.current?.getBoundingClientRect().height || 0
             const contentRect = contentEl.getBoundingClientRect()
-            const padding = 4 // небольшой отступ в пару пикселей от рамок
+            const padding = 4 // небольшой отступ в пару пикселей от боковых рамок
+            const bottomPadding = 2 // меньший отступ снизу от нижней рамки/линии
             // Используем доступную ширину и высоту с небольшим отступом от рамок
             const availableWidth = Math.max(0, contentRect.width - padding * 2)
-            const availableHeight = Math.max(0, contentRect.height - panelsHeight - padding * 2)
+            const availableHeight = Math.max(0, contentRect.height - panelsHeight - bottomPadding)
             // Берем минимум из ширины и высоты, чтобы колесо вписывалось
             const maxSize = Math.min(availableWidth, availableHeight, 1500)
             setWheelSize(Math.max(250, Math.floor(maxSize)))
@@ -775,7 +776,7 @@ export function GameScreen() {
                          <div style={{
                              position:'absolute', 
                              left: '50%', 
-                             bottom: 0,
+                             bottom: 2,
                              transform:'translateX(-50%)',
                              display:'flex',
                              alignItems:'center',
