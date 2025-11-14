@@ -528,10 +528,13 @@ export function GameScreen() {
     // Clamp bet when mode/currency changes
     React.useEffect(() => {
         const { min, max } = getLimits(mode, currency)
-        const baseMin = Math.max(100, min)
         setBet(prev => {
-            const cur = Math.floor(prev || baseMin)
-            return Math.min(max, Math.max(baseMin, cur))
+            const cur = Math.floor(prev || min)
+            // Если ставка вне нового диапазона, сбрасываем до минимума
+            if (cur < min || cur > max) {
+                return min
+            }
+            return Math.min(max, Math.max(min, cur))
         })
     }, [mode, currency])
 
