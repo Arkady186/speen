@@ -525,17 +525,11 @@ export function GameScreen() {
         return { min, max }
     }
 
-    // Clamp bet when mode/currency changes
+    // Clamp bet when mode/currency changes - всегда сбрасываем до минимума при смене режима
     React.useEffect(() => {
         const { min, max } = getLimits(mode, currency)
-        setBet(prev => {
-            const cur = Math.floor(prev || min)
-            // Если ставка вне нового диапазона, сбрасываем до минимума
-            if (cur < min || cur > max) {
-                return min
-            }
-            return Math.min(max, Math.max(min, cur))
-        })
+        // При смене режима всегда ставим минимальную ставку
+        setBet(min)
     }, [mode, currency])
 
     function onBeforeSpin() {
