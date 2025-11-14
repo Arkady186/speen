@@ -70,40 +70,41 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
     const [wheelSize, setWheelSize] = React.useState<number>(260)
+    const contentRef = React.useRef<HTMLDivElement | null>(null)
+    const panelsRef = React.useRef<HTMLDivElement | null>(null)
     
-    // Адаптивный размер колеса с учетом доступного пространства
+    // Адаптивный размер колеса с учетом фактического свободного пространства
     React.useEffect(() => {
+        const bottomGap = 70 // зазор до нижней навигации + отступ
+        const widthPadding = 16
         function updateWheelSize() {
-            // Учитываем отступы и размеры других элементов
-            const contentMargin = 20 // margin content (8px * 2 + padding)
-            const topBarHeight = 80 // примерная высота topBar
-            const panelsHeight = 280 // примерная высота панелей сверху
-            const bottomNavHeight = 70 // примерная высота bottomNav
-            const padding = 10 // минимальный отступ для безопасности
-            
-            const availableWidth = window.innerWidth - contentMargin - padding * 2
-            // Для высоты учитываем только пространство между панелями и навигацией
-            const availableHeight = window.innerHeight - topBarHeight - panelsHeight - bottomNavHeight - padding * 2
-            
-            // Используем максимум доступного пространства
-            // Берем минимум из доступной ширины и высоты, ограничиваем верхним пределом
-            const maxSize = Math.min(
-                Math.min(availableWidth * 0.98, availableHeight * 0.98), // почти 100% использования, но не залезаем на рамки
-                1500 // новый верхний предел: достаточно, чтобы заполнить пространство на планшетах
-            )
-            setWheelSize(Math.max(250, Math.floor(maxSize))) // минимум 250px
+            const contentEl = contentRef.current
+            if (!contentEl) return
+            const panelsHeight = panelsRef.current?.getBoundingClientRect().height || 0
+            const contentRect = contentEl.getBoundingClientRect()
+            const availableWidth = Math.max(0, contentRect.width - widthPadding)
+            const availableHeight = Math.max(0, contentRect.height - panelsHeight - bottomGap)
+            const maxSize = Math.min(availableWidth, availableHeight, 1500)
+            setWheelSize(Math.max(250, Math.floor(maxSize)))
         }
         updateWheelSize()
-        // Используем ResizeObserver если доступен, иначе только window events
-        let resizeObserver: ResizeObserver | null = null
+        const observers: ResizeObserver[] = []
         if (typeof ResizeObserver !== 'undefined') {
-            resizeObserver = new ResizeObserver(updateWheelSize)
-            resizeObserver.observe(document.body)
+            if (contentRef.current) {
+                const ro = new ResizeObserver(updateWheelSize)
+                ro.observe(contentRef.current)
+                observers.push(ro)
+            }
+            if (panelsRef.current) {
+                const ro2 = new ResizeObserver(updateWheelSize)
+                ro2.observe(panelsRef.current)
+                observers.push(ro2)
+            }
         }
         window.addEventListener('resize', updateWheelSize)
         window.addEventListener('orientationchange', updateWheelSize)
         return () => {
-            if (resizeObserver) resizeObserver.disconnect()
+            observers.forEach(o => o.disconnect())
             window.removeEventListener('resize', updateWheelSize)
             window.removeEventListener('orientationchange', updateWheelSize)
         }
@@ -694,10 +695,10 @@ export function GameScreen() {
                     }}
                 />
             </div>
-            <div style={content}>
+            <div style={content} ref={contentRef}>
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
-                        <div style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
+                        <div ref={panelsRef} style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
                                 <div style={rowGrid}>
