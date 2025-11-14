@@ -786,7 +786,7 @@ export function GameScreen() {
                                 </div>
                                 <div
                                     onClick={()=> setSettingsOpen(true)}
-                                    style={{ position:'absolute', right:-52, top:'50%', transform:'translateY(-50%)', width:44, height:44, display:'grid', placeItems:'center', cursor:'pointer' }}
+                                    style={{ position:'absolute', right:-52, top:'30%', transform:'translateY(-50%)', width:44, height:44, display:'grid', placeItems:'center', cursor:'pointer' }}
                                 >
                                     <img src="/satting.png" alt="settings" style={{width:'36px',height:'36px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                 </div>
