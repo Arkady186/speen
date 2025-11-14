@@ -42,13 +42,28 @@ animationStyle.textContent = `
   100% { transform: translateX(-50%) translateY(0); }
 }
 @keyframes bottomSheetDown {
-  0% { transform: translateX(-50%) translateY(0); }
-  100% { transform: translateX(-50%) translateY(100%); }
+    0% { transform: translateX(-50%) translateY(0); }
+    100% { transform: translateX(-50%) translateY(100%); }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 `
 if (!document.head.querySelector('#animation-styles')) {
     animationStyle.id = 'animation-styles'
     document.head.appendChild(animationStyle)
+}
+
+function Preloader() {
+    return (
+        <div style={preloaderWrap}>
+            <div style={preloaderContent}>
+                <div style={preloaderSpinner}></div>
+                <div style={preloaderText}>Загрузка...</div>
+            </div>
+        </div>
+    )
 }
 
 function Toast({ text, onClose }: { text: string, onClose?: () => void }) {
@@ -70,6 +85,7 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 export function GameScreen() {
     const [username, setUsername] = React.useState<string>('')
     const [wheelSize, setWheelSize] = React.useState<number>(260)
+    const [isLoading, setIsLoading] = React.useState<boolean>(true)
     const contentRef = React.useRef<HTMLDivElement | null>(null)
     const panelsRef = React.useRef<HTMLDivElement | null>(null)
     
@@ -661,8 +677,53 @@ export function GameScreen() {
         } catch {}
     }, [])
 
+    // Предзагрузка критических изображений
+    React.useEffect(() => {
+        const criticalImages = [
+            '/wheel.png',
+            '/coin-w.png',
+            '/center.png',
+            '/centerspin.png',
+            '/bonus.png',
+            '/plus.png',
+            '/satting.png',
+            '/zad.png',
+            '/bank.png',
+            '/shop.png'
+        ]
+        
+        let loadedCount = 0
+        const totalImages = criticalImages.length
+        
+        const loadImage = (src: string): Promise<void> => {
+            return new Promise((resolve) => {
+                const img = new Image()
+                img.onload = () => {
+                    loadedCount++
+                    if (loadedCount === totalImages) {
+                        // Небольшая задержка для плавности
+                        setTimeout(() => setIsLoading(false), 300)
+                    }
+                    resolve()
+                }
+                img.onerror = () => {
+                    loadedCount++
+                    if (loadedCount === totalImages) {
+                        setTimeout(() => setIsLoading(false), 300)
+                    }
+                    resolve()
+                }
+                img.src = src
+            })
+        }
+        
+        Promise.all(criticalImages.map(loadImage))
+    }, [])
+
     return (
-        <div style={root}>
+        <>
+            {isLoading && <Preloader />}
+            <div style={{...root, opacity: isLoading ? 0 : 1, transition: 'opacity 300ms ease', pointerEvents: isLoading ? 'none' : 'auto'}}>
             <div style={topBar}>
                 <div style={leftUser}>
                     <div style={avatar}>
@@ -1228,6 +1289,7 @@ export function GameScreen() {
             )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
         </div>
+        </>
     )
 }
 
@@ -1472,6 +1534,41 @@ const root: React.CSSProperties = {
     background: 'linear-gradient(180deg, #68b1ff 0%, #3f7ddb 60%, #2e63bf 100%)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
+}
+
+const preloaderWrap: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'linear-gradient(180deg, #68b1ff 0%, #3f7ddb 60%, #2e63bf 100%)',
+    display: 'grid',
+    placeItems: 'center',
+    zIndex: 9999,
+}
+
+const preloaderContent: React.CSSProperties = {
+    display: 'grid',
+    placeItems: 'center',
+    gap: 20,
+}
+
+const preloaderSpinner: React.CSSProperties = {
+    width: 60,
+    height: 60,
+    border: '6px solid rgba(255, 255, 255, 0.3)',
+    borderTop: '6px solid #ffffff',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+}
+
+const preloaderText: React.CSSProperties = {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 700,
+    fontFamily: '"Rubik", Inter, system-ui',
+    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
 }
 
 const topBar: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }
