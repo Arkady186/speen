@@ -184,16 +184,18 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
         // стрелок-оверлея нет; синхронизация не требуется
-        // центральную кнопку не вращаем, оставляем статичной
-        if (centerBtnRef.current) {
-            centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
-            // плавно поворачиваем центр в ту же сторону, но медленнее
-            const CENTER_RATIO = 0.35
-            const delta = (base - rotation) * CENTER_RATIO
-            // крутим в противоположную сторону
-            centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${-delta}deg)`
-        }
-        requestAnimationFrame(() => setRotation(target))
+        // центральную кнопку вращаем в противоположную сторону, но медленнее
+        const CENTER_RATIO = 0.35
+        const delta = (base - rotation) * CENTER_RATIO
+        requestAnimationFrame(() => {
+            setRotation(target)
+            // Применяем вращение к кнопке в том же requestAnimationFrame для синхронизации
+            if (centerBtnRef.current) {
+                centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
+                // крутим в противоположную сторону
+                centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${-delta}deg)`
+            }
+        })
 
         // безопасный коллбэк результата по окончанию анимации
         timeoutRef.current = window.setTimeout(() => {
@@ -517,7 +519,7 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
                     position: 'absolute',
                     left: '50%',
                     top: '50%',
-                    transform: 'translate(-50%, -50%)',
+                    transform: 'translate(-50%, -50%) rotate(0deg)',
                     width: Math.round(size * 0.26),
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
