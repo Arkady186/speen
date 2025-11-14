@@ -90,11 +90,6 @@ export function GameScreen() {
     const panelsRef = React.useRef<HTMLDivElement | null>(null)
     const wheelRef = React.useRef<ImageWheelRef | null>(null)
     
-    // State for 3/10 mode: track spin sequence
-    const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
-    const [pyramidUsedNumbers, setPyramidUsedNumbers] = React.useState<number[]>([])
-    const [pyramidResults, setPyramidResults] = React.useState<Array<{number: number, multiplier: number}>>([])
-    
     // Адаптивный размер колеса с учетом фактического свободного пространства (с небольшим отступом от рамок)
     React.useEffect(() => {
         function updateWheelSize() {
@@ -625,8 +620,9 @@ export function GameScreen() {
                 const nextSpinCount = pyramidSpinCount + 1
                 setPyramidSpinCount(nextSpinCount)
                 // Запускаем следующее вращение с задержкой для плавности
+                const currentMode = mode
                 setTimeout(() => {
-                    if (wheelRef.current && mode === 'pyramid') {
+                    if (wheelRef.current && currentMode === 'pyramid') {
                         // Генерируем случайное число, но если оно уже использовано, пропустим его в onSpinResult
                         wheelRef.current.spin()
                     }
