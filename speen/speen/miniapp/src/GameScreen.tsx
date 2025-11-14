@@ -79,18 +79,19 @@ export function GameScreen() {
             const topBarHeight = 80 // примерная высота topBar
             const panelsHeight = 280 // примерная высота панелей сверху
             const bottomNavHeight = 70 // примерная высота bottomNav
-            const padding = 15 // уменьшенный отступ для большего использования пространства
+            const padding = 10 // минимальный отступ для безопасности
             
             const availableWidth = window.innerWidth - contentMargin - padding * 2
+            // Для высоты учитываем только пространство между панелями и навигацией
             const availableHeight = window.innerHeight - topBarHeight - panelsHeight - bottomNavHeight - padding * 2
             
-            // Увеличиваем процент использования пространства и максимальный размер
-            // Берем минимум из доступной ширины и высоты, но не больше 420px (было 320px)
+            // Используем максимум доступного пространства
+            // Берем минимум из доступной ширины и высоты, увеличиваем максимальный размер
             const maxSize = Math.min(
-                Math.min(availableWidth * 0.95, availableHeight * 0.95), // было 0.85, теперь 0.95
-                420 // было 320, теперь 420
+                Math.min(availableWidth * 0.98, availableHeight * 0.98), // почти 100% использования
+                500 // увеличен максимальный размер до 500px
             )
-            setWheelSize(Math.max(220, Math.floor(maxSize))) // минимум 220px (было 200px)
+            setWheelSize(Math.max(250, Math.floor(maxSize))) // минимум 250px
         }
         updateWheelSize()
         // Используем ResizeObserver если доступен, иначе только window events
