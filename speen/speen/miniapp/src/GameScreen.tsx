@@ -778,6 +778,8 @@ export function GameScreen() {
                              left: '50%', 
                              bottom: 2,
                              transform:'translateX(-50%)',
+                             paddingLeft: 4,
+                             paddingRight: 4,
                              display:'flex',
                              alignItems:'center',
                              justifyContent:'center',
