@@ -86,10 +86,10 @@ export function GameScreen() {
             const availableHeight = window.innerHeight - topBarHeight - panelsHeight - bottomNavHeight - padding * 2
             
             // Используем максимум доступного пространства
-            // Берем минимум из доступной ширины и высоты, увеличиваем максимальный размер
+            // Берем минимум из доступной ширины и высоты, ограничиваем верхним пределом
             const maxSize = Math.min(
-                Math.min(availableWidth * 0.98, availableHeight * 0.98), // почти 100% использования
-                500 // увеличен максимальный размер до 500px
+                Math.min(availableWidth * 0.98, availableHeight * 0.98), // почти 100% использования, но не залезаем на рамки
+                1500 // новый верхний предел: достаточно, чтобы заполнить пространство на планшетах
             )
             setWheelSize(Math.max(250, Math.floor(maxSize))) // минимум 250px
         }
