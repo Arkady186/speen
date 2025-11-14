@@ -1,6 +1,6 @@
 import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
-import { ImageWheel } from './wheel/ImageWheel'
+import { ImageWheel, ImageWheelRef } from './wheel/ImageWheel'
 
 // CSS анимации для всплывающих окон
 const animationStyle = document.createElement('style')
@@ -88,6 +88,12 @@ export function GameScreen() {
     const [isLoading, setIsLoading] = React.useState<boolean>(true)
     const contentRef = React.useRef<HTMLDivElement | null>(null)
     const panelsRef = React.useRef<HTMLDivElement | null>(null)
+    const wheelRef = React.useRef<ImageWheelRef | null>(null)
+    
+    // State for 3/10 mode: track spin sequence
+    const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
+    const [pyramidUsedNumbers, setPyramidUsedNumbers] = React.useState<number[]>([])
+    const [pyramidResults, setPyramidResults] = React.useState<Array<{number: number, multiplier: number}>>([])
     
     // Адаптивный размер колеса с учетом фактического свободного пространства (с небольшим отступом от рамок)
     React.useEffect(() => {
@@ -147,6 +153,10 @@ export function GameScreen() {
     const [bet, setBet] = React.useState<number>(100)
     const [pickedDigit, setPickedDigit] = React.useState<number>(0)
     const [spinning, setSpinning] = React.useState<boolean>(false)
+    // State for 3/10 mode: track spin sequence
+    const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
+    const [pyramidUsedNumbers, setPyramidUsedNumbers] = React.useState<number[]>([])
+    const [pyramidTotalWin, setPyramidTotalWin] = React.useState<number>(0)
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
@@ -530,6 +540,10 @@ export function GameScreen() {
         const { min, max } = getLimits(mode, currency)
         // При смене режима всегда ставим минимальную ставку
         setBet(min)
+        // Сбрасываем состояние pyramid при смене режима
+        setPyramidSpinCount(0)
+        setPyramidUsedNumbers([])
+        setPyramidTotalWin(0)
     }, [mode, currency])
 
     function onBeforeSpin() {
@@ -538,6 +552,31 @@ export function GameScreen() {
         const { min, max } = getLimits(mode, currency)
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
         if (b !== bet) setBet(b)
+        
+        // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
+        if (mode === 'pyramid') {
+            // Проверяем баланс
+            if (currency === 'W') {
+                if (balanceW < b) { setToast(t('not_enough_W')); return false }
+            } else {
+                if (balanceB < b) { setToast(t('not_enough_B')); return false }
+            }
+            // Списываем ставку только один раз в начале
+            if (pyramidSpinCount === 0) {
+                if (currency === 'W') {
+                    saveBalances(balanceW - b, balanceB)
+                } else {
+                    saveBalances(balanceW, balanceB - b)
+                }
+                // Инициализируем состояние для 3 вращений
+                setPyramidSpinCount(1)
+                setPyramidUsedNumbers([])
+                setPyramidTotalWin(0)
+            }
+            return true
+        }
+        
+        // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
             if (balanceW < b) { setToast(t('not_enough_W')); return false }
             saveBalances(balanceW - b, balanceB)
@@ -551,6 +590,68 @@ export function GameScreen() {
     function onSpinResult(index: number, label: string) {
         const b = Math.floor(bet)
 
+        // Специальная логика для режима 3/10 (pyramid)
+        if (mode === 'pyramid' && pyramidSpinCount > 0) {
+            let resultNumber = Number(label)
+            
+            // Если число уже было использовано, пропускаем до следующего уникального
+            // Пример: если выпало 7 и оно уже было, то берем следующее после него - 8
+            // Если 8 тоже было, берем 9, и так далее по кругу
+            while (pyramidUsedNumbers.includes(resultNumber)) {
+                resultNumber = (resultNumber + 1) % 10
+            }
+            
+            // Добавляем число в список использованных
+            const newUsedNumbers = [...pyramidUsedNumbers, resultNumber]
+            setPyramidUsedNumbers(newUsedNumbers)
+            
+            // Определяем множитель в зависимости от номера вращения
+            // 1-е вращение: +100%, 2-е: +50%, 3-е: +25%
+            let multiplier = 1.0
+            if (pyramidSpinCount === 1) multiplier = 1.0  // +100% = ставка * 1.0
+            else if (pyramidSpinCount === 2) multiplier = 0.5  // +50% = ставка * 0.5
+            else if (pyramidSpinCount === 3) multiplier = 0.25  // +25% = ставка * 0.25
+            
+            const win = Math.floor(b * multiplier)
+            const newTotalWin = pyramidTotalWin + win
+            setPyramidTotalWin(newTotalWin)
+            
+            // Показываем результат текущего вращения
+            const spinNum = pyramidSpinCount
+            setToast(`Вращение ${spinNum}: ${resultNumber} (+${win} ${currency})`)
+            
+            // Если это не последнее вращение, запускаем следующее
+            if (pyramidSpinCount < 3) {
+                const nextSpinCount = pyramidSpinCount + 1
+                setPyramidSpinCount(nextSpinCount)
+                // Запускаем следующее вращение с задержкой для плавности
+                setTimeout(() => {
+                    if (wheelRef.current && mode === 'pyramid') {
+                        // Генерируем случайное число, но если оно уже использовано, пропустим его в onSpinResult
+                        wheelRef.current.spin()
+                    }
+                }, 1500)
+            } else {
+                // Это было последнее вращение - завершаем и показываем итог
+                if (newTotalWin > 0) {
+                    if (currency === 'W') {
+                        saveBalances(balanceW + newTotalWin, balanceB)
+                    } else {
+                        saveBalances(balanceW, balanceB + newTotalWin)
+                    }
+                    setToast(`Итог: +${newTotalWin} ${currency}`)
+                } else {
+                    setToast('Итог: 0')
+                }
+                // Сбрасываем состояние
+                setPyramidSpinCount(0)
+                setPyramidUsedNumbers([])
+                setPyramidTotalWin(0)
+            }
+            return
+        }
+
+        // Стандартная логика для обычных режимов
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
         const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
@@ -583,7 +684,7 @@ export function GameScreen() {
             const won = numCorrect
             if (won) delta = b * getMultiplier(mode)
         } else {
-            // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25%
+            // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25% (старая логика, не используется в новом режиме)
             const center = pickedDigit
             const cw = (pickedDigit + 1) % 10
             const ccw = (pickedDigit + 9) % 10
@@ -865,6 +966,7 @@ export function GameScreen() {
                          }}>
                              <div style={{ pointerEvents: 'auto' }}>
                                  <ImageWheel 
+                                    ref={wheelRef}
                                     size={wheelSize}
                                     imageSrc="/wheel.png" 
                                     labels={["0","1","2","3","4","5","6","7","8","9"]}
