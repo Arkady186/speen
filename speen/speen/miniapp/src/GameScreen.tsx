@@ -689,7 +689,21 @@ export function GameScreen() {
             '/satting.png',
             '/zad.png',
             '/bank.png',
-            '/shop.png'
+            '/shop.png',
+            // Иконки левого меню
+            '/press1.png',
+            '/press2.png',
+            '/press3.png',
+            '/press4.png',
+            '/press5.png',
+            '/press6.png',
+            // Иконки правого меню
+            '/press7.png',
+            '/press8.png',
+            '/press9.png',
+            '/press10.png',
+            '/press11.png',
+            '/coming1.png'
         ]
         
         let loadedCount = 0
