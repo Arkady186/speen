@@ -515,9 +515,13 @@ export function GameScreen() {
     }
 
     function getLimits(m: GameMode, _cur: 'W'|'B') {
-        // x2 / x3 из 10: от 100; x5: от 1000. Верхняя граница 100_000
+        // Х2: от 100 до 100 000
+        // 3/10: от 10 000 до 100 000
+        // Х5: от 1000 до 100 000
         const max = 100_000
-        const min = m === 'allin' ? 1000 : 100
+        let min = 100
+        if (m === 'pyramid') min = 10_000
+        else if (m === 'allin') min = 1000
         return { min, max }
     }
 
