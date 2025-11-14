@@ -780,6 +780,7 @@ export function GameScreen() {
                              transform:'translateX(-50%)',
                              paddingLeft: 4,
                              paddingRight: 4,
+                             paddingBottom: 4,
                              display:'flex',
                              alignItems:'center',
                              justifyContent:'center',
