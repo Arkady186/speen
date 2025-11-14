@@ -73,17 +73,17 @@ export function GameScreen() {
     const contentRef = React.useRef<HTMLDivElement | null>(null)
     const panelsRef = React.useRef<HTMLDivElement | null>(null)
     
-    // Адаптивный размер колеса с учетом фактического свободного пространства
+    // Адаптивный размер колеса с учетом фактического свободного пространства (без отступов)
     React.useEffect(() => {
-        const bottomGap = 70 // зазор до нижней навигации + отступ
-        const widthPadding = 16
         function updateWheelSize() {
             const contentEl = contentRef.current
             if (!contentEl) return
             const panelsHeight = panelsRef.current?.getBoundingClientRect().height || 0
             const contentRect = contentEl.getBoundingClientRect()
-            const availableWidth = Math.max(0, contentRect.width - widthPadding)
-            const availableHeight = Math.max(0, contentRect.height - panelsHeight - bottomGap)
+            // Используем всю доступную ширину и высоту без отступов
+            const availableWidth = Math.max(0, contentRect.width)
+            const availableHeight = Math.max(0, contentRect.height - panelsHeight)
+            // Берем минимум из ширины и высоты, чтобы колесо вписывалось
             const maxSize = Math.min(availableWidth, availableHeight, 1500)
             setWheelSize(Math.max(250, Math.floor(maxSize)))
         }
@@ -774,7 +774,7 @@ export function GameScreen() {
                          <div style={{
                              position:'absolute', 
                              left: '50%', 
-                             bottom: 44,
+                             bottom: 0,
                              transform:'translateX(-50%)',
                              display:'flex',
                              alignItems:'center',
