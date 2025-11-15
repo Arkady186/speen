@@ -39,6 +39,19 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const lastSectorRef = React.useRef<number>(-1)
     const audioContextRef = React.useRef<AudioContext | null>(null)
     const centerBtnRef = React.useRef<HTMLButtonElement | null>(null)
+    const prevHideCenterButtonRef = React.useRef<boolean>(hideCenterButton)
+    
+    // Сбрасываем вращение кнопки когда hideCenterButton меняется с true на false (завершение режима 3/10)
+    React.useEffect(() => {
+        if (prevHideCenterButtonRef.current === true && hideCenterButton === false) {
+            // Режим 3/10 завершился - сбрасываем вращение кнопки
+            if (centerBtnRef.current) {
+                centerBtnRef.current.style.transition = 'transform 200ms ease'
+                centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
+            }
+        }
+        prevHideCenterButtonRef.current = hideCenterButton
+    }, [hideCenterButton])
 
     function normalizeDeg(d: number) {
         return ((d % 360) + 360) % 360
@@ -196,14 +209,26 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         // стрелок-оверлея нет; синхронизация не требуется
         // центральную кнопку вращаем в противоположную сторону, но медленнее
         const CENTER_RATIO = 0.35
-        const delta = (base - rotation) * CENTER_RATIO
+        // Используем target вместо base, чтобы учесть дополнительные обороты
+        const degreesToTravel = target - rotation
+        const centerDelta = degreesToTravel * CENTER_RATIO
+        // Получаем текущее вращение кнопки (если есть) для накопления
+        let currentCenterRotation = 0
+        if (centerBtnRef.current) {
+            const currentTransform = centerBtnRef.current.style.transform
+            const match = currentTransform.match(/rotate\(([-\d.]+)deg\)/)
+            if (match) {
+                currentCenterRotation = parseFloat(match[1]) || 0
+            }
+        }
+        const newCenterRotation = currentCenterRotation - centerDelta
         requestAnimationFrame(() => {
             setRotation(target)
             // Применяем вращение к кнопке в том же requestAnimationFrame для синхронизации
             if (centerBtnRef.current) {
                 centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
-                // крутим в противоположную сторону
-                centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${-delta}deg)`
+                // крутим в противоположную сторону, накапливая вращение
+                centerBtnRef.current.style.transform = `translate(-50%, -50%) rotate(${newCenterRotation}deg)`
             }
         })
 
@@ -221,6 +246,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
             if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
             innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
+            // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
         }, duration * 1000 + 50)
     }
 
@@ -288,10 +314,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
                     if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
                     innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
-                    if (centerBtnRef.current) {
-                        centerBtnRef.current.style.transition = 'transform 200ms ease'
-                        centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
-                    }
+                    // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
+                    // Сброс будет происходить только когда hideCenterButton станет false (завершение режима 3/10)
                 }}
             >
                 {/* цельное кольцо бонусов поверх колеса (прячем во время спина и когда скрыты знаки) */}
@@ -534,7 +558,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     position: 'absolute',
                     left: '50%',
                     top: '50%',
-                    transform: 'translate(-50%, -50%) rotate(0deg)',
+                    transform: 'translate(-50%, -50%)',
                     width: Math.round(size * 0.26),
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
