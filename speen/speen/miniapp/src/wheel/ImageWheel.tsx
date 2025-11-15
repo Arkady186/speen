@@ -13,13 +13,14 @@ type ImageWheelProps = {
     onOpenBonuses?: () => void
     selectedBonusIndex?: number | null
     onSelectBonusSector?: (index: number) => void
+    hideCenterButton?: boolean // Скрыть центральную кнопку (для режима 3/10)
 }
 
 export type ImageWheelRef = {
     spin: (toIndex?: number) => void
 }
 
-export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }, ref) => {
+export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false }, ref) => {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
@@ -523,26 +524,28 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
 
 
             {/* центральная кнопка старта (меняет изображение при спине) */}
-            <button
-                type="button"
-                onClick={() => spin()}
-                disabled={isSpinning}
-                aria-label={isSpinning ? 'Крутится' : 'Крутить'}
-                ref={centerBtnRef}
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%) rotate(0deg)',
-                    width: Math.round(size * 0.26),
-                    height: Math.round(size * 0.26),
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: `url(${isSpinning ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
-                    boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
-                    cursor: isSpinning ? 'default' : 'pointer',
-                }}
-            />
+            {!hideCenterButton && (
+                <button
+                    type="button"
+                    onClick={() => spin()}
+                    disabled={isSpinning}
+                    aria-label={isSpinning ? 'Крутится' : 'Крутить'}
+                    ref={centerBtnRef}
+                    style={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%) rotate(0deg)',
+                        width: Math.round(size * 0.26),
+                        height: Math.round(size * 0.26),
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: `url(${isSpinning ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
+                        boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
+                        cursor: isSpinning ? 'default' : 'pointer',
+                    }}
+                />
+            )}
         </div>
     )
 })

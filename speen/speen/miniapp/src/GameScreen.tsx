@@ -1029,7 +1029,8 @@ export function GameScreen() {
                                     onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
-                                     onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
+                                     onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }}
+                                     hideCenterButton={mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3} />
                              </div>
                         </div>
                         {pyramidShowResults && pyramidResults.length === 3 && (
