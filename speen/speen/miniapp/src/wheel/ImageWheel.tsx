@@ -32,6 +32,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const getInitialRotation = () => computeRotationForIndex(0)
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
+    const rotationRef = React.useRef<number>(getInitialRotation())
     const [isSpinning, setIsSpinning] = React.useState<boolean>(false)
     // Вопросительные знаки на внутреннем (бонусном) кольце: по умолчанию скрываем бонусы
     const [concealInner, setConcealInner] = React.useState<boolean>(true)
@@ -40,6 +41,11 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const audioContextRef = React.useRef<AudioContext | null>(null)
     const centerBtnRef = React.useRef<HTMLButtonElement | null>(null)
     const prevHideCenterButtonRef = React.useRef<boolean>(hideCenterButton)
+    
+    // Синхронизируем ref с состоянием rotation
+    React.useEffect(() => {
+        rotationRef.current = rotation
+    }, [rotation])
     
     // Сбрасываем вращение кнопки когда hideCenterButton меняется с true на false (завершение режима 3/10)
     React.useEffect(() => {
@@ -184,6 +190,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             if (isSpinning) return
         }
         setHighlightVisible(false)
+        // Используем ref для получения актуального значения rotation (синхронно)
+        const currentRotation = rotationRef.current
         const targetIndex = typeof toIndex === 'number' ? ((toIndex % labels.length) + labels.length) % labels.length : Math.floor(Math.random() * labels.length)
         // небольшой рандом внутри сектора, чтобы не останавливаться строго по центру
         const jitter = (Math.random() - 0.5) * (seg * 0.4) // ±20% сектора
@@ -193,13 +201,15 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         // больше оборотов для интриги
         const minSpins = 8
         let target = base
-        while (target < rotation + minSpins * 360) target += 360
+        // Используем currentRotation из ref для правильного вычисления target
+        while (target < currentRotation + minSpins * 360) target += 360
 
         setIsSpinning(true)
         // во время спина и до результатов — держим вопросительные знаки
         setConcealInner(true)
         try { onSpinningChange?.(true) } catch {}
-        const degreesToTravel = target - rotation
+        // Используем currentRotation из ref для правильного вычисления degreesToTravel
+        const degreesToTravel = target - currentRotation
         // дольше и более плавное замедление
         const duration = Math.max(8.5, Math.min(12.5, degreesToTravel / 360 * 0.9 + 8.5))
 
@@ -223,6 +233,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         const newCenterRotation = currentCenterRotation - centerDelta
         requestAnimationFrame(() => {
             setRotation(target)
+            rotationRef.current = target // Обновляем ref синхронно
             // Применяем вращение к кнопке в том же requestAnimationFrame для синхронизации
             if (centerBtnRef.current) {
                 centerBtnRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
