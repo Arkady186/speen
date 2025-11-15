@@ -550,6 +550,10 @@ export function GameScreen() {
         
         // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
         if (mode === 'pyramid') {
+            // Если уже выполнены все 3 вращения, не запускаем новые
+            if (pyramidSpinCount > 3) {
+                return false
+            }
             // Проверяем, что выбран бонус
             if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
             // Проверяем баланс
@@ -570,7 +574,10 @@ export function GameScreen() {
                 setPyramidResults([])
                 setPyramidShowResults(false)
             }
-            return true
+            // Разрешаем вращение только если счетчик от 1 до 3
+            // Счетчик 3 означает, что мы запускаем третье (последнее) вращение
+            // После третьего вращения счетчик сбрасывается в 0, что блокирует дальнейшие вращения
+            return pyramidSpinCount >= 1 && pyramidSpinCount <= 3
         }
         
         // Для обычных режимов списываем ставку сразу
@@ -611,7 +618,10 @@ export function GameScreen() {
                     }
                 }, 1500)
             } else {
-                // Это было последнее вращение - завершаем и показываем результаты
+                // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
+                // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
+                setPyramidSpinCount(0)
+                
                 const selectedNum = pickedDigit
                 const matches = newResults.filter(n => n === selectedNum).length
                 
