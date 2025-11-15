@@ -218,11 +218,11 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             wheelRef.current.style.transition = `transform ${duration}s cubic-bezier(0.05, 0.85, 0.05, 1)`
         }
         // стрелок-оверлея нет; синхронизация не требуется
-        // центральную кнопку вращаем в противоположную сторону, но медленнее
+        // центральную кнопку вращаем в ту же сторону, что и колесо, но медленнее
         const CENTER_RATIO = 0.35
         // Вычисляем абсолютное вращение кнопки на основе target (конечного положения колеса)
-        // Вращаем в противоположную сторону, поэтому используем отрицательное значение
-        const newCenterRotation = -target * CENTER_RATIO
+        // Вращаем в ту же сторону, что и колесо (по часовой стрелке)
+        const newCenterRotation = target * CENTER_RATIO
         requestAnimationFrame(() => {
             setRotation(target)
             rotationRef.current = target // Обновляем ref синхронно

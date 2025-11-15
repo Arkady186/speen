@@ -929,28 +929,28 @@ export function GameScreen() {
             <div style={content} ref={contentRef}>
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
-                        <div ref={panelsRef} style={{...panelsWrap, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
+                        <div ref={panelsRef} style={{...panelsWrap, pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
                             <PanelShell>
                                 <div style={rowGrid}>
-                                    <Arrow onClick={() => setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} dir="left" />
+                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} } dir="left" />
                                     <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? 'x3 из 10' : 'x3 of 10') : 'x5'}</div>
-                                    <Arrow onClick={() => setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} dir="right" />
+                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} } dir="right" />
                                 </div>
                                 <div
-                                    onClick={()=> setSettingsOpen(true)}
-                                    style={{ position:'absolute', right:-52, top:'30%', transform:'translateY(-50%)', width:44, height:44, display:'grid', placeItems:'center', cursor:'pointer' }}
+                                    onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setSettingsOpen(true) }}
+                                    style={{ position:'absolute', right:-52, top:'30%', transform:'translateY(-50%)', width:44, height:44, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer' }}
                                 >
-                                    <img src="/satting.png" alt="settings" style={{width:'36px',height:'36px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
+                                    <img src="/satting.png" alt="settings" style={{width:'36px',height:'36px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}} />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
                             <PanelShell>
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('W')}>
+                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('W')}}>
                                         <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>W</div>
                                     </div>
-                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)'}} onClick={() => setCurrency('B')}>
+                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('B')}}>
                                         <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>B</div>
                                     </div>
                                 </div>
@@ -958,21 +958,21 @@ export function GameScreen() {
                             {/* Row 3: ставка */}
                             <PanelShell>
                                 <div style={rowGrid}>
-                                    <RoundBtn onClick={() => setBet(b => {
+                                    <RoundBtn onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setBet(b => {
                                         const {min} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
                                         const next = cur - 100
                                         return Math.max(baseMin, next)
-                                    })} kind="minus" />
+                                    })}} kind="minus" />
                                     <div style={controlBoxText}>{bet}</div>
-                                    <RoundBtn onClick={() => setBet(b => {
+                                    <RoundBtn onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setBet(b => {
                                         const {max} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, getLimits(mode, currency).min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
                                         const next = cur + 100
                                         return Math.min(max, next)
-                                    })} kind="plus" />
+                                    })}} kind="plus" />
                                 </div>
                             </PanelShell>
 
@@ -980,8 +980,9 @@ export function GameScreen() {
                             <div style={midCounterShell}>
                             <div style={midCounterInner}>
                                     <div 
-                                        style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor:'pointer'}}
+                                        style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}}
                                         onClick={() => {
+                                            if (mode === 'pyramid' && pyramidSpinCount > 0) return;
                                             if (midW > 0) {
                                                 const toAdd = Math.floor(midW)
                                                 saveBalances(balanceW + toAdd, balanceB)
