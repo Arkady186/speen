@@ -542,6 +542,24 @@ export function GameScreen() {
         setPyramidShowResults(false)
         setPyramidCountdown(null)
     }, [mode, currency])
+    
+    // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
+    const pyramidAutoSpinRef = React.useRef<{count: number, mode: GameMode} | null>(null)
+    React.useEffect(() => {
+        // Если вращение завершилось и есть запланированное автоматическое вращение
+        if (!spinning && pyramidAutoSpinRef.current && mode === 'pyramid') {
+            const { count, mode: savedMode } = pyramidAutoSpinRef.current
+            if (savedMode === 'pyramid' && count <= 3 && wheelRef.current) {
+                pyramidAutoSpinRef.current = null
+                // Небольшая задержка для уверенности
+                setTimeout(() => {
+                    if (wheelRef.current && mode === 'pyramid') {
+                        wheelRef.current.spin()
+                    }
+                }, 100)
+            }
+        }
+    }, [spinning, mode])
 
     function onBeforeSpin() {
         // Для режима pyramid разрешаем автоматические вращения даже если spinning === true
@@ -557,16 +575,17 @@ export function GameScreen() {
             if (pyramidSpinCount > 3) {
                 return false
             }
-            // Проверяем, что выбран бонус
-            if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
-            // Проверяем баланс
-            if (currency === 'W') {
-                if (balanceW < b) { setToast(t('not_enough_W')); return false }
-            } else {
-                if (balanceB < b) { setToast(t('not_enough_B')); return false }
-            }
-            // Списываем ставку только один раз в начале (при первом нажатии на старт)
+            // Для автоматических вращений (pyramidSpinCount > 0) пропускаем проверки
             if (pyramidSpinCount === 0) {
+                // Проверяем, что выбран бонус (только при первом запуске)
+                if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
+                // Проверяем баланс (только при первом запуске)
+                if (currency === 'W') {
+                    if (balanceW < b) { setToast(t('not_enough_W')); return false }
+                } else {
+                    if (balanceB < b) { setToast(t('not_enough_B')); return false }
+                }
+                // Списываем ставку только один раз в начале (при первом нажатии на старт)
                 if (currency === 'W') {
                     saveBalances(balanceW - b, balanceB)
                 } else {
@@ -633,9 +652,11 @@ export function GameScreen() {
                 setTimeout(() => {
                     clearInterval(countdownInterval)
                     setPyramidCountdown(null)
-                    // Проверяем, что режим не изменился и счетчик все еще активен
-                    if (wheelRef.current && currentMode === 'pyramid' && nextSpinCount <= 3) {
-                        wheelRef.current.spin()
+                    // Сохраняем информацию для автоматического запуска через useEffect
+                    if (currentMode === 'pyramid' && nextSpinCount <= 3) {
+                        pyramidAutoSpinRef.current = { count: nextSpinCount, mode: currentMode }
+                        // Если вращение уже завершилось, useEffect запустит следующее
+                        // Если еще крутится, useEffect запустит когда завершится
                     }
                 }, 4000) // Автоматический запуск следующего вращения через 4 секунды
             } else {
