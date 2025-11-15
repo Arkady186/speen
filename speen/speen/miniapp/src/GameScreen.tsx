@@ -542,7 +542,8 @@ export function GameScreen() {
     }, [mode, currency])
 
     function onBeforeSpin() {
-        if (spinning) return false
+        // Для режима pyramid разрешаем автоматические вращения даже если spinning === true
+        if (spinning && mode !== 'pyramid') return false
         if (pickedDigit == null) { setToast(t('pick_number')); return false }
         const { min, max } = getLimits(mode, currency)
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
