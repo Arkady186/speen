@@ -1158,11 +1158,11 @@ export function GameScreen() {
                     </div>
                 )}
             </div>
-            <div style={{...bottomNav, pointerEvents: spinning ? 'none' : 'auto', opacity: spinning ? .6 : 1}}>
+            <div style={{...bottomNav, pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
                 <div
                     style={{...navBtn, ...(isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
                     onClick={() => {
-                        if (spinning) return
+                        if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsRightMenuOpen(false)
                         setIsMenuOpen(true)
                     }}
@@ -1171,14 +1171,14 @@ export function GameScreen() {
                 </div>
                 <div
                     style={{...navBtn, ...(!isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
-                    onClick={() => { if (spinning) return; setIsMenuOpen(false); setIsRightMenuOpen(false) }}
+                    onClick={() => { if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return; setIsMenuOpen(false); setIsRightMenuOpen(false) }}
                 >
                     <img src="/bank.png" alt="Банк" style={navIcon} />
                 </div>
                 <div
                     style={{...navBtn, ...(isRightMenuOpen ? navBtnActive : {})}}
                     onClick={() => {
-                        if (spinning) return
+                        if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsMenuOpen(false)
                         setIsRightMenuOpen(true)
                     }}
