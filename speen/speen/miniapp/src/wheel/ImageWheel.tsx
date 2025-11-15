@@ -209,8 +209,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         // стрелок-оверлея нет; синхронизация не требуется
         // центральную кнопку вращаем в противоположную сторону, но медленнее
         const CENTER_RATIO = 0.35
-        // Используем target вместо base, чтобы учесть дополнительные обороты
-        const degreesToTravel = target - rotation
+        // Используем degreesToTravel для вычисления вращения кнопки (учитывает дополнительные обороты)
         const centerDelta = degreesToTravel * CENTER_RATIO
         // Получаем текущее вращение кнопки (если есть) для накопления
         let currentCenterRotation = 0
