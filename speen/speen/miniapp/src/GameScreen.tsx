@@ -1030,7 +1030,8 @@ export function GameScreen() {
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }}
-                                     hideCenterButton={mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3} />
+                                     hideCenterButton={mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3}
+                                     disableSelection={mode === 'pyramid' && pyramidSpinCount > 0} />
                              </div>
                         </div>
                         {pyramidShowResults && pyramidResults.length === 3 && (
