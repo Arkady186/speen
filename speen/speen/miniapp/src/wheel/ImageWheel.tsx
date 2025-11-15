@@ -25,8 +25,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
-    const POINTER_DX = size * 0.30 + 5 // правее: смещение вправо на 5px
-    const POINTER_DY = size * 0.031 + 5 // ниже: смещение вниз на 5px
+    const POINTER_DX = size * 0.30 + 10 // правее: смещение вправо на 10px
+    const POINTER_DY = size * 0.031 + 10 // ниже: смещение вниз на 10px
     const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
     // Выставляем старт так, чтобы колесо было повернуто на 55 градусов (50 + 5 по часовой стрелке)
