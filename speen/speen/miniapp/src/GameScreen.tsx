@@ -565,11 +565,11 @@ export function GameScreen() {
             if (pyramidSpinCount > 3) {
                 return false
             }
-            // Для автоматических вращений (pyramidSpinCount > 0) пропускаем проверки
+            // Для автоматических вращений (pyramidSpinCount > 0) пропускаем все проверки
             if (pyramidSpinCount === 0) {
                 // Проверяем, что выбран бонус (только при первом запуске)
                 if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
-                // Проверяем баланс (только при первом запуске)
+                // Проверяем баланс (только при первом запуске) - проверяем ДО списания
                 if (currency === 'W') {
                     if (balanceW < b) { setToast(t('not_enough_W')); return false }
                 } else {
@@ -585,8 +585,10 @@ export function GameScreen() {
                 setPyramidSpinCount(1)
                 setPyramidResults([])
                 setPyramidShowResults(false)
+                // После списания и инициализации сразу разрешаем вращение
+                return true
             }
-            // Разрешаем вращение только если счетчик от 1 до 3
+            // Для автоматических вращений (pyramidSpinCount > 0) всегда разрешаем
             return pyramidSpinCount >= 1 && pyramidSpinCount <= 3
         }
         
