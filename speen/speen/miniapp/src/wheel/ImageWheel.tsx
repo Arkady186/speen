@@ -29,23 +29,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const POINTER_DY = size * 0.031 // выше: ближе к верхней кромке (было 8 для 260px)
     const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
-    // Выставляем старт так, чтобы сектор 0 находился наверху колеса (0 градусов)
-    // Используем обратную логику от indexFromRotation: хотим, чтобы сектор 0 был наверху
-    const getInitialRotation = () => {
-        // Сектор 0 должен быть наверху (0 градусов в CSS)
-        // В indexFromRotation: a = normalizeDeg(-rotDeg - startOffsetDeg + pointerCorrectionDeg)
-        // Для позиции наверху (0 градусов) используем pointerCorrectionDeg = 90 (верхняя позиция)
-        // Но для точности используем ту же логику, что и computeRotationForIndex, но для верхней позиции
-        const physIndex = (0 - SECTOR_OFFSET + labels.length) % labels.length
-        const center = physIndex * seg + seg / 2
-        // Верхняя позиция в CSS - это 90 градусов (или 0 в системе координат с учетом того, что 0 = верх)
-        // В computeRotationForIndex используется pointerCorrectionDeg для указателя
-        // Для верхней позиции pointerCorrectionDeg = 90 (верх = 90 градусов в системе координат)
-        const topCorrectionDeg = 90 // верхняя позиция
-        // Формула аналогична computeRotationForIndex, но для верхней позиции
-        const base = -(center + startOffsetDeg - topCorrectionDeg)
-        return base
-    }
+    // Выставляем старт так, чтобы сектор 0 находился прямо под острым углом указателя
+    const getInitialRotation = () => computeRotationForIndex(0)
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
     const rotationRef = React.useRef<number>(getInitialRotation())
