@@ -150,6 +150,7 @@ export function GameScreen() {
     const [spinning, setSpinning] = React.useState<boolean>(false)
     // State for 3/10 mode: track spin sequence
     const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
+    const pyramidSpinCountRef = React.useRef<number>(0) // Ref для синхронного доступа
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
     const [pyramidCountdown, setPyramidCountdown] = React.useState<number | null>(null) // Обратный отсчет до следующего вращения
@@ -538,6 +539,7 @@ export function GameScreen() {
         setBet(min)
         // Сбрасываем состояние pyramid при смене режима
         setPyramidSpinCount(0)
+        pyramidSpinCountRef.current = 0
         setPyramidResults([])
         setPyramidShowResults(false)
         setPyramidCountdown(null)
@@ -561,12 +563,15 @@ export function GameScreen() {
         
         // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
         if (mode === 'pyramid') {
+            // Используем ref для синхронной проверки (избегаем проблем с асинхронностью setState)
+            const currentCount = pyramidSpinCountRef.current
+            
             // Если уже выполнены все 3 вращения, не запускаем новые
-            if (pyramidSpinCount > 3) {
+            if (currentCount > 3) {
                 return false
             }
-            // Для автоматических вращений (pyramidSpinCount > 0) пропускаем все проверки
-            if (pyramidSpinCount === 0) {
+            // Для автоматических вращений (currentCount > 0) пропускаем все проверки
+            if (currentCount === 0) {
                 // Проверяем, что выбран бонус (только при первом запуске)
                 if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
                 // Проверяем баланс (только при первом запуске) - проверяем ДО списания
@@ -581,15 +586,16 @@ export function GameScreen() {
                 } else {
                     saveBalances(balanceW, balanceB - b)
                 }
-                // Инициализируем состояние для 3 вращений
+                // Инициализируем состояние для 3 вращений (синхронно через ref)
+                pyramidSpinCountRef.current = 1
                 setPyramidSpinCount(1)
                 setPyramidResults([])
                 setPyramidShowResults(false)
                 // После списания и инициализации сразу разрешаем вращение
                 return true
             }
-            // Для автоматических вращений (pyramidSpinCount > 0) всегда разрешаем
-            return pyramidSpinCount >= 1 && pyramidSpinCount <= 3
+            // Для автоматических вращений (currentCount > 0) всегда разрешаем
+            return currentCount >= 1 && currentCount <= 3
         }
         
         // Для обычных режимов списываем ставку сразу
@@ -621,6 +627,7 @@ export function GameScreen() {
             // Если это не последнее вращение, запускаем следующее автоматически
             if (pyramidSpinCount < 3) {
                 const nextSpinCount = pyramidSpinCount + 1
+                pyramidSpinCountRef.current = nextSpinCount
                 setPyramidSpinCount(nextSpinCount)
                 
                 // Запускаем обратный отсчет (4 секунды)
@@ -667,6 +674,7 @@ export function GameScreen() {
             } else {
                 // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
                 // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
+                pyramidSpinCountRef.current = 0
                 setPyramidSpinCount(0)
                 
                 const selectedNum = pickedDigit
