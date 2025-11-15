@@ -41,8 +41,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         const topCorrectionDeg = 90 // верхняя позиция (0 градусов в CSS соответствует 90 градусам в системе координат)
         // Формула аналогична computeRotationForIndex, но для верхней позиции
         const base = -(center + startOffsetDeg - topCorrectionDeg)
-        // Поворачиваем еще на 90 градусов (столько же, на сколько повернули)
-        return base + 90
+        // Поворачиваем еще на 180 градусов
+        return base + 180
     }
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
