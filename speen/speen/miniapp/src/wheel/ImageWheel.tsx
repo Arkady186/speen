@@ -220,18 +220,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         // стрелок-оверлея нет; синхронизация не требуется
         // центральную кнопку вращаем в противоположную сторону, но медленнее
         const CENTER_RATIO = 0.35
-        // Используем degreesToTravel для вычисления вращения кнопки (учитывает дополнительные обороты)
-        const centerDelta = degreesToTravel * CENTER_RATIO
-        // Получаем текущее вращение кнопки (если есть) для накопления
-        let currentCenterRotation = 0
-        if (centerBtnRef.current) {
-            const currentTransform = centerBtnRef.current.style.transform
-            const match = currentTransform.match(/rotate\(([-\d.]+)deg\)/)
-            if (match) {
-                currentCenterRotation = parseFloat(match[1]) || 0
-            }
-        }
-        const newCenterRotation = currentCenterRotation - centerDelta
+        // Вычисляем абсолютное вращение кнопки на основе target (конечного положения колеса)
+        // Вращаем в противоположную сторону, поэтому используем отрицательное значение
+        const newCenterRotation = -target * CENTER_RATIO
         requestAnimationFrame(() => {
             setRotation(target)
             rotationRef.current = target // Обновляем ref синхронно
