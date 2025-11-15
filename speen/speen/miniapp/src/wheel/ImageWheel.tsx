@@ -29,9 +29,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const POINTER_DY = size * 0.031 // выше: ближе к верхней кромке (было 8 для 260px)
     const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
-    // Выставляем старт так, чтобы колесо было повернуто на 273 градуса
+    // Выставляем старт так, чтобы колесо было повернуто на 80 градусов
     const getInitialRotation = () => {
-        return 273
+        return 80
     }
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
