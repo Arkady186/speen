@@ -606,17 +606,16 @@ export function GameScreen() {
             const spinNum = pyramidSpinCount
             setToast(`Вращение ${spinNum}: ${resultNumber}`)
             
-            // Если это не последнее вращение, запускаем следующее
+            // Если это не последнее вращение, запускаем следующее автоматически
             if (pyramidSpinCount < 3) {
                 const nextSpinCount = pyramidSpinCount + 1
                 setPyramidSpinCount(nextSpinCount)
-                // Запускаем следующее вращение с задержкой для плавности
-                const currentMode = mode
+                // Автоматически запускаем следующее вращение с небольшой задержкой для плавности
                 setTimeout(() => {
-                    if (wheelRef.current && currentMode === 'pyramid') {
+                    if (wheelRef.current && mode === 'pyramid') {
                         wheelRef.current.spin()
                     }
-                }, 1500)
+                }, 1200) // Автоматический запуск следующего вращения
             } else {
                 // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
                 // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
