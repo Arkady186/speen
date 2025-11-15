@@ -541,56 +541,15 @@ export function GameScreen() {
         setPyramidResults([])
         setPyramidShowResults(false)
         setPyramidCountdown(null)
-        setPyramidAutoSpinPending(false)
-        // Очищаем интервал если есть
-        if (pyramidAutoSpinIntervalRef.current) {
-            clearInterval(pyramidAutoSpinIntervalRef.current)
-            pyramidAutoSpinIntervalRef.current = null
+        // Очищаем таймаут если есть
+        if (pyramidAutoSpinTimeoutRef.current) {
+            clearTimeout(pyramidAutoSpinTimeoutRef.current)
+            pyramidAutoSpinTimeoutRef.current = null
         }
     }, [mode, currency])
     
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
-    const [pyramidAutoSpinPending, setPyramidAutoSpinPending] = React.useState<boolean>(false)
-    const pyramidAutoSpinIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
-    
-    React.useEffect(() => {
-        // Если есть запланированное автоматическое вращение, проверяем готовность через интервал
-        if (pyramidAutoSpinPending && mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3) {
-            // Очищаем предыдущий интервал если есть
-            if (pyramidAutoSpinIntervalRef.current) {
-                clearInterval(pyramidAutoSpinIntervalRef.current)
-            }
-            
-            // Проверяем готовность каждые 100мс
-            pyramidAutoSpinIntervalRef.current = setInterval(() => {
-                if (!spinning && wheelRef.current && mode === 'pyramid') {
-                    // Очищаем интервал
-                    if (pyramidAutoSpinIntervalRef.current) {
-                        clearInterval(pyramidAutoSpinIntervalRef.current)
-                        pyramidAutoSpinIntervalRef.current = null
-                    }
-                    setPyramidAutoSpinPending(false)
-                    // Запускаем следующее вращение
-                    setTimeout(() => {
-                        if (wheelRef.current && mode === 'pyramid' && !spinning) {
-                            try {
-                                wheelRef.current.spin()
-                            } catch (e) {
-                                console.error('Error auto-spinning:', e)
-                            }
-                        }
-                    }, 100)
-                }
-            }, 100)
-        }
-        
-        return () => {
-            if (pyramidAutoSpinIntervalRef.current) {
-                clearInterval(pyramidAutoSpinIntervalRef.current)
-                pyramidAutoSpinIntervalRef.current = null
-            }
-        }
-    }, [pyramidAutoSpinPending, spinning, mode, pyramidSpinCount])
+    const pyramidAutoSpinTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
     function onBeforeSpin() {
         // Для режима pyramid разрешаем автоматические вращения даже если spinning === true
@@ -679,14 +638,28 @@ export function GameScreen() {
                 }, 1000)
                 
                 // Автоматически запускаем следующее вращение через 4 секунды
-                setTimeout(() => {
+                // Очищаем предыдущий таймаут если есть
+                if (pyramidAutoSpinTimeoutRef.current) {
+                    clearTimeout(pyramidAutoSpinTimeoutRef.current)
+                }
+                
+                pyramidAutoSpinTimeoutRef.current = setTimeout(() => {
                     clearInterval(countdownInterval)
                     setPyramidCountdown(null)
-                    // Устанавливаем флаг для автоматического запуска
-                    if (mode === 'pyramid' && nextSpinCount <= 3) {
-                        setPyramidAutoSpinPending(true)
-                        // Если вращение уже завершилось, useEffect сразу запустит следующее
-                        // Если еще крутится, useEffect запустит когда spinning станет false
+                    // Запускаем следующее вращение напрямую
+                    if (mode === 'pyramid' && nextSpinCount <= 3 && wheelRef.current) {
+                        // Пробуем запустить сразу, onBeforeSpin разрешит если нужно
+                        try {
+                            wheelRef.current.spin()
+                        } catch (e) {
+                            console.error('Error auto-spinning:', e)
+                            // Если не получилось, пробуем еще раз через небольшую задержку
+                            setTimeout(() => {
+                                if (wheelRef.current && mode === 'pyramid') {
+                                    wheelRef.current.spin()
+                                }
+                            }, 500)
+                        }
                     }
                 }, 4000) // Автоматический запуск следующего вращения через 4 секунды
             } else {

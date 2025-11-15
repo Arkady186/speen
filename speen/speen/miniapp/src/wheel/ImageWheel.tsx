@@ -15,7 +15,11 @@ type ImageWheelProps = {
     onSelectBonusSector?: (index: number) => void
 }
 
-export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }: ImageWheelProps) {
+export type ImageWheelRef = {
+    spin: (toIndex?: number) => void
+}
+
+export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector }, ref) => {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
@@ -155,10 +159,15 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
     }, [isSpinning, rotation])
 
     function spin(toIndex?: number) {
-        if (isSpinning) return
+        // Сначала проверяем onBeforeSpin, чтобы он мог разрешить вращение даже если isSpinning === true
         if (typeof onBeforeSpin === 'function') {
             const ok = onBeforeSpin()
             if (ok === false) return
+            // Если onBeforeSpin вернул true, разрешаем вращение даже если isSpinning === true
+            // (для специальных режимов, например pyramid с автоматическими вращениями)
+        } else {
+            // Если onBeforeSpin не определен, проверяем isSpinning как обычно
+            if (isSpinning) return
         }
         setHighlightVisible(false)
         const targetIndex = typeof toIndex === 'number' ? ((toIndex % labels.length) + labels.length) % labels.length : Math.floor(Math.random() * labels.length)
@@ -213,6 +222,11 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
         }, duration * 1000 + 50)
     }
+
+    // Expose spin method via ref
+    React.useImperativeHandle(ref, () => ({
+        spin: (toIndex?: number) => spin(toIndex)
+    }), [])
 
     function handleSelectAt(evt: React.MouseEvent<HTMLDivElement>) {
         if (isSpinning) return
@@ -531,6 +545,6 @@ export function ImageWheel({ size = 260, imageSrc, labels, startOffsetDeg = 0, o
             />
         </div>
     )
-}
+})
 
 
