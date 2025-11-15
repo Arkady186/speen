@@ -609,8 +609,10 @@ export function GameScreen() {
                 const nextSpinCount = pyramidSpinCount + 1
                 setPyramidSpinCount(nextSpinCount)
                 // Автоматически запускаем следующее вращение с небольшой задержкой для плавности
+                const currentMode = mode
                 setTimeout(() => {
-                    if (wheelRef.current && mode === 'pyramid') {
+                    // Проверяем, что режим не изменился и счетчик все еще активен
+                    if (wheelRef.current && currentMode === 'pyramid' && nextSpinCount <= 3) {
                         wheelRef.current.spin()
                     }
                 }, 1200) // Автоматический запуск следующего вращения
