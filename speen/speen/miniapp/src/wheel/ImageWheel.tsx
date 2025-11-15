@@ -36,10 +36,12 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         const physIndex = (0 - SECTOR_OFFSET + labels.length) % labels.length
         // Центр сектора 0
         const center = physIndex * seg + seg / 2
-        // Верхняя позиция в CSS - это 0 градусов (или -90 градусов в системе координат)
-        // Чтобы центр сектора 0 был наверху (0 градусов), нужно повернуть колесо на -center
-        // Учитываем startOffsetDeg
-        return -(center - startOffsetDeg)
+        // Верхняя позиция в CSS - это 90 градусов в системе координат (0 градусов = верх)
+        // Используем ту же логику, что и в computeRotationForIndex, но для верхней позиции
+        const topCorrectionDeg = 90 // верхняя позиция (0 градусов в CSS соответствует 90 градусам в системе координат)
+        // Формула аналогична computeRotationForIndex, но для верхней позиции
+        const base = -(center + startOffsetDeg - topCorrectionDeg)
+        return base
     }
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
