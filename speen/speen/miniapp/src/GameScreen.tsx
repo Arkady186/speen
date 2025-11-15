@@ -152,8 +152,6 @@ export function GameScreen() {
     const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
-    const [pyramidBlinkingNumber, setPyramidBlinkingNumber] = React.useState<number | null>(null) // Число, которое моргает
-    const [pyramidBlinkCount, setPyramidBlinkCount] = React.useState<number>(0) // Счетчик морганий
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
@@ -541,8 +539,6 @@ export function GameScreen() {
         setPyramidSpinCount(0)
         setPyramidResults([])
         setPyramidShowResults(false)
-        setPyramidBlinkingNumber(null)
-        setPyramidBlinkCount(0)
     }, [mode, currency])
 
     function onBeforeSpin() {
@@ -554,8 +550,8 @@ export function GameScreen() {
         
         // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
         if (mode === 'pyramid') {
-            // Если уже выполнены все 3 вращения или идет моргание, не запускаем новые
-            if (pyramidSpinCount > 3 || pyramidBlinkingNumber !== null) {
+            // Если уже выполнены все 3 вращения, не запускаем новые
+            if (pyramidSpinCount > 3) {
                 return false
             }
             // Проверяем, что выбран бонус
@@ -577,10 +573,8 @@ export function GameScreen() {
                 setPyramidSpinCount(1)
                 setPyramidResults([])
                 setPyramidShowResults(false)
-                setPyramidBlinkingNumber(null)
-                setPyramidBlinkCount(0)
             }
-            // Разрешаем вращение только если счетчик от 1 до 3 и нет активного моргания
+            // Разрешаем вращение только если счетчик от 1 до 3
             return pyramidSpinCount >= 1 && pyramidSpinCount <= 3
         }
         
@@ -610,60 +604,44 @@ export function GameScreen() {
             const spinNum = pyramidSpinCount
             setToast(`Вращение ${spinNum}: ${resultNumber}`)
             
-            // Запускаем моргание выпавшего числа (3 раза по 1 секунде)
-            setPyramidBlinkingNumber(resultNumber)
-            setPyramidBlinkCount(1) // Начинаем с видимого состояния
-            
-            const currentSpinCount = pyramidSpinCount
-            let blinkStep = 0
-            const blinkInterval = setInterval(() => {
-                blinkStep++
-                setPyramidBlinkCount(blinkStep % 2) // Чередуем 0 и 1
-                
-                if (blinkStep >= 6) { // 3 моргания (6 шагов: вкл-выкл-вкл-выкл-вкл-выкл)
-                    clearInterval(blinkInterval)
-                    setPyramidBlinkingNumber(null)
-                    setPyramidBlinkCount(0)
-                    
-                    // После моргания запускаем следующее вращение или показываем итог
-                    if (currentSpinCount < 3) {
-                        const nextSpinCount = currentSpinCount + 1
-                        setPyramidSpinCount(nextSpinCount)
-                        // Автоматически запускаем следующее вращение
-                        setTimeout(() => {
-                            if (wheelRef.current && mode === 'pyramid') {
-                                wheelRef.current.spin()
-                            }
-                        }, 500)
-                    } else {
-                        // Это было последнее вращение - завершаем и показываем результаты
-                        setPyramidSpinCount(0)
-                        
-                        const selectedNum = pickedDigit
-                        const matches = newResults.filter(n => n === selectedNum).length
-                        
-                        // Вычисляем выигрыш: +100% за первое совпадение, +50% за второе, +25% за третье
-                        let totalWin = 0
-                        if (matches >= 1) totalWin += Math.floor(b * 1.0)  // +100%
-                        if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
-                        if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
-                        
-                        if (totalWin > 0) {
-                            if (currency === 'W') {
-                                saveBalances(balanceW + totalWin, balanceB)
-                            } else {
-                                saveBalances(balanceW, balanceB + totalWin)
-                            }
-                            setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
-                        } else {
-                            setToast(`Проигрыш. Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}`)
-                        }
-                        
-                        // Показываем результаты на барабане
-                        setPyramidShowResults(true)
+            // Если это не последнее вращение, запускаем следующее автоматически
+            if (pyramidSpinCount < 3) {
+                const nextSpinCount = pyramidSpinCount + 1
+                setPyramidSpinCount(nextSpinCount)
+                // Автоматически запускаем следующее вращение с небольшой задержкой для плавности
+                setTimeout(() => {
+                    if (wheelRef.current && mode === 'pyramid') {
+                        wheelRef.current.spin()
                     }
+                }, 1200) // Автоматический запуск следующего вращения
+            } else {
+                // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
+                // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
+                setPyramidSpinCount(0)
+                
+                const selectedNum = pickedDigit
+                const matches = newResults.filter(n => n === selectedNum).length
+                
+                // Вычисляем выигрыш: +100% за первое совпадение, +50% за второе, +25% за третье
+                let totalWin = 0
+                if (matches >= 1) totalWin += Math.floor(b * 1.0)  // +100%
+                if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
+                if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
+                
+                if (totalWin > 0) {
+                    if (currency === 'W') {
+                        saveBalances(balanceW + totalWin, balanceB)
+                    } else {
+                        saveBalances(balanceW, balanceB + totalWin)
+                    }
+                    setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
+                } else {
+                    setToast(`Проигрыш. Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}`)
                 }
-            }, 1000) // Моргание каждую секунду
+                
+                // Показываем результаты на барабане
+                setPyramidShowResults(true)
+            }
             return
         }
 
@@ -994,33 +972,6 @@ export function GameScreen() {
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }} />
-                                 {pyramidBlinkingNumber !== null && (
-                                     <div style={{
-                                         position: 'absolute',
-                                         top: '50%',
-                                         left: '50%',
-                                         transform: 'translate(-50%, -50%)',
-                                         width: wheelSize * 0.3,
-                                         height: wheelSize * 0.3,
-                                         borderRadius: '50%',
-                                         background: pyramidBlinkCount === 1 
-                                             ? 'radial-gradient(circle, rgba(255,226,122,0.9) 0%, rgba(255,190,61,0.9) 100%)'
-                                             : 'radial-gradient(circle, rgba(255,226,122,0.3) 0%, rgba(255,190,61,0.3) 100%)',
-                                         display: 'grid',
-                                         placeItems: 'center',
-                                         fontSize: wheelSize * 0.15,
-                                         fontWeight: 900,
-                                         color: '#0b2f68',
-                                         boxShadow: pyramidBlinkCount === 1
-                                             ? '0 0 30px rgba(255,226,122,0.8), inset 0 0 0 4px #0b2f68'
-                                             : '0 0 15px rgba(255,226,122,0.4), inset 0 0 0 4px #0b2f68',
-                                         transition: 'all 0.3s ease',
-                                         zIndex: 10,
-                                         pointerEvents: 'none'
-                                     }}>
-                                         {pyramidBlinkingNumber}
-                                     </div>
-                                 )}
                              </div>
                         </div>
                         {pyramidShowResults && pyramidResults.length === 3 && (
