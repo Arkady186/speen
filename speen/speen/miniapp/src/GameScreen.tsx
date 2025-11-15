@@ -152,6 +152,7 @@ export function GameScreen() {
     const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
+    const [pyramidCountdown, setPyramidCountdown] = React.useState<number | null>(null) // Обратный отсчет до следующего вращения
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
@@ -539,6 +540,7 @@ export function GameScreen() {
         setPyramidSpinCount(0)
         setPyramidResults([])
         setPyramidShowResults(false)
+        setPyramidCountdown(null)
     }, [mode, currency])
 
     function onBeforeSpin() {
@@ -609,14 +611,33 @@ export function GameScreen() {
             if (pyramidSpinCount < 3) {
                 const nextSpinCount = pyramidSpinCount + 1
                 setPyramidSpinCount(nextSpinCount)
-                // Автоматически запускаем следующее вращение с небольшой задержкой для плавности
+                
+                // Запускаем обратный отсчет (4 секунды)
+                let countdown = 4
+                setPyramidCountdown(countdown)
+                setToast(`Следующее вращение через ${countdown}...`)
+                
+                const countdownInterval = setInterval(() => {
+                    countdown--
+                    if (countdown > 0) {
+                        setPyramidCountdown(countdown)
+                        setToast(`Следующее вращение через ${countdown}...`)
+                    } else {
+                        clearInterval(countdownInterval)
+                        setPyramidCountdown(null)
+                    }
+                }, 1000)
+                
+                // Автоматически запускаем следующее вращение через 4 секунды
                 const currentMode = mode
                 setTimeout(() => {
+                    clearInterval(countdownInterval)
+                    setPyramidCountdown(null)
                     // Проверяем, что режим не изменился и счетчик все еще активен
                     if (wheelRef.current && currentMode === 'pyramid' && nextSpinCount <= 3) {
                         wheelRef.current.spin()
                     }
-                }, 1200) // Автоматический запуск следующего вращения
+                }, 4000) // Автоматический запуск следующего вращения через 4 секунды
             } else {
                 // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
                 // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
