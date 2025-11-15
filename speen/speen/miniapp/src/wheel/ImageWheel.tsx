@@ -14,13 +14,14 @@ type ImageWheelProps = {
     selectedBonusIndex?: number | null
     onSelectBonusSector?: (index: number) => void
     hideCenterButton?: boolean // Скрыть центральную кнопку (для режима 3/10)
+    disableSelection?: boolean // Заблокировать выбор числа и бонусного сектора
 }
 
 export type ImageWheelRef = {
     spin: (toIndex?: number) => void
 }
 
-export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false }, ref) => {
+export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false, disableSelection = false }, ref) => {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
@@ -266,7 +267,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     }), [])
 
     function handleSelectAt(evt: React.MouseEvent<HTMLDivElement>) {
-        if (isSpinning) return
+        if (isSpinning || disableSelection) return
         const rect = (evt.currentTarget as HTMLDivElement).getBoundingClientRect()
         const cx = rect.left + rect.width / 2
         const cy = rect.top + rect.height / 2
