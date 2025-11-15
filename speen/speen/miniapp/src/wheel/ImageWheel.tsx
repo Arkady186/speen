@@ -29,8 +29,15 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const POINTER_DY = size * 0.031 // выше: ближе к верхней кромке (было 8 для 260px)
     const TIP_FINE_DEG = 3 // тонкая калибровка совмещения центра сектора под острым углом
 
-    // Выставляем старт так, чтобы сектор 0 находился прямо под острым углом указателя
-    const getInitialRotation = () => computeRotationForIndex(0)
+    // Выставляем старт так, чтобы сектор 0 был наверху, а указатель указывал на сектор 1
+    const getInitialRotation = () => {
+        // Сначала вычисляем вращение для позиционирования сектора 1 под указателем
+        const rotationForSector1 = computeRotationForIndex(1)
+        // Затем поворачиваем колесо на один сектор назад (по часовой стрелке),
+        // чтобы сектор 0 оказался наверху, а указатель остался на секторе 1
+        // seg - это размер одного сектора в градусах
+        return rotationForSector1 + seg
+    }
     
     const [rotation, setRotation] = React.useState<number>(getInitialRotation())
     const rotationRef = React.useRef<number>(getInitialRotation())
