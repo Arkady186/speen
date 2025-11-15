@@ -108,8 +108,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         const pointerAzimuth = Math.atan2(py - cy, px - cx) // рад
         const plusAngle = pointerAzimuth + Math.PI + (Math.PI / 18) // противоположное направление, смещение правее на 10 градусов
         const r = size * 0.48 // радиус размещения плюса - чуть ниже, но все еще на колесе
-        const x = cx + r * Math.cos(plusAngle) + 3 // смещение правее на 3px
-        const y = cy + r * Math.sin(plusAngle) + 12 // смещение вниз на 12px
+        const x = cx + r * Math.cos(plusAngle) + 6 // смещение правее на 6px
+        const y = cy + r * Math.sin(plusAngle) + 15 // смещение вниз на 15px
         return { x, y }
     }
 
