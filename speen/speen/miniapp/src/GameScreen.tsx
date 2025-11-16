@@ -598,6 +598,12 @@ export function GameScreen() {
             return currentCount >= 1 && currentCount <= 3
         }
         
+        // Для обычных режимов (x2 и x5) также проверяем выбор бонуса
+        if (selectedBonusSector == null) { 
+            setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start'); 
+            return false 
+        }
+        
         // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
             if (balanceW < b) { setToast(t('not_enough_W')); return false }
