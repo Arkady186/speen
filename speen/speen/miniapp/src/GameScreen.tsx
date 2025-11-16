@@ -936,7 +936,7 @@ export function GameScreen() {
                             <PanelShell>
                                 <div style={rowGrid}>
                                     <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} } dir="left" />
-                                    <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? 'x3 из 10' : 'x3 of 10') : 'x5'}</div>
+                                    <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? '3 из 10' : '3 of 10') : 'x5'}</div>
                                     <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} } dir="right" />
                                 </div>
                                 <div
