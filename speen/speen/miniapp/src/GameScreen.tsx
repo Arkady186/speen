@@ -2093,7 +2093,7 @@ const modalSheet: React.CSSProperties = {
 }
 
 const inviteSheet: React.CSSProperties = {
-    position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
+    position:'absolute', left:'50%', bottom:30, transform:'translateX(-50%)',
     width:'96%', maxWidth: 460, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
