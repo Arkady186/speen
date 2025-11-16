@@ -1596,9 +1596,56 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     const renderCard = (day: number) => {
         const claimed = state.claimedToday && day <= state.current || (!state.claimedToday && day < state.current)
         const isCurrent = !state.claimedToday && day === state.current
-        const style = { ...(day===7 ? day7 : cardBase), boxShadow: isCurrent ? '0 0 0 3px #ffd23a, 0 10px 24px rgba(0,0,0,0.25)' : (cardBase.boxShadow as any), opacity: claimed && !isCurrent ? .85 : 1 }
+        
+        // Стили для полученных карточек - серые и потухшие
+        const claimedCardBase: React.CSSProperties = {
+            ...cardBase,
+            background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+            opacity: 0.6,
+            cursor: 'default',
+            filter: 'grayscale(0.8)'
+        }
+        const claimedDay7: React.CSSProperties = {
+            ...day7,
+            background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+            opacity: 0.6,
+            cursor: 'default',
+            filter: 'grayscale(0.8)'
+        }
+        
+        const cardStyle = claimed && !isCurrent 
+            ? (day === 7 ? claimedDay7 : claimedCardBase)
+            : (day === 7 ? day7 : cardBase)
+        
+        const finalStyle = {
+            ...cardStyle,
+            boxShadow: isCurrent ? '0 0 0 3px #ffd23a, 0 10px 24px rgba(0,0,0,0.25)' : (cardStyle.boxShadow as any),
+            position: 'relative' as const
+        }
+        
         return (
-            <div key={day} style={style as React.CSSProperties} onClick={() => handleClaim(day)}>
+            <div 
+                key={day} 
+                style={finalStyle as React.CSSProperties} 
+                onClick={() => !claimed && handleClaim(day)}
+            >
+                {claimed && !isCurrent && (
+                    <div style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        background: '#22c55e',
+                        display: 'grid',
+                        placeItems: 'center',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        zIndex: 10
+                    }}>
+                        <span style={{ color: '#fff', fontSize: 14, fontWeight: 900, lineHeight: 1 }}>✓</span>
+                    </div>
+                )}
                 <div style={dayLbl}>{`${t('day')} ${day}`}</div>
                 <div style={{display:'grid', placeItems:'center', marginBottom:6}}>
                     <img src="/coin-w.png" alt="coin" style={{width:32,height:32,filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))'}} />
