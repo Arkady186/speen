@@ -1200,9 +1200,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setStarsOpen(false) }}>‹</button>
                             <div style={menuHeaderTitle}>{t('topup_stars')}</div>
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setStarsOpen(false) }}>✕</button>
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <div style={{textAlign:'center', color:'#e8f1ff', fontWeight:900}}>10⭐ = 1 B</div>
@@ -1264,9 +1263,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>‹</button>
                             <div style={{width:36}} />
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>✕</button>
                         </div>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
@@ -1335,9 +1333,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}>‹</button>
                             <div style={{width:36}} />
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}>✕</button>
                         </div>
                         <ShopPanel
                             t={t}
@@ -1418,9 +1415,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }}>‹</button>
                             <div style={menuHeaderTitle}>{t('tasks_title')}</div>
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }}>✕</button>
                         </div>
                         <TasksPanel t={t} lang={lang} onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
@@ -2197,8 +2193,8 @@ const inviteSheet: React.CSSProperties = {
     overflowY:'auto' as const
 }
 
-const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', marginBottom:10 }
-const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
+const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center', paddingTop:6, paddingBottom:2, cursor:'pointer' }
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
 const settingsFloatBtn: React.CSSProperties = { position:'fixed' } // not used anymore
