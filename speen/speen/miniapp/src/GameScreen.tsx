@@ -1535,6 +1535,8 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         } catch { return { last:'', streak:0, claimedToday:false, current:1 } }
     })
 
+    const [infoOpen, setInfoOpen] = React.useState(false)
+
     function save(last: string, streak: number){
         try { localStorage.setItem('daily_last', last); localStorage.setItem('daily_streak', String(streak)) } catch {}
     }
@@ -1551,8 +1553,40 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
 
     // Styles под дизайн
     const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68' }
-    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)', marginTop:8 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:8, position:'relative' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
+    }
     const descr: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.35, textShadow:'0 2px 0 rgba(0,0,0,0.35)', margin:'8px 0 14px' }
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
     const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
     const cardBase: React.CSSProperties = { background:'linear-gradient(135deg,#6ad14b 0%, #2a67b7 100%)', borderRadius:22, boxShadow:'0 10px 24px rgba(0,0,0,0.25), inset 0 0 0 3px rgba(11,47,104,0.9)', padding:'12px 10px', display:'grid', placeItems:'center', cursor:'pointer' }
     const dayLbl: React.CSSProperties = { color:'#e8f1ff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)', marginBottom:6 }
@@ -1575,12 +1609,22 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     }
 
     return (
+        <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/press3.png" alt="daily" style={{width:140, height:140, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            <div style={title}>{t('daily_title')}</div>
-            <div style={descr}>{t('daily_descr')}</div>
+            <div style={titleWrap}>
+                <div style={title}>{t('daily_title')}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
+            </div>
             <div style={grid}>
                 {[1,2,3,4,5,6].map(renderCard)}
                 {renderCard(7)}
@@ -1589,6 +1633,16 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
                 <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
             </div>
         </div>
+        <div style={infoModal} onClick={() => setInfoOpen(false)}>
+            <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div style={title}>{t('daily_title')}</div>
+                <div style={descr}>{t('daily_descr')}</div>
+                <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                    <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                </div>
+            </div>
+        </div>
+        </>
     )
 }
 
