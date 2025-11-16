@@ -1850,7 +1850,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
     const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center', position:'relative' }
     const iconImg: React.CSSProperties = { width:64, height:64, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }
     const plusWrap: React.CSSProperties = { ...cellBase, background:'linear-gradient(180deg,#4b90d6,#2b66b9)', position:'relative' }
-    const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'radial-gradient(circle, #9aff6b, #63d723)', boxShadow:'0 0 18px rgba(99,215,35,0.9), inset 0 0 0 3px #0a5d2b', color:'#0b2f68', fontWeight:900, fontSize:28 }
+    const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'transparent', color:'#22c55e', fontWeight:900, fontSize:40 }
     const countBadge: React.CSSProperties = {
         position:'absolute',
         bottom:4,
