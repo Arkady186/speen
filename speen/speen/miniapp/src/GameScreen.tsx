@@ -1629,9 +1629,6 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
                 {[1,2,3,4,5,6].map(renderCard)}
                 {renderCard(7)}
             </div>
-            <div style={{display:'grid', placeItems:'center', marginTop:12}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
-            </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
             <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
