@@ -613,7 +613,9 @@ export function GameScreen() {
         const b = Math.floor(bet)
 
         // Специальная логика для режима 3/10 (pyramid)
-        if (mode === 'pyramid' && pyramidSpinCount > 0) {
+        // Используем ref для синхронной проверки текущего счетчика
+        const currentPyramidCount = pyramidSpinCountRef.current
+        if (mode === 'pyramid' && currentPyramidCount > 0) {
             const resultNumber = Number(label)
             
             // Добавляем результат в массив
@@ -621,12 +623,12 @@ export function GameScreen() {
             setPyramidResults(newResults)
             
             // Показываем результат текущего вращения
-            const spinNum = pyramidSpinCount
+            const spinNum = currentPyramidCount
             setToast(`Вращение ${spinNum}: ${resultNumber}`)
             
             // Если это не последнее вращение, запускаем следующее автоматически
-            if (pyramidSpinCount < 3) {
-                const nextSpinCount = pyramidSpinCount + 1
+            if (currentPyramidCount < 3) {
+                const nextSpinCount = currentPyramidCount + 1
                 pyramidSpinCountRef.current = nextSpinCount
                 setPyramidSpinCount(nextSpinCount)
                 
