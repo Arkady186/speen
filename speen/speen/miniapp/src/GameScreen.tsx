@@ -1814,32 +1814,126 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
 
 function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // визуальный инвентарь в стиле макета
+    const [infoOpen, setInfoOpen] = React.useState(false)
+    
+    // Получаем количество каждого бонуса из localStorage
+    const getBonusCounts = () => {
+        try {
+            const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+            const inv: string[] = JSON.parse(invRaw)
+            const counts: Record<string, number> = {}
+            inv.forEach(bonusName => {
+                counts[bonusName] = (counts[bonusName] || 0) + 1
+            })
+            return counts
+        } catch {
+            return {}
+        }
+    }
+    
+    const bonusCounts = getBonusCounts()
+    
     const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
+    }
     const descrPill: React.CSSProperties = { color:'#0b2f68', background:'#ffffff', borderRadius:12, padding:'6px 10px', textAlign:'center', fontWeight:900, lineHeight:1.35, boxShadow:'0 3px 0 rgba(0,0,0,0.25)', margin:'0 auto', width:'95%' }
     const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
-    const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center' }
+    const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center', position:'relative' }
     const iconImg: React.CSSProperties = { width:64, height:64, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }
     const plusWrap: React.CSSProperties = { ...cellBase, background:'linear-gradient(180deg,#4b90d6,#2b66b9)', position:'relative' }
     const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'radial-gradient(circle, #9aff6b, #63d723)', boxShadow:'0 0 18px rgba(99,215,35,0.9), inset 0 0 0 3px #0a5d2b', color:'#0b2f68', fontWeight:900, fontSize:28 }
+    const countBadge: React.CSSProperties = {
+        position:'absolute',
+        bottom:4,
+        right:4,
+        background:'#22c55e',
+        color:'#fff',
+        borderRadius:'50%',
+        width:24,
+        height:24,
+        display:'grid',
+        placeItems:'center',
+        fontSize:12,
+        fontWeight:900,
+        boxShadow:'0 2px 4px rgba(0,0,0,0.3)',
+        border:'2px solid #fff'
+    }
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
 
     return (
+        <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/press5.png" alt="bag" style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            <div style={title}>{t('shop_title')}</div>
-            <div style={descrPill}>{lang==='ru' ? 'Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.' : 'This section is your backpack. Here are all your purchases and bonuses received in the game.'}</div>
+            <div style={titleWrap}>
+                <div style={title}>{t('shop_title')}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
+            </div>
             <div style={grid}>
-                <div style={cellBase}><img src="/heardwh.png" alt="heart" style={iconImg} /></div>
-                <div style={cellBase}><img src="/spacewh.png" alt="rocket" style={iconImg} /></div>
+                <div style={cellBase}>
+                    <img src="/heardwh.png" alt="heart" style={iconImg} />
+                    {bonusCounts['x3'] > 0 && (
+                        <div style={countBadge}>{bonusCounts['x3']}</div>
+                    )}
+                </div>
+                <div style={cellBase}>
+                    <img src="/spacewh.png" alt="rocket" style={iconImg} />
+                    {bonusCounts['+25%'] > 0 && (
+                        <div style={countBadge}>{bonusCounts['+25%']}</div>
+                    )}
+                </div>
                 <div style={plusWrap}><div style={plusInner}>+</div></div>
                 {Array.from({length:9}).map((_,i)=> (<div key={`p-${i}`} style={plusWrap}><div style={plusInner}>+</div></div>))}
             </div>
-            <div style={{display:'grid', placeItems:'center'}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
+        </div>
+        <div style={infoModal} onClick={() => setInfoOpen(false)}>
+            <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div style={title}>{t('shop_title')}</div>
+                <div style={descrPill}>{lang==='ru' ? 'Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.' : 'This section is your backpack. Here are all your purchases and bonuses received in the game.'}</div>
+                <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                    <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                </div>
             </div>
         </div>
+        </>
     )
 }
 
