@@ -1628,18 +1628,14 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
                 {claimed && !isCurrent && (
                     <div style={{
                         position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        background: '#22c55e',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
                         display: 'grid',
                         placeItems: 'center',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                         zIndex: 10
                     }}>
-                        <span style={{ color: '#fff', fontSize: 14, fontWeight: 900, lineHeight: 1 }}>✓</span>
+                        <span style={{ color: '#22c55e', fontSize: 48, fontWeight: 900, lineHeight: 1 }}>✓</span>
                     </div>
                 )}
                 <div style={dayLbl}>{`${t('day')} ${day}`}</div>
