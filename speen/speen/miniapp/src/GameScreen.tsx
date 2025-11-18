@@ -549,6 +549,11 @@ export function GameScreen() {
             pyramidAutoSpinTimeoutRef.current = null
         }
     }, [mode, currency])
+
+    // Держим ref в синхронизации с состоянием (на случай внешних сбросов)
+    React.useEffect(() => {
+        pyramidSpinCountRef.current = pyramidSpinCount
+    }, [pyramidSpinCount])
     
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
     const pyramidAutoSpinTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -620,7 +625,7 @@ export function GameScreen() {
 
         // Специальная логика для режима 3/10 (pyramid)
         // Используем ref для синхронной проверки текущего счетчика
-        const currentPyramidCount = pyramidSpinCountRef.current
+        const currentPyramidCount = pyramidSpinCountRef.current || pyramidSpinCount
         if (mode === 'pyramid' && currentPyramidCount > 0) {
             const resultNumber = Number(label)
             
