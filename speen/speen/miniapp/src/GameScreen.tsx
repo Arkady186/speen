@@ -575,31 +575,49 @@ export function GameScreen() {
     }
 
     function attemptPyramidAutoSpin(expectedSpinCount: number, attempt = 0) {
-        if (mode !== 'pyramid') return
-        if (pyramidSpinCountRef.current !== expectedSpinCount) return
-        if (spinning) {
-            if (attempt < 10) {
-                setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 300)
-            }
+        // Проверяем, что мы всё ещё в режиме pyramid
+        if (mode !== 'pyramid') {
+            console.log('[AutoSpin] Mode changed, aborting')
             return
         }
+        
+        // Проверяем, что счетчик всё ещё соответствует ожидаемому
+        if (pyramidSpinCountRef.current !== expectedSpinCount) {
+            console.log(`[AutoSpin] Count mismatch: expected ${expectedSpinCount}, got ${pyramidSpinCountRef.current}`)
+            return
+        }
+        
+        // Проверяем наличие ref на колесо
         if (!wheelRef.current) {
-            if (attempt < 10) {
-                setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 300)
+            console.log('[AutoSpin] Wheel ref not available, retrying...')
+            if (attempt < 20) {
+                setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 200)
             }
             return
         }
+        
+        // Для режима pyramid onBeforeSpin разрешает вращение даже если spinning === true
+        // Но всё же лучше подождать немного, чтобы предыдущее вращение точно завершилось
+        if (spinning && attempt < 15) {
+            setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 200)
+            return
+        }
+        
+        // Пытаемся запустить вращение
+        console.log(`[AutoSpin] Attempting spin ${expectedSpinCount}, attempt ${attempt + 1}`)
         try {
             wheelRef.current.spin()
+            console.log(`[AutoSpin] Spin ${expectedSpinCount} initiated successfully`)
         } catch (err) {
-            console.error('Auto spin (3/10) failed:', err)
-            if (attempt < 10) {
+            console.error(`[AutoSpin] Spin ${expectedSpinCount} failed:`, err)
+            if (attempt < 20) {
                 setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 300)
             }
         }
     }
 
     function scheduleNextPyramidSpin(nextSpinCount: number) {
+        console.log(`[scheduleNextPyramidSpin] Scheduling spin ${nextSpinCount}`)
         clearPyramidTimers(true)
         let countdown = 4
         setPyramidCountdown(countdown)
@@ -619,6 +637,7 @@ export function GameScreen() {
         }, 1000)
 
         pyramidAutoSpinTimeoutRef.current = window.setTimeout(() => {
+            console.log(`[scheduleNextPyramidSpin] Timeout fired, calling attemptPyramidAutoSpin(${nextSpinCount})`)
             if (pyramidCountdownIntervalRef.current) {
                 clearInterval(pyramidCountdownIntervalRef.current)
                 pyramidCountdownIntervalRef.current = null
@@ -631,49 +650,83 @@ export function GameScreen() {
     function onBeforeSpin() {
         // Для режима pyramid разрешаем автоматические вращения даже если spinning === true
         if (spinning && mode !== 'pyramid') return false
-        if (pickedDigit == null) { setToast(t('pick_number')); return false }
-        const { min, max } = getLimits(mode, currency)
-        const b = Math.max(min, Math.min(max, Math.floor(bet)))
-        if (b !== bet) setBet(b)
         
-        // Для режима pyramid (3/10) инициализируем состояние для 3 вращений
+        // Для режима pyramid (3/10) обрабатываем отдельно
         if (mode === 'pyramid') {
             // Используем ref для синхронной проверки (избегаем проблем с асинхронностью setState)
             const currentCount = pyramidSpinCountRef.current
             
+            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}`)
+            
             // Если уже выполнены все 3 вращения, не запускаем новые
             if (currentCount > 3) {
+                console.log('[onBeforeSpin] All spins completed, blocking')
                 return false
             }
-            // Для автоматических вращений (currentCount > 0) пропускаем все проверки
-            if (currentCount === 0) {
-                // Проверяем, что выбран бонус (только при первом запуске)
-                if (selectedBonusSector == null) { setToast('Выберите бонус перед стартом'); return false }
-                // Проверяем баланс (только при первом запуске) - проверяем ДО списания
-                if (currency === 'W') {
-                    if (balanceW < b) { setToast(t('not_enough_W')); return false }
-                } else {
-                    if (balanceB < b) { setToast(t('not_enough_B')); return false }
-                }
-                // Списываем ставку только один раз в начале (при первом нажатии на старт)
-                if (currency === 'W') {
-                    saveBalances(balanceW - b, balanceB)
-                } else {
-                    saveBalances(balanceW, balanceB - b)
-                }
-                // Инициализируем состояние для 3 вращений (синхронно через ref)
-                pyramidSpinCountRef.current = 1
-                setPyramidSpinCount(1)
-                setPyramidResults([])
-                setPyramidShowResults(false)
-                // После списания и инициализации сразу разрешаем вращение
+            
+            // Для автоматических вращений (currentCount > 0) пропускаем все проверки и сразу разрешаем
+            if (currentCount > 0 && currentCount <= 3) {
+                console.log(`[onBeforeSpin] Auto-spin allowed for spin ${currentCount}`)
                 return true
             }
-            // Для автоматических вращений (currentCount > 0) всегда разрешаем
-            return currentCount >= 1 && currentCount <= 3
+            
+            // Для первого вращения (currentCount === 0) выполняем все проверки
+            if (pickedDigit == null) { 
+                setToast(t('pick_number')); 
+                return false 
+            }
+            
+            const { min, max } = getLimits(mode, currency)
+            const b = Math.max(min, Math.min(max, Math.floor(bet)))
+            if (b !== bet) setBet(b)
+            
+            // Проверяем, что выбран бонус (только при первом запуске)
+            if (selectedBonusSector == null) { 
+                setToast('Выберите бонус перед стартом'); 
+                return false 
+            }
+            
+            // Проверяем баланс (только при первом запуске) - проверяем ДО списания
+            if (currency === 'W') {
+                if (balanceW < b) { 
+                    setToast(t('not_enough_W')); 
+                    return false 
+                }
+            } else {
+                if (balanceB < b) { 
+                    setToast(t('not_enough_B')); 
+                    return false 
+                }
+            }
+            
+            // Списываем ставку только один раз в начале (при первом нажатии на старт)
+            if (currency === 'W') {
+                saveBalances(balanceW - b, balanceB)
+            } else {
+                saveBalances(balanceW, balanceB - b)
+            }
+            
+            // Инициализируем состояние для 3 вращений (синхронно через ref)
+            pyramidSpinCountRef.current = 1
+            setPyramidSpinCount(1)
+            setPyramidResults([])
+            setPyramidShowResults(false)
+            
+            // После списания и инициализации сразу разрешаем вращение
+            return true
         }
         
-        // Для обычных режимов (x2 и x5) также проверяем выбор бонуса
+        // Для обычных режимов (x2 и x5) выполняем стандартные проверки
+        if (pickedDigit == null) { 
+            setToast(t('pick_number')); 
+            return false 
+        }
+        
+        const { min, max } = getLimits(mode, currency)
+        const b = Math.max(min, Math.min(max, Math.floor(bet)))
+        if (b !== bet) setBet(b)
+        
+        // Для обычных режимов также проверяем выбор бонуса
         if (selectedBonusSector == null) { 
             setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start'); 
             return false 
@@ -681,10 +734,16 @@ export function GameScreen() {
         
         // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
-            if (balanceW < b) { setToast(t('not_enough_W')); return false }
+            if (balanceW < b) { 
+                setToast(t('not_enough_W')); 
+                return false 
+            }
             saveBalances(balanceW - b, balanceB)
         } else {
-            if (balanceB < b) { setToast(t('not_enough_B')); return false }
+            if (balanceB < b) { 
+                setToast(t('not_enough_B')); 
+                return false 
+            }
             saveBalances(balanceW, balanceB - b)
         }
         return true
@@ -696,6 +755,8 @@ export function GameScreen() {
         // Специальная логика для режима 3/10 (pyramid)
         // Используем ref для синхронной проверки текущего счетчика
         const currentPyramidCount = pyramidSpinCountRef.current || pyramidSpinCount
+        console.log(`[onSpinResult] Mode: ${mode}, currentPyramidCount: ${currentPyramidCount}, result: ${label}`)
+        
         if (mode === 'pyramid' && currentPyramidCount > 0) {
             const resultNumber = Number(label)
             
@@ -710,6 +771,7 @@ export function GameScreen() {
             // Если это не последнее вращение, запускаем следующее автоматически
             if (currentPyramidCount < 3) {
                 const nextSpinCount = currentPyramidCount + 1
+                console.log(`[onSpinResult] Scheduling next spin: ${nextSpinCount}`)
                 pyramidSpinCountRef.current = nextSpinCount
                 setPyramidSpinCount(nextSpinCount)
                 scheduleNextPyramidSpin(nextSpinCount)
