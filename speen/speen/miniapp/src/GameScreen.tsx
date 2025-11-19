@@ -574,48 +574,6 @@ export function GameScreen() {
         }
     }
 
-    function attemptPyramidAutoSpin(expectedSpinCount: number, attempt = 0) {
-        // Проверяем, что мы всё ещё в режиме pyramid
-        if (mode !== 'pyramid') {
-            console.log('[AutoSpin] Mode changed, aborting')
-            return
-        }
-        
-        // Проверяем, что счетчик всё ещё соответствует ожидаемому
-        if (pyramidSpinCountRef.current !== expectedSpinCount) {
-            console.log(`[AutoSpin] Count mismatch: expected ${expectedSpinCount}, got ${pyramidSpinCountRef.current}`)
-            return
-        }
-        
-        // Проверяем наличие ref на колесо
-        if (!wheelRef.current) {
-            console.log('[AutoSpin] Wheel ref not available, retrying...')
-            if (attempt < 20) {
-                setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 200)
-            }
-            return
-        }
-        
-        // Для режима pyramid onBeforeSpin разрешает вращение даже если spinning === true
-        // Но всё же лучше подождать немного, чтобы предыдущее вращение точно завершилось
-        if (spinning && attempt < 15) {
-            setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 200)
-            return
-        }
-        
-        // Пытаемся запустить вращение
-        console.log(`[AutoSpin] Attempting spin ${expectedSpinCount}, attempt ${attempt + 1}`)
-        try {
-            wheelRef.current.spin()
-            console.log(`[AutoSpin] Spin ${expectedSpinCount} initiated successfully`)
-        } catch (err) {
-            console.error(`[AutoSpin] Spin ${expectedSpinCount} failed:`, err)
-            if (attempt < 20) {
-                setTimeout(() => attemptPyramidAutoSpin(expectedSpinCount, attempt + 1), 300)
-            }
-        }
-    }
-
     function scheduleNextPyramidSpin(nextSpinCount: number) {
         console.log(`[scheduleNextPyramidSpin] Scheduling spin ${nextSpinCount}`)
         clearPyramidTimers(true)
@@ -637,13 +595,31 @@ export function GameScreen() {
         }, 1000)
 
         pyramidAutoSpinTimeoutRef.current = window.setTimeout(() => {
-            console.log(`[scheduleNextPyramidSpin] Timeout fired, calling attemptPyramidAutoSpin(${nextSpinCount})`)
+            console.log(`[scheduleNextPyramidSpin] Timeout fired for spin ${nextSpinCount}`)
             if (pyramidCountdownIntervalRef.current) {
                 clearInterval(pyramidCountdownIntervalRef.current)
                 pyramidCountdownIntervalRef.current = null
             }
             setPyramidCountdown(null)
-            attemptPyramidAutoSpin(nextSpinCount)
+            // Без дополнительной вложенной логики: просто пробуем крутить ещё раз
+            if (mode !== 'pyramid') {
+                console.log('[scheduleNextPyramidSpin] Mode changed before auto-spin, aborting')
+                return
+            }
+            if (pyramidSpinCountRef.current !== nextSpinCount) {
+                console.log(`[scheduleNextPyramidSpin] Count mismatch on timeout: expected ${nextSpinCount}, got ${pyramidSpinCountRef.current}`)
+                return
+            }
+            if (!wheelRef.current) {
+                console.log('[scheduleNextPyramidSpin] Wheel ref missing on timeout')
+                return
+            }
+            try {
+                console.log(`[scheduleNextPyramidSpin] Triggering wheelRef.spin() for spin ${nextSpinCount}`)
+                wheelRef.current.spin()
+            } catch (err) {
+                console.error('[scheduleNextPyramidSpin] Auto spin error:', err)
+            }
         }, 4000)
     }
 
