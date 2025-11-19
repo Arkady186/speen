@@ -545,6 +545,8 @@ export function GameScreen() {
         setPyramidCountdown(null)
         // Очищаем таймеры авто-вращений и обратного отсчета
         clearPyramidTimers(true)
+        // Сбрасываем флаг единоразового списания ставки для 3/10
+        pyramidBetTakenRef.current = false
     }, [mode, currency])
 
     // Держим ref в синхронизации с состоянием (на случай внешних сбросов)
@@ -554,11 +556,14 @@ export function GameScreen() {
 
     React.useEffect(() => () => {
         clearPyramidTimers(true)
+        pyramidBetTakenRef.current = false
     }, [])
     
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
     const pyramidAutoSpinTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const pyramidCountdownIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+    // Отдельный флаг: списали ли ставку для текущей серии 3 из 10
+    const pyramidBetTakenRef = React.useRef<boolean>(false)
 
     function clearPyramidTimers(resetCountdown = false) {
         if (pyramidAutoSpinTimeoutRef.current) {
@@ -630,7 +635,7 @@ export function GameScreen() {
         // Для режима pyramid (3/10) обрабатываем отдельно
         if (mode === 'pyramid') {
             const currentCount = pyramidSpinCountRef.current
-            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}`)
+            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}, betTaken: ${pyramidBetTakenRef.current}`)
             
             // Уже сделали три вращения — больше не крутим
             if (currentCount >= 3) {
@@ -638,13 +643,18 @@ export function GameScreen() {
                 return false
             }
             
-            // Если это второе или третье вращение (автоматическое) — пропускаем проверки и не списываем ставку
-            if (currentCount >= 1 && currentCount < 3) {
-                console.log('[onBeforeSpin] Auto-spin allowed (no extra checks)')
-                return true
+            // Если ставка уже была списана (мы внутри серии 3 из 10)
+            if (pyramidBetTakenRef.current) {
+                // Разрешаем второе и третье вращения без каких‑либо проверок и доп. списаний
+                if (currentCount >= 1 && currentCount < 3) {
+                    console.log('[onBeforeSpin] Auto-spin allowed (no extra checks, no extra bet)')
+                    return true
+                }
+                console.log('[onBeforeSpin] Bet already taken but currentCount is out of expected range, blocking')
+                return false
             }
             
-            // Первое вращение (currentCount === 0): выполняем все проверки и списываем ставку один раз
+            // Первое вращение серии: выполняем все проверки и списываем ставку ОДИН раз
             if (pickedDigit == null) { 
                 setToast(t('pick_number')); 
                 return false 
@@ -674,13 +684,16 @@ export function GameScreen() {
                 saveBalances(balanceW, balanceB - b)
             }
             
+            // Отмечаем, что ставка для этой серии уже списана
+            pyramidBetTakenRef.current = true
+            
             // Инициализируем состояние для 3 вращений (синхронно через ref)
             pyramidSpinCountRef.current = 1
             setPyramidSpinCount(1)
             setPyramidResults([])
             setPyramidShowResults(false)
             
-            console.log('[onBeforeSpin] First pyramid spin allowed')
+            console.log('[onBeforeSpin] First pyramid spin allowed and bet taken once')
             return true
         }
         
@@ -743,6 +756,7 @@ export function GameScreen() {
                 clearPyramidTimers(true)
                 pyramidSpinCountRef.current = 0
                 setPyramidSpinCount(0)
+                pyramidBetTakenRef.current = false
                 
                 const selectedNum = pickedDigit
                 const matches = newResults.filter(n => n === selectedNum).length
