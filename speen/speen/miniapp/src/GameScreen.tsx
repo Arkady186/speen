@@ -656,12 +656,6 @@ export function GameScreen() {
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
             if (b !== bet) setBet(b)
             
-            // Проверяем, что выбран бонус (только при первом запуске)
-            if (selectedBonusSector == null) { 
-                setToast('Выберите бонус перед стартом'); 
-                return false 
-            }
-            
             // Проверяем баланс (только при первом запуске) - проверяем ДО списания
             if (currency === 'W') {
                 if (balanceW < b) { 
