@@ -694,12 +694,6 @@ export function GameScreen() {
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
         if (b !== bet) setBet(b)
         
-        // Для обычных режимов также проверяем выбор бонуса
-        if (selectedBonusSector == null) { 
-            setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start'); 
-            return false 
-        }
-        
         // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
             if (balanceW < b) { 
