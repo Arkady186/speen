@@ -559,7 +559,6 @@ export function GameScreen() {
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
     const pyramidAutoSpinTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const pyramidCountdownIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
-    const pyramidAutoSpinFlagRef = React.useRef<boolean>(false)
 
     function clearPyramidTimers(resetCountdown = false) {
         if (pyramidAutoSpinTimeoutRef.current) {
@@ -602,7 +601,7 @@ export function GameScreen() {
                 pyramidCountdownIntervalRef.current = null
             }
             setPyramidCountdown(null)
-            // Без дополнительной вложенной логики: просто пробуем крутить ещё раз
+            // Простая логика: если мы всё ещё в режиме pyramid и счётчик совпадает — просто запускаем spin()
             if (mode !== 'pyramid') {
                 console.log('[scheduleNextPyramidSpin] Mode changed before auto-spin, aborting')
                 return
@@ -617,44 +616,35 @@ export function GameScreen() {
             }
             try {
                 console.log(`[scheduleNextPyramidSpin] Triggering wheelRef.spin() for spin ${nextSpinCount}`)
-                pyramidAutoSpinFlagRef.current = true
                 wheelRef.current.spin()
             } catch (err) {
                 console.error('[scheduleNextPyramidSpin] Auto spin error:', err)
-                pyramidAutoSpinFlagRef.current = false
             }
         }, 4000)
     }
 
     function onBeforeSpin() {
-        // Для режима pyramid разрешаем автоматические вращения даже если spinning === true
+        // Для обычных режимов блокируем повторный старт во время спина
         if (spinning && mode !== 'pyramid') return false
         
         // Для режима pyramid (3/10) обрабатываем отдельно
         if (mode === 'pyramid') {
-            // Используем ref для синхронной проверки (избегаем проблем с асинхронностью setState)
             const currentCount = pyramidSpinCountRef.current
+            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}`)
             
-            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}, autoFlag: ${pyramidAutoSpinFlagRef.current}`)
-            
-            // Если уже выполнены все 3 вращения, не запускаем новые
-            if (currentCount > 3) {
-                console.log('[onBeforeSpin] All spins completed, blocking')
+            // Уже сделали три вращения — больше не крутим
+            if (currentCount >= 3) {
+                console.log('[onBeforeSpin] All 3 spins done, blocking')
                 return false
             }
             
-            // Если это авто-вращение (второе или третье) — пропускаем все проверки и не списываем ставку
-            if (pyramidAutoSpinFlagRef.current) {
-                pyramidAutoSpinFlagRef.current = false
-                if (currentCount >= 1 && currentCount <= 3) {
-                    console.log(`[onBeforeSpin] Forced auto-spin for spin ${currentCount}`)
-                    return true
-                }
-                console.log('[onBeforeSpin] Auto-spin flag set, but currentCount is out of range, blocking')
-                return false
+            // Если это второе или третье вращение (автоматическое) — пропускаем проверки и не списываем ставку
+            if (currentCount >= 1 && currentCount < 3) {
+                console.log('[onBeforeSpin] Auto-spin allowed (no extra checks)')
+                return true
             }
             
-            // Для первого вращения (currentCount === 0) выполняем все проверки
+            // Первое вращение (currentCount === 0): выполняем все проверки и списываем ставку один раз
             if (pickedDigit == null) { 
                 setToast(t('pick_number')); 
                 return false 
@@ -690,7 +680,7 @@ export function GameScreen() {
             setPyramidResults([])
             setPyramidShowResults(false)
             
-            // После списания и инициализации сразу разрешаем вращение
+            console.log('[onBeforeSpin] First pyramid spin allowed')
             return true
         }
         
