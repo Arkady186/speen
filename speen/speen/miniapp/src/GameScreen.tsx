@@ -559,6 +559,7 @@ export function GameScreen() {
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
     const pyramidAutoSpinTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const pyramidCountdownIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+    const pyramidAutoSpinFlagRef = React.useRef<boolean>(false)
 
     function clearPyramidTimers(resetCountdown = false) {
         if (pyramidAutoSpinTimeoutRef.current) {
@@ -616,9 +617,11 @@ export function GameScreen() {
             }
             try {
                 console.log(`[scheduleNextPyramidSpin] Triggering wheelRef.spin() for spin ${nextSpinCount}`)
+                pyramidAutoSpinFlagRef.current = true
                 wheelRef.current.spin()
             } catch (err) {
                 console.error('[scheduleNextPyramidSpin] Auto spin error:', err)
+                pyramidAutoSpinFlagRef.current = false
             }
         }, 4000)
     }
@@ -632,7 +635,7 @@ export function GameScreen() {
             // Используем ref для синхронной проверки (избегаем проблем с асинхронностью setState)
             const currentCount = pyramidSpinCountRef.current
             
-            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}`)
+            console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}, autoFlag: ${pyramidAutoSpinFlagRef.current}`)
             
             // Если уже выполнены все 3 вращения, не запускаем новые
             if (currentCount > 3) {
@@ -640,10 +643,15 @@ export function GameScreen() {
                 return false
             }
             
-            // Для автоматических вращений (currentCount > 0) пропускаем все проверки и сразу разрешаем
-            if (currentCount > 0 && currentCount <= 3) {
-                console.log(`[onBeforeSpin] Auto-spin allowed for spin ${currentCount}`)
-                return true
+            // Если это авто-вращение (второе или третье) — пропускаем все проверки и не списываем ставку
+            if (pyramidAutoSpinFlagRef.current) {
+                pyramidAutoSpinFlagRef.current = false
+                if (currentCount >= 1 && currentCount <= 3) {
+                    console.log(`[onBeforeSpin] Forced auto-spin for spin ${currentCount}`)
+                    return true
+                }
+                console.log('[onBeforeSpin] Auto-spin flag set, but currentCount is out of range, blocking')
+                return false
             }
             
             // Для первого вращения (currentCount === 0) выполняем все проверки
