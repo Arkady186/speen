@@ -157,6 +157,7 @@ export function GameScreen() {
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
     const [bonusesOpen, setBonusesOpen] = React.useState<boolean>(false)
     const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
+    const [inviteInfoOpen, setInviteInfoOpen] = React.useState<boolean>(false)
     const [inviteAnimatingOut, setInviteAnimatingOut] = React.useState<boolean>(false)
     const [inviteHeightVh, setInviteHeightVh] = React.useState<number>(80)
     const inviteDragStartY = React.useRef<number | null>(null)
