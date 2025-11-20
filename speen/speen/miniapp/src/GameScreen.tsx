@@ -1333,7 +1333,7 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280) }}>
                     <div style={{...inviteSheet, height: `${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
@@ -1412,16 +1412,11 @@ export function GameScreen() {
                                                 color:'#fff', fontWeight:900, fontSize:14, 
                                                 display:'grid', placeItems:'center', cursor:'pointer' 
                                             }}
-                                            onClick={() => setInviteInfoOpen(prev => !prev)}
+                                            onClick={() => setInviteInfoOpen(true)}
                                         >
                                             i
                                         </button>
                                     </div>
-                                    {inviteInfoOpen && (
-                                        <div style={{ marginTop:8, padding:'8px 10px', borderRadius:12, background:'#ffffff', color:'#0b2f68', fontWeight:800, textAlign:'center', boxShadow:'0 3px 0 rgba(0,0,0,0.25)' }}>
-                                            {t('invite_hint')}
-                                        </div>
-                                    )}
                                     <button style={inviteCtaPill} onClick={handleShare}>
                                         <img src="/coin-w.png" alt="coin" style={{width:26,height:26, filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                         <span style={{marginLeft:10}}>{t('invite_cta')}</span>
@@ -1445,6 +1440,19 @@ export function GameScreen() {
                                 </div>
                             )
                         })()}
+                    </div>
+                </div>
+            )}
+            {inviteInfoOpen && (
+                <div style={{...overlayDim, zIndex: 90}} onClick={() => setInviteInfoOpen(false)}>
+                    <div style={modalSheet} onClick={(e)=>e.stopPropagation()}>
+                        <div style={newsPopupHeader}>
+                            <div style={newsPopupTitle}>{t('invite_title')}</div>
+                            <button style={newsCloseBtn} onClick={() => setInviteInfoOpen(false)}>✕</button>
+                        </div>
+                        <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4}}>
+                            {t('invite_hint')}
+                        </div>
                     </div>
                 </div>
             )}
