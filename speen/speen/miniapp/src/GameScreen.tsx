@@ -313,7 +313,8 @@ export function GameScreen() {
             invite_title: 'Пригласите друзей',
             invite_subtitle: 'Вы и ваш друг получите бонусы',
             invite_cta: '+5 000 для вас и вашего друга',
-            friends_list: 'Список ваших друзей:',
+            friends_list: 'Список ваших друзей',
+            invite_hint: 'Отправляй ссылку друзьям и получай дополнительное вознаграждение за каждого друга, прошедшего регистрацию в игре. При этом твои друзья тоже получат приветственный бонус.',
             empty: 'Пока пусто',
             updated: 'Обновлено',
             copied: 'Ссылка скопирована',
@@ -367,7 +368,8 @@ export function GameScreen() {
             invite_title: 'Invite friends',
             invite_subtitle: 'You and your friend will get bonuses',
             invite_cta: '+5,000 for you and your friend',
-            friends_list: 'Your friends:',
+            friends_list: 'Your friends',
+            invite_hint: 'Share the link with friends and get an extra reward for each friend who registers in the game. Your friends also receive a welcome bonus.',
             empty: 'Empty for now',
             updated: 'Updated',
             copied: 'Link copied',
@@ -1395,21 +1397,36 @@ export function GameScreen() {
                                         navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
                             }
                             return (
-                                <div style={{display:'grid', gap:14}}>
+                                <div style={inviteInnerWrap}>
                                     <div style={{display:'grid', placeItems:'center'}}>
-                                        <img src="/press2.png" alt="invite" style={{...inviteHeroImg, width:140, height:140}} />
+                                        <img src="/press2.png" alt="invite" style={inviteHeroImg} />
                                     </div>
-                            <div style={inviteTitleLarge}>{t('invite_title')}</div>
-                                    <div style={{display:'grid', placeItems:'center'}}>
-                                        <div style={inviteSubtitlePill}>{t('invite_subtitle')}</div>
+                                    <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
+                                        <div style={inviteTitleLarge}>{t('invite_title')}</div>
+                                        <button 
+                                            style={{ 
+                                                width:24, height:24, borderRadius:'50%', 
+                                                border:'2px solid rgba(255,255,255,0.5)', 
+                                                background:'rgba(255,255,255,0.2)', 
+                                                color:'#fff', fontWeight:900, fontSize:14, 
+                                                display:'grid', placeItems:'center', cursor:'pointer' 
+                                            }}
+                                            onClick={() => setInviteInfoOpen(prev => !prev)}
+                                        >
+                                            i
+                                        </button>
                                     </div>
+                                    {inviteInfoOpen && (
+                                        <div style={{ marginTop:8, padding:'8px 10px', borderRadius:12, background:'#ffffff', color:'#0b2f68', fontWeight:800, textAlign:'center', boxShadow:'0 3px 0 rgba(0,0,0,0.25)' }}>
+                                            {t('invite_hint')}
+                                        </div>
+                                    )}
                                     <button style={inviteCtaPill} onClick={handleShare}>
                                         <img src="/coin-w.png" alt="coin" style={{width:26,height:26, filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                         <span style={{marginLeft:10}}>{t('invite_cta')}</span>
                                     </button>
-                                    <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center'}}>
+                                    <div style={{display:'grid', placeItems:'center'}}>
                                         <div style={friendsHeaderLbl}>{t('friends_list')}</div>
-                                        <button style={friendsRefreshBtn} onClick={()=> setToast(t('updated'))}>↻</button>
                                     </div>
                                     <div style={{display:'grid', gap:12}}>
                                         {friends.length === 0 ? (
@@ -2333,8 +2350,8 @@ const sheetCloseArrow: React.CSSProperties = {
     height:36, 
     borderRadius:'50%', 
     border:'none', 
-    background:'linear-gradient(180deg,#2b6fbe 0%, #1f57a0 100%)', 
-    color:'#ffffff', 
+    background:'linear-gradient(180deg,#ffffff 0%, #dbeafe 100%)', 
+    color:'#0b2f68', 
     fontSize:18, 
     fontWeight:900, 
     boxShadow:'0 4px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #0b2f68', 
@@ -2344,11 +2361,11 @@ const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
 const settingsFloatBtn: React.CSSProperties = { position:'fixed' } // not used anymore
 // Invite redesign styles
-const inviteHeroImg: React.CSSProperties = { width:160, height:160, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
+const inviteHeroImg: React.CSSProperties = { width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
 const inviteTitleLarge: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:24, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
 const inviteSubtitlePill: React.CSSProperties = { padding:'6px 10px', background:'#ffffff', borderRadius:10, display:'inline-block', boxShadow:'0 3px 0 rgba(0,0,0,0.2)', color:'#0b2f68', fontWeight:900 }
 const inviteCtaPill: React.CSSProperties = { display:'grid', gridAutoFlow:'column', alignItems:'center', justifyContent:'center', gap:6, padding:'14px 16px', background:'linear-gradient(180deg,#5aa2ff,#2b66b9)', color:'#fff', border:'none', borderRadius:26, fontWeight:900, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
-const friendsHeaderLbl: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+const friendsHeaderLbl: React.CSSProperties = { color:'#fff', fontWeight:900, fontSize:18, textShadow:'0 2px 0 rgba(0,0,0,0.35)', textAlign:'center' }
 const friendsRefreshBtn: React.CSSProperties = { width:32, height:32, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const friendRow: React.CSSProperties = { display:'grid', gridTemplateColumns:'56px 1fr auto', alignItems:'center', gap:12, padding:'12px 14px', background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68' }
 const friendAvatar: React.CSSProperties = { width:56, height:56, borderRadius:'50%', display:'grid', placeItems:'center', background:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68' }
@@ -2481,6 +2498,7 @@ const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bo
 const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', borderRadius:8, border:'none', background:'#cbe6ff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#083068', fontWeight:800 }
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const inviteInnerWrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
 
 function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> {
     return [
