@@ -629,12 +629,22 @@ export function GameScreen() {
     }
 
     function onBeforeSpin() {
+        // Текущее значение счётчика 3 из 10 (для авто-вращений)
+        const currentCount = pyramidSpinCountRef.current
+
+        // Если мы находимся внутри серии 3 из 10 (currentCount > 0),
+        // но по какой-то причине mode уже не 'pyramid' (например, задержка таймера),
+        // то всё равно разрешаем авто-вращение без дополнительных проверок.
+        if (currentCount > 0 && mode !== 'pyramid') {
+            console.log('[onBeforeSpin] Forcing auto-spin as part of pyramid series despite mode change')
+            return true
+        }
+
         // Для обычных режимов блокируем повторный старт во время спина
         if (spinning && mode !== 'pyramid') return false
         
         // Для режима pyramid (3/10) обрабатываем отдельно
         if (mode === 'pyramid') {
-            const currentCount = pyramidSpinCountRef.current
             console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}, betTaken: ${pyramidBetTakenRef.current}`)
             
             // Уже сделали три вращения — больше не крутим
