@@ -2445,11 +2445,11 @@ const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadi
 
 function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> {
     return [
-        { title: tr('press1_title'), action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-        { title: tr('press2_title'), action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-        { title: tr('press3_title'), action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+        { title: tr('press1_title'), badgeImg:'/coming1.png', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
+        { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+        { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
         { title: tr('press4_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-        { title: tr('press5_title'), action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+        { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
         { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
     ]
 }
