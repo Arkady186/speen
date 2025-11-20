@@ -659,6 +659,10 @@ export function GameScreen() {
                 setToast(t('pick_number')); 
                 return false 
             }
+            if (selectedBonusSector == null) {
+                setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start')
+                return false
+            }
             
             const { min, max } = getLimits(mode, currency)
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
@@ -706,6 +710,12 @@ export function GameScreen() {
         const { min, max } = getLimits(mode, currency)
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
         if (b !== bet) setBet(b)
+        
+        // Для обычных режимов также обязательно требуем выбор бонусного сектора
+        if (selectedBonusSector == null) {
+            setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start')
+            return false
+        }
         
         // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
