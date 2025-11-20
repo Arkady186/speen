@@ -985,6 +985,16 @@ export function GameScreen() {
         Promise.all(criticalImages.map(loadImage))
     }, [])
 
+    // Защита от "вечной" загрузки: через 8 секунд принудительно скрываем прелоадер
+    React.useEffect(() => {
+        const safetyTimeout = window.setTimeout(() => {
+            setIsLoading(false)
+        }, 8000)
+        return () => {
+            window.clearTimeout(safetyTimeout)
+        }
+    }, [])
+
     return (
         <>
             {isLoading && <Preloader />}
