@@ -1483,9 +1483,8 @@ export function GameScreen() {
                             <div style={inviteGrabBar} />
                         </div>
                         <div style={inviteSheetHeader}>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}>‹</button>
                             <div style={menuHeaderTitle}>{t('press7_title')}</div>
-                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}>✕</button>
                         </div>
                         <div style={{display:'grid', gap:12}}>
                             <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>{t('buy_bonus_1b')}</div>
@@ -1596,6 +1595,10 @@ export function GameScreen() {
                             onPointerCancel={()=>{ dailyDragStartY.current=null }}
                         >
                             <div style={inviteGrabBar} />
+                        </div>
+                        <div style={inviteSheetHeader}>
+                            <div style={{width:36}} />
+                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) }}>✕</button>
                         </div>
                         <DailyBonus
                             t={t}
@@ -2324,7 +2327,19 @@ const inviteSheet: React.CSSProperties = {
 }
 
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
-const sheetCloseArrow: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:18, fontWeight:900, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
+// универсальная круглая кнопка закрытия для всех вкладок/окон
+const sheetCloseArrow: React.CSSProperties = { 
+    width:36, 
+    height:36, 
+    borderRadius:'50%', 
+    border:'none', 
+    background:'linear-gradient(180deg,#2b6fbe 0%, #1f57a0 100%)', 
+    color:'#ffffff', 
+    fontSize:18, 
+    fontWeight:900, 
+    boxShadow:'0 4px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #0b2f68', 
+    cursor:'pointer' 
+}
 const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center', paddingTop:6, paddingBottom:2, cursor:'pointer' }
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
 const settingsFloatBtn: React.CSSProperties = { position:'fixed' } // not used anymore
@@ -2374,17 +2389,9 @@ const newsPopupTitle: React.CSSProperties = {
     textShadow:'0 2px 8px rgba(0,0,0,0.35)'
 }
 const newsCloseBtn: React.CSSProperties = {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    border:'none',
-    background:'rgba(255,255,255,0.2)',
-    color:'#fff',
-    fontSize: 18,
-    fontWeight:900,
-    cursor:'pointer',
-    boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.3)',
-    transition:'transform 120ms ease, background 120ms ease'
+    ...sheetCloseArrow,
+    width:32,
+    height:32,
 }
 
 const sheet: React.CSSProperties = {
