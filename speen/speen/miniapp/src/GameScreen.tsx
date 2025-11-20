@@ -659,11 +659,7 @@ export function GameScreen() {
                 setToast(t('pick_number')); 
                 return false 
             }
-            if (selectedBonusSector == null) {
-                setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start')
-                return false
-            }
-            
+            // В 3 из 10 бонусный сектор можем использовать, если выбран, но не блокируем старт без него
             const { min, max } = getLimits(mode, currency)
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
             if (b !== bet) setBet(b)
