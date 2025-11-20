@@ -1693,8 +1693,10 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
         transition:'transform 200ms ease'
     }
-    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
-    const cardBase: React.CSSProperties = { background:'linear-gradient(135deg,#6ad14b 0%, #2a67b7 100%)', borderRadius:22, boxShadow:'0 10px 24px rgba(0,0,0,0.25), inset 0 0 0 3px rgba(11,47,104,0.9)', padding:'12px 10px', display:'grid', placeItems:'center', cursor:'pointer' }
+    // сетка карточек — чуть ниже заголовка и на всю ширину
+    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, marginTop:12, width:'100%' }
+    // основной градиент карточек — более мягкий голубой, чтобы не выбиваться из синей темы
+    const cardBase: React.CSSProperties = { background:'linear-gradient(135deg,#cbe6ff 0%, #2a67b7 100%)', borderRadius:22, boxShadow:'0 10px 24px rgba(0,0,0,0.25), inset 0 0 0 3px rgba(11,47,104,0.9)', padding:'12px 10px', display:'grid', placeItems:'center', cursor:'pointer' }
     const dayLbl: React.CSSProperties = { color:'#e8f1ff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)', marginBottom:6 }
     const amountLbl: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
     const day7: React.CSSProperties = { ...cardBase, gridColumn:'1 / -1', borderRadius:36, padding:'16px 12px' }
@@ -1745,7 +1747,13 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
                         placeItems: 'center',
                         zIndex: 10
                     }}>
-                        <span style={{ color: '#22c55e', fontSize: 48, fontWeight: 900, lineHeight: 1 }}>✓</span>
+                        <span style={{ 
+                            color: '#22c55e', 
+                            fontSize: 56, 
+                            fontWeight: 900, 
+                            lineHeight: 1,
+                            textShadow: '0 0 4px #0b2f68, 0 0 10px rgba(0,0,0,0.7)' 
+                        }}>✓</span>
                     </div>
                 )}
                 <div style={dayLbl}>{`${t('day')} ${day}`}</div>
@@ -1761,7 +1769,7 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/press3.png" alt="daily" style={{width:140, height:140, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/press3.png" alt="daily" style={{width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('daily_title')}</div>
@@ -1777,6 +1785,25 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
             <div style={grid}>
                 {[1,2,3,4,5,6].map(renderCard)}
                 {renderCard(7)}
+            </div>
+            <div style={{marginTop:14, display:'grid', placeItems:'center'}}>
+                <button
+                    style={{
+                        padding:'10px 22px',
+                        borderRadius:999,
+                        border:'none',
+                        background: state.claimedToday ? '#64748b' : '#22c55e',
+                        color:'#0b2f68',
+                        fontWeight:900,
+                        boxShadow:'0 6px 16px rgba(0,0,0,0.35), inset 0 0 0 3px #0a5d2b',
+                        cursor: state.claimedToday ? 'default' : 'pointer',
+                        opacity: state.claimedToday ? 0.7 : 1
+                    }}
+                    disabled={state.claimedToday}
+                    onClick={() => handleClaim(state.current)}
+                >
+                    {t('get')}
+                </button>
             </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
