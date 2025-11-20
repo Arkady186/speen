@@ -1446,12 +1446,11 @@ export function GameScreen() {
             {inviteInfoOpen && (
                 <div style={centerInfoOverlay} onClick={() => setInviteInfoOpen(false)}>
                     <div style={centerInfoCard} onClick={(e)=>e.stopPropagation()}>
-                        <div style={newsPopupHeader}>
-                            <div />
-                            <button style={newsCloseBtn} onClick={() => setInviteInfoOpen(false)}>✕</button>
-                        </div>
                         <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4}}>
                             {t('invite_hint')}
+                        </div>
+                        <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                            <button style={inviteSecondaryBtn} onClick={() => setInviteInfoOpen(false)}>{t('close')}</button>
                         </div>
                     </div>
                 </div>
