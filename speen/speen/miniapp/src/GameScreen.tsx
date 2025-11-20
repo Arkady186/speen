@@ -1708,17 +1708,13 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         // Стили для полученных карточек - серые и потухшие
         const claimedCardBase: React.CSSProperties = {
             ...cardBase,
-            background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
-            opacity: 0.6,
-            cursor: 'default',
-            filter: 'grayscale(0.8)'
+            background: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)',
+            cursor: 'default'
         }
         const claimedDay7: React.CSSProperties = {
             ...day7,
-            background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
-            opacity: 0.6,
-            cursor: 'default',
-            filter: 'grayscale(0.8)'
+            background: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)',
+            cursor: 'default'
         }
         
         const cardStyle = claimed && !isCurrent 
@@ -1808,7 +1804,6 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
             <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
-                <div style={title}>{t('daily_title')}</div>
                 <div style={descr}>{t('daily_descr')}</div>
                 <div style={{display:'grid', placeItems:'center', marginTop:16}}>
                     <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
