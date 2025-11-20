@@ -1447,7 +1447,7 @@ export function GameScreen() {
                 <div style={centerInfoOverlay} onClick={() => setInviteInfoOpen(false)}>
                     <div style={centerInfoCard} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
-                            <div style={newsPopupTitle}>{t('invite_title')}</div>
+                            <div />
                             <button style={newsCloseBtn} onClick={() => setInviteInfoOpen(false)}>✕</button>
                         </div>
                         <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4}}>
