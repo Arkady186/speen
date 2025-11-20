@@ -1444,8 +1444,8 @@ export function GameScreen() {
                 </div>
             )}
             {inviteInfoOpen && (
-                <div style={{...overlayDim, zIndex: 90}} onClick={() => setInviteInfoOpen(false)}>
-                    <div style={modalSheet} onClick={(e)=>e.stopPropagation()}>
+                <div style={centerInfoOverlay} onClick={() => setInviteInfoOpen(false)}>
+                    <div style={centerInfoCard} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
                             <div style={newsPopupTitle}>{t('invite_title')}</div>
                             <button style={newsCloseBtn} onClick={() => setInviteInfoOpen(false)}>✕</button>
@@ -2508,6 +2508,22 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 const inviteInnerWrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
+// центрированное модальное окно для подсказок (используется для Invite)
+const centerInfoOverlay: React.CSSProperties = {
+    position:'fixed', left:0, right:0, top:0, bottom:0,
+    background:'rgba(0,0,0,0.7)',
+    display:'grid', placeItems:'center',
+    zIndex:90,
+    animation:'overlayFadeIn 260ms ease-out'
+}
+const centerInfoCard: React.CSSProperties = {
+    width:'88%',
+    maxWidth:420,
+    background:'linear-gradient(180deg,#3d74c6 0%, #2b66b9 100%)',
+    borderRadius:16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 10px 24px rgba(0,0,0,0.45)',
+    padding:14
+}
 
 function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> {
     return [
