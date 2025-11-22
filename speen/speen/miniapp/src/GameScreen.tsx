@@ -2335,7 +2335,7 @@ const overlayDimModal: React.CSSProperties = {
 }
 
 const modalSheet: React.CSSProperties = {
-    width:'92%',
+    width:'88%',
     maxWidth: 420,
     maxHeight:'70vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
@@ -2348,7 +2348,7 @@ const modalSheet: React.CSSProperties = {
 
 const inviteSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'96%', maxWidth: 460, maxHeight:'85vh',
+    width:'90%', maxWidth: 440, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35) ',
@@ -2387,8 +2387,8 @@ const friendName: React.CSSProperties = { color:'#fff', fontWeight:900, letterSp
 const friendAmount: React.CSSProperties = { color:'#fff', fontWeight:900, textShadow:'0 1px 0 rgba(0,0,0,0.35)', display:'grid', gridAutoFlow:'column', alignItems:'center' }
 
 const newsPopup: React.CSSProperties = {
-    width:'92%',
-    maxWidth: 480,
+    width:'88%',
+    maxWidth: 460,
     maxHeight:'80vh',
     background:'linear-gradient(135deg, #4a90e2 0%, #357abd 50%, #2a5b9f 100%)',
     borderRadius: 20,
@@ -2430,7 +2430,7 @@ const sheet: React.CSSProperties = {
     left:'50%',
     top:'50%',
     transform:'translate(-50%, -50%)',
-    width:'92%',
+    width:'88%',
     maxWidth: 420,
     maxHeight:'70vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
@@ -2444,7 +2444,7 @@ const sheet: React.CSSProperties = {
 
 const newsSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'96%', maxWidth: 460, maxHeight:'72vh',
+    width:'90%', maxWidth: 440, maxHeight:'72vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35)',
