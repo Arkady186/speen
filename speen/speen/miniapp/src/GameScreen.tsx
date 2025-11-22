@@ -1467,10 +1467,6 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <div style={{width:36}} />
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}>✕</button>
-                        </div>
                         <ShopPanel
                             t={t}
                             lang={lang}
@@ -1985,7 +1981,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
     
     const bonusCounts = getBonusCounts()
     
-    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:14 }
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
     const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
     const infoBtn: React.CSSProperties = { 
@@ -2002,26 +1998,31 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
     }
     const descrPill: React.CSSProperties = { color:'#0b2f68', background:'#ffffff', borderRadius:12, padding:'6px 10px', textAlign:'center', fontWeight:900, lineHeight:1.35, boxShadow:'0 3px 0 rgba(0,0,0,0.25)', margin:'0 auto', width:'95%' }
-    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }
+    const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, marginTop:10 }
     const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center', position:'relative' }
     const iconImg: React.CSSProperties = { width:64, height:64, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }
-    const plusWrap: React.CSSProperties = { ...cellBase, background:'linear-gradient(180deg,#4b90d6,#2b66b9)', position:'relative' }
-    const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'transparent', color:'#22c55e', fontWeight:900, fontSize:40 }
+    const emptyCell: React.CSSProperties = { 
+        ...cellBase, 
+        background:'linear-gradient(180deg,rgba(107,179,255,0.25),rgba(43,102,185,0.4))', 
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.7)',
+        opacity:0.75 
+    }
+    const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'transparent', color:'#ffffff', fontWeight:900, fontSize:40 }
     const countBadge: React.CSSProperties = {
         position:'absolute',
-        bottom:4,
-        right:4,
-        background:'#22c55e',
-        color:'#fff',
+        bottom:8,
+        right:8,
+        background:'#ffffff',
+        color:'#0b2f68',
         borderRadius:'50%',
-        width:24,
-        height:24,
+        width:26,
+        height:26,
         display:'grid',
         placeItems:'center',
         fontSize:12,
         fontWeight:900,
-        boxShadow:'0 2px 4px rgba(0,0,0,0.3)',
-        border:'2px solid #fff'
+        boxShadow:'0 2px 6px rgba(0,0,0,0.35)',
+        border:'2px solid rgba(11,47,104,0.85)'
     }
     const infoModal: React.CSSProperties = {
         position:'fixed', left:0, right:0, top:0, bottom:0,
@@ -2045,8 +2046,11 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/press5.png" alt="bag" style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            <div style={{display:'flex', justifyContent:'flex-end'}}>
+                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
+            </div>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/press5.png" alt="bag" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('shop_title')}</div>
@@ -2072,8 +2076,11 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                         <div style={countBadge}>{bonusCounts['+25%']}</div>
                     )}
                 </div>
-                <div style={plusWrap}><div style={plusInner}>+</div></div>
-                {Array.from({length:9}).map((_,i)=> (<div key={`p-${i}`} style={plusWrap}><div style={plusInner}>+</div></div>))}
+                {Array.from({length:7}).map((_,i)=> (
+                    <div key={`p-${i}`} style={emptyCell}>
+                        <div style={plusInner}>+</div>
+                    </div>
+                ))}
             </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
