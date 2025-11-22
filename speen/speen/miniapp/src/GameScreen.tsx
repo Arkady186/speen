@@ -1997,7 +1997,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         transition:'all 120ms ease',
         boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
     }
-    const descrPill: React.CSSProperties = { color:'#0b2f68', background:'#ffffff', borderRadius:12, padding:'6px 10px', textAlign:'center', fontWeight:900, lineHeight:1.35, boxShadow:'0 3px 0 rgba(0,0,0,0.25)', margin:'0 auto', width:'95%' }
+    const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
     const grid: React.CSSProperties = { display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, marginTop:10 }
     const cellBase: React.CSSProperties = { background:'linear-gradient(180deg,#6bb3ff,#2b66b9)', borderRadius:26, boxShadow:'inset 0 0 0 3px #0b2f68', height:110, display:'grid', placeItems:'center', position:'relative' }
     const iconImg: React.CSSProperties = { width:64, height:64, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }
@@ -2085,7 +2085,6 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
             <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
-                <div style={title}>{t('shop_title')}</div>
                 <div style={descrPill}>{lang==='ru' ? 'Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.' : 'This section is your backpack. Here are all your purchases and bonuses received in the game.'}</div>
                 <div style={{display:'grid', placeItems:'center', marginTop:16}}>
                     <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
