@@ -2348,7 +2348,7 @@ const modalSheet: React.CSSProperties = {
 
 const inviteSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'90%', maxWidth: 440, maxHeight:'85vh',
+    width:'82%', maxWidth: 420, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35) ',
@@ -2444,7 +2444,7 @@ const sheet: React.CSSProperties = {
 
 const newsSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'90%', maxWidth: 440, maxHeight:'72vh',
+    width:'82%', maxWidth: 420, maxHeight:'72vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35)',
