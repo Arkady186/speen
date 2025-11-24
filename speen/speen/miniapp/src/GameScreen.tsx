@@ -481,6 +481,15 @@ export function GameScreen() {
             localStorage.setItem('balance_w', String(nextW))
             localStorage.setItem('balance_b', String(nextB))
         } catch {}
+        // Параллельно сохраняем баланс в CloudStorage Telegram, чтобы он был общим для телефона и ПК
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            const cloud = tg?.CloudStorage
+            if (cloud && userId) {
+                const payload = JSON.stringify({ balanceW: nextW, balanceB: nextB })
+                cloud.setItem('speen_balance_v1', payload, () => {})
+            }
+        } catch {}
     }
 
     function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
@@ -897,6 +906,24 @@ export function GameScreen() {
                     const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
                     setFriends(JSON.parse(raw))
                 } catch { setFriends([]) }
+
+                // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
+                try {
+                    const cloud = tg?.CloudStorage
+                    if (cloud && u.id) {
+                        cloud.getItem('speen_balance_v1', (err: any, value: string | null) => {
+                            if (err || !value) return
+                            try {
+                                const parsed = JSON.parse(value)
+                                const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
+                                const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
+                                if (w != null && b != null) {
+                                    saveBalances(w, b)
+                                }
+                            } catch {}
+                        })
+                    }
+                } catch {}
             }
             // Process referral start param (ref_XXXX)
             const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
