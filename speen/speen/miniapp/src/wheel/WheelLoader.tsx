@@ -18,6 +18,18 @@ function generateSlices(count: number) {
 	}))
 }
 
+function parseUserFromInitDataString(initData: string | undefined) {
+	if (!initData) return null
+	try {
+		const sp = new URLSearchParams(initData)
+		const userJson = sp.get('user')
+		if (!userJson) return null
+		return JSON.parse(userJson)
+	} catch {
+		return null
+	}
+}
+
 export function WheelLoader({ onDone }: { onDone?: () => void }) {
 	const slices = React.useMemo(() => generateSlices(SLICE_COUNT), [])
 	const [userId, setUserId] = React.useState<string | null>(null)
@@ -27,10 +39,22 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 			const tg = (window as any).Telegram?.WebApp
 			tg?.ready?.()
 			tg?.expand?.()
-			const id = tg?.initDataUnsafe?.user?.id ?? null
+
+			const unsafeUser = tg?.initDataUnsafe?.user
+			const parsedUser = unsafeUser ? null : parseUserFromInitDataString(tg?.initData)
+			const user = unsafeUser || parsedUser
+
+			const id = user?.id ?? null
 			if (id) {
-				setUserId(String(id))
-				try { localStorage.setItem('speen_user_id', String(id)) } catch {}
+				const idStr = String(id)
+				setUserId(idStr)
+				try { localStorage.setItem('speen_user_id', idStr) } catch {}
+			} else {
+				// запасной вариант: показать ID, если он уже был сохранён ранее
+				try {
+					const stored = localStorage.getItem('speen_user_id')
+					if (stored) setUserId(stored)
+				} catch {}
 			}
 		} catch {}
 
