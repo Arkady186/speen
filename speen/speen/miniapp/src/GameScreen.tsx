@@ -933,28 +933,74 @@ export function GameScreen() {
             if (startParam && String(startParam).startsWith('ref_') && curId) {
                 const inviterId = Number(String(startParam).slice(4))
                 if (inviterId && inviterId !== curId) {
-                    const invitee: FriendEntry = { id: curId, name: (u?.username || uname) || 'Unknown account', photo: u?.photo_url, rewardW: 5000, level: 1 }
+                    // Проверяем, был ли пользователь уже зарегистрирован ранее
+                    const wasRegisteredKey = `user_registered_${curId}`
+                    const wasAlreadyRegistered = localStorage.getItem(wasRegisteredKey) === '1'
+                    
+                    // Формируем данные приглашённого с реальным именем
+                    const inviteeName = (u?.username || uname) || (u?.first_name ? `${u.first_name}${u?.last_name ? ' ' + u.last_name : ''}` : 'Player')
+                    const invitee: FriendEntry = { 
+                        id: curId, 
+                        name: inviteeName, 
+                        photo: u?.photo_url, 
+                        rewardW: wasAlreadyRegistered ? 0 : 5000, // Бонус только для новых пользователей
+                        level: 1 
+                    }
+                    
+                    // Добавляем приглашённого в список друзей инвайтера
                     const inviterKey = `friends_${inviterId}`
                     try {
                         const raw = localStorage.getItem(inviterKey) || '[]'
                         const list: FriendEntry[] = JSON.parse(raw)
-                        if (!list.some(x => x.id === invitee.id)) {
+                        const existingFriend = list.find(x => x.id === invitee.id)
+                        if (!existingFriend) {
+                            // Новый друг - добавляем
                             list.push(invitee)
+                            localStorage.setItem(inviterKey, JSON.stringify(list))
+                        } else if (!wasAlreadyRegistered && existingFriend.rewardW === 0) {
+                            // Обновляем бонус, если друг вернулся и раньше не получал награду
+                            existingFriend.rewardW = 5000
                             localStorage.setItem(inviterKey, JSON.stringify(list))
                         }
                     } catch {}
-                    // Also add inviter to current user's list for symmetric display
+                    
+                    // Добавляем инвайтера в список друзей текущего пользователя (взаимная связь)
                     try {
-                        const invName = 'Unknown account'
                         const curKey = `friends_${curId}`
                         const raw2 = localStorage.getItem(curKey) || '[]'
                         const list2: FriendEntry[] = JSON.parse(raw2)
                         if (!list2.some(x => x.id === inviterId)) {
-                            list2.push({ id: inviterId, name: invName, rewardW: 5000, level: 1 })
+                            // Пытаемся получить имя инвайтера из его данных (если они есть в localStorage)
+                            let inviterName = 'Friend'
+                            try {
+                                const inviterDataKey = `user_data_${inviterId}`
+                                const inviterDataRaw = localStorage.getItem(inviterDataKey)
+                                if (inviterDataRaw) {
+                                    const inviterData = JSON.parse(inviterDataRaw)
+                                    inviterName = inviterData.name || inviterName
+                                }
+                            } catch {}
+                            
+                            list2.push({ 
+                                id: inviterId, 
+                                name: inviterName, 
+                                rewardW: 0, // Инвайтер не получает бонус за то, что его добавили
+                                level: 1 
+                            })
                             localStorage.setItem(curKey, JSON.stringify(list2))
                             setFriends(list2)
                         }
                     } catch {}
+                    
+                    // Отмечаем пользователя как зарегистрированного
+                    if (!wasAlreadyRegistered) {
+                        localStorage.setItem(wasRegisteredKey, '1')
+                        // Сохраняем данные пользователя для будущих рефералов
+                        try {
+                            const userDataKey = `user_data_${curId}`
+                            localStorage.setItem(userDataKey, JSON.stringify({ name: inviteeName, photo: u?.photo_url }))
+                        } catch {}
+                    }
                 }
             }
         } catch {}
