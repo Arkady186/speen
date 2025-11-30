@@ -1403,10 +1403,6 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <div style={{width:36}} />
-                            <button style={sheetCloseArrow} onClick={() => { setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 280) }}>✕</button>
-                        </div>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1425,8 +1421,15 @@ export function GameScreen() {
                                 if ((navigator as any)?.share) { (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{}); return }
                                         navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
                             }
+                            const handleInviteClose = () => {
+                                setInviteAnimatingOut(true)
+                                setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280)
+                            }
                             return (
                                 <div style={inviteInnerWrap}>
+                                    <div style={{display:'flex', justifyContent:'flex-end'}}>
+                                        <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
+                                    </div>
                                     <div style={{display:'grid', placeItems:'center'}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
@@ -1645,10 +1648,6 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <div style={{width:36}} />
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) }}>✕</button>
-                        </div>
                         <DailyBonus
                             t={t}
                             lang={lang}
@@ -1710,7 +1709,7 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     }
 
     // Styles под дизайн
-    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', width:'88%', margin:'0 auto' }
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', width:'88%', margin:'0 auto', position:'relative' }
     const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
     const infoBtn: React.CSSProperties = { 
@@ -1816,6 +1815,9 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     return (
         <>
         <div style={wrap}>
+            <div style={{display:'flex', justifyContent:'flex-end'}}>
+                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
+            </div>
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/press3.png" alt="daily" style={{width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
