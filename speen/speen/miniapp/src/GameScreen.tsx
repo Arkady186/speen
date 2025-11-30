@@ -1076,17 +1076,23 @@ export function GameScreen() {
                     try {
                         const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
                         const url = `${API_BASE}/api/referrals/register`.replace(/\/+api/,'/api')
-                        await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                inviterId,
-                                friendId: curId,
-                                alreadyRegistered: wasAlreadyRegistered
-                            })
-                        })
+                        ;(async () => {
+                            try {
+                                await fetch(url, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        inviterId,
+                                        friendId: curId,
+                                        alreadyRegistered: wasAlreadyRegistered
+                                    })
+                                })
+                            } catch (e) {
+                                console.error('Failed to register referral on server:', e)
+                            }
+                        })()
                     } catch (e) {
-                        console.error('Failed to register referral on server:', e)
+                        console.error('Failed to register referral on server (outer):', e)
                     }
 
                     // Отмечаем пользователя как зарегистрированного (локальный маркер – для alreadyRegistered)
