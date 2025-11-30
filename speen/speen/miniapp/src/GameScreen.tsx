@@ -2403,7 +2403,7 @@ const inviteGrabWrap: React.CSSProperties = { display:'grid', placeItems:'center
 const inviteGrabBar: React.CSSProperties = { width:48, height:6, borderRadius:3, background:'rgba(255,255,255,0.8)', boxShadow:'0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px rgba(11,47,104,0.6)' }
 const settingsFloatBtn: React.CSSProperties = { position:'fixed' } // not used anymore
 // Invite redesign styles
-const inviteHeroImg: React.CSSProperties = { width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
+const inviteHeroImg: React.CSSProperties = { width:220, height:220, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))' }
 const inviteTitleLarge: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:24, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
 const inviteSubtitlePill: React.CSSProperties = { padding:'6px 10px', background:'#ffffff', borderRadius:10, display:'inline-block', boxShadow:'0 3px 0 rgba(0,0,0,0.2)', color:'#0b2f68', fontWeight:900 }
 const inviteCtaPill: React.CSSProperties = { display:'grid', gridAutoFlow:'column', alignItems:'center', justifyContent:'center', gap:6, padding:'14px 16px', background:'linear-gradient(180deg,#5aa2ff,#2b66b9)', color:'#fff', border:'none', borderRadius:26, fontWeight:900, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
