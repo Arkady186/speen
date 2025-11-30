@@ -1132,6 +1132,7 @@ export function GameScreen() {
             '/friends.png',
             '/nagrada days.png',
             '/reiting.png',
+            '/lev bonus.png',
             // Иконки правого меню
             '/press7.png',
             '/press8.png',
@@ -2351,7 +2352,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                 <button style={sheetCloseArrow} onClick={onClose}>✕</button>
             </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/press5.png" alt="bag" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/lev bonus.png" alt="bag" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('shop_title')}</div>
