@@ -32,4 +32,15 @@ html, body, #root {
 	letter-spacing: 0.3px;
 }
 
+/* Анимация появления друзей в списке */
+@keyframes friendSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
 

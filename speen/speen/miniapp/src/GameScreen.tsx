@@ -165,6 +165,9 @@ export function GameScreen() {
     const inviteDragStartHeightVh = React.useRef<number>(64)
     const inviteLastY = React.useRef<number>(0)
     const inviteLastTs = React.useRef<number>(0)
+    
+    type FriendEntry = { id: number, name: string, photo?: string, rewardW: number, level?: number }
+    const [friends, setFriends] = React.useState<FriendEntry[]>([])
 
     // Stars bottom-sheet state
     const [starsAnimatingOut, setStarsAnimatingOut] = React.useState<boolean>(false)
@@ -900,12 +903,14 @@ export function GameScreen() {
                 if (u.photo_url) setAvatarUrl(u.photo_url)
                 const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
                 setInitials(ini.toUpperCase())
-                if (u.id) setUserId(Number(u.id))
-                // Load friends for current user (if any)
-                try {
-                    const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
-                    setFriends(JSON.parse(raw))
-                } catch { setFriends([]) }
+                if (u.id) {
+                    setUserId(Number(u.id))
+                    // Load friends for current user (if any)
+                    try {
+                        const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
+                        setFriends(JSON.parse(raw))
+                    } catch { setFriends([]) }
+                }
 
                 // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
                 try {
@@ -931,7 +936,7 @@ export function GameScreen() {
             if (startParam && String(startParam).startsWith('ref_') && curId) {
                 const inviterId = Number(String(startParam).slice(4))
                 if (inviterId && inviterId !== curId) {
-                    const invitee: FriendEntry = { id: curId, name: (u?.username || uname) || 'Unknown account', photo: u?.photo_url, rewardW: 5000 }
+                    const invitee: FriendEntry = { id: curId, name: (u?.username || uname) || 'Unknown account', photo: u?.photo_url, rewardW: 5000, level: 1 }
                     const inviterKey = `friends_${inviterId}`
                     try {
                         const raw = localStorage.getItem(inviterKey) || '[]'
@@ -948,7 +953,7 @@ export function GameScreen() {
                         const raw2 = localStorage.getItem(curKey) || '[]'
                         const list2: FriendEntry[] = JSON.parse(raw2)
                         if (!list2.some(x => x.id === inviterId)) {
-                            list2.push({ id: inviterId, name: invName, rewardW: 5000 })
+                            list2.push({ id: inviterId, name: invName, rewardW: 5000, level: 1 })
                             localStorage.setItem(curKey, JSON.stringify(list2))
                             setFriends(list2)
                         }
@@ -1452,19 +1457,86 @@ export function GameScreen() {
                                         <img src="/coin-w.png" alt="coin" style={{width:26,height:26, filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))'}} />
                                         <span style={{marginLeft:10}}>{t('invite_cta')}</span>
                                     </button>
-                                    <div style={{display:'grid', placeItems:'center'}}>
+                                    
+                                    {/* Счётчик приглашённых друзей с иконкой достижения */}
+                                    <div style={{
+                                        display:'flex', 
+                                        alignItems:'center', 
+                                        justifyContent:'center', 
+                                        gap:10,
+                                        padding:'12px 16px',
+                                        background:'linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.15))',
+                                        borderRadius:16,
+                                        boxShadow:'inset 0 0 0 2px rgba(255,215,0,0.4)',
+                                        marginTop:8
+                                    }}>
+                                        <div style={{
+                                            fontSize:32,
+                                            filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                                        }}>🏆</div>
+                                        <div style={{display:'grid', gap:2}}>
+                                            <div style={{color:'#ffd700', fontWeight:900, fontSize:18, textShadow:'0 1px 2px rgba(0,0,0,0.4)'}}>
+                                                {friends.length} {lang==='ru' ? (friends.length === 1 ? 'друг' : friends.length < 5 ? 'друга' : 'друзей') : (friends.length === 1 ? 'friend' : 'friends')}
+                                            </div>
+                                            <div style={{color:'#ffe27a', fontSize:12, fontWeight:700, opacity:0.9}}>
+                                                {lang==='ru' ? 'Приглашено' : 'Invited'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{display:'grid', placeItems:'center', marginTop:8}}>
                                         <div style={friendsHeaderLbl}>{t('friends_list')}</div>
                                     </div>
                                     <div style={{display:'grid', gap:12}}>
                                         {friends.length === 0 ? (
                                             <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>{t('empty')}</div>
-                                        ) : friends.map((f)=> (
-                                            <div key={`fr-${f.id}`} style={friendRow}>
+                                        ) : friends.map((f, idx)=> (
+                                            <div 
+                                                key={`fr-${f.id}`} 
+                                                style={{
+                                                    ...friendRow,
+                                                    animation: `friendSlideIn 400ms ease-out ${idx * 80}ms both`,
+                                                    gridTemplateColumns:'56px 1fr auto auto'
+                                                }}
+                                            >
                                                 <div style={friendAvatar}>
-                                                    {f.photo ? <img src={f.photo} alt="avatar" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} /> : <div style={{width:'100%',height:'100%',borderRadius:'50%',background:'#ffdc8b',boxShadow:'inset 0 0 0 3px #7a4e06'}} />}
+                                                    {f.photo ? (
+                                                        <img src={f.photo} alt="avatar" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} />
+                                                    ) : (
+                                                        <div style={{
+                                                            width:'100%',
+                                                            height:'100%',
+                                                            borderRadius:'50%',
+                                                            background:'linear-gradient(135deg, #ffd86b 0%, #f2a93b 100%)',
+                                                            boxShadow:'inset 0 0 0 3px #7a4e06',
+                                                            display:'grid',
+                                                            placeItems:'center',
+                                                            fontSize:24,
+                                                            fontWeight:900,
+                                                            color:'#7a4e06'
+                                                        }}>
+                                                            {(f.name?.[0] || '?').toUpperCase()}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div style={friendName}>{f.name || 'Unknown account'}</div>
-                                                <div style={friendAmount}><img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> {(f.rewardW/1000).toFixed(1)}K</div>
+                                                <div style={{display:'grid', gap:2}}>
+                                                    <div style={friendName}>{f.name || 'Unknown'}</div>
+                                                    <div style={{
+                                                        color:'#ffe27a',
+                                                        fontSize:12,
+                                                        fontWeight:700,
+                                                        display:'flex',
+                                                        alignItems:'center',
+                                                        gap:4
+                                                    }}>
+                                                        <span>⭐</span>
+                                                        <span>{lang==='ru' ? 'Уровень' : 'Level'} {f.level || 1}</span>
+                                                    </div>
+                                                </div>
+                                                <div style={friendAmount}>
+                                                    <img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> 
+                                                    {(f.rewardW/1000).toFixed(1)}K
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
