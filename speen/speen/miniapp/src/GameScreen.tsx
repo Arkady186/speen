@@ -268,9 +268,6 @@ export function GameScreen() {
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
-    // Friends/invites
-    type FriendEntry = { id: number, name: string, photo?: string, rewardW: number }
-    const [friends, setFriends] = React.useState<FriendEntry[]>([])
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
