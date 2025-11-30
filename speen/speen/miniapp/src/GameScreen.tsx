@@ -482,6 +482,33 @@ export function GameScreen() {
         return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis) }
     }, [])
 
+    async function syncPlayerToServer(opts: { balanceW?: number, balanceB?: number }) {
+        try {
+            if (!userId) return
+            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+            const url = `${API_BASE}/api/player/upsert`.replace(/\/+api/,'/api')
+            const dailyLast = localStorage.getItem('daily_last') || null
+            const dailyStreakStr = localStorage.getItem('daily_streak') || '0'
+            const dailyStreak = Number(dailyStreakStr) || 0
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: userId,
+                    username: username || null,
+                    photo: avatarUrl || null,
+                    level: 1,
+                    balanceW: typeof opts.balanceW === 'number' ? opts.balanceW : balanceW,
+                    balanceB: typeof opts.balanceB === 'number' ? opts.balanceB : balanceB,
+                    dailyLast,
+                    dailyStreak
+                })
+            })
+        } catch (e) {
+            console.error('Failed to sync player profile:', e)
+        }
+    }
+
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
         setBalanceB(nextB)
@@ -498,7 +525,9 @@ export function GameScreen() {
                 cloud.setItem('speen_balance_v1', payload, () => {})
             }
         } catch {}
-        // Отправляем данные в рейтинг (debounced через setTimeout)
+        // Сохраняем профиль на сервере и обновляем рейтинг
+        syncPlayerToServer({ balanceW: nextW, balanceB: nextB })
+        // Отправляем данные в рейтинг (debounced через setTimeout, для сортировки топа)
         updateLeaderboard(nextW, nextB)
     }
     
@@ -953,11 +982,56 @@ export function GameScreen() {
                 setInitials(ini.toUpperCase())
                 if (u.id) {
                     setUserId(Number(u.id))
-                    // Load friends for current user (if any)
-                    try {
-                        const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
-                        setFriends(JSON.parse(raw))
-                    } catch { setFriends([]) }
+                    // Загружаем профиль и друзей с сервера как единого источника данных
+                    ;(async () => {
+                        try {
+                            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+                            const pid = Number(u.id)
+                            if (!pid) return
+                            // 1) Профиль игрока
+                            try {
+                                const profileUrl = `${API_BASE}/api/player/profile/${pid}`.replace(/\/+api/,'/api')
+                                const res = await fetch(profileUrl)
+                                if (res.ok) {
+                                    const data = await res.json()
+                                    if (data?.exists && data.profile) {
+                                        const p = data.profile
+                                        if (typeof p.balanceW === 'number' && typeof p.balanceB === 'number') {
+                                            setBalanceW(p.balanceW)
+                                            setBalanceB(p.balanceB)
+                                            try {
+                                                localStorage.setItem('balance_w', String(p.balanceW))
+                                                localStorage.setItem('balance_b', String(p.balanceB))
+                                            } catch {}
+                                        }
+                                        if (typeof p.dailyLast === 'string') {
+                                            try { localStorage.setItem('daily_last', p.dailyLast) } catch {}
+                                        }
+                                        if (typeof p.dailyStreak === 'number') {
+                                            try { localStorage.setItem('daily_streak', String(p.dailyStreak)) } catch {}
+                                        }
+                                    } else {
+                                        // если профиля нет — создаём его на сервере на основе локальных данных
+                                        syncPlayerToServer({})
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Failed to load profile from server:', e)
+                            }
+                            // 2) Список друзей (рефералы)
+                            try {
+                                const frUrl = `${API_BASE}/api/referrals/my/${pid}`.replace(/\/+api/,'/api')
+                                const frRes = await fetch(frUrl)
+                                if (frRes.ok) {
+                                    const frData = await frRes.json()
+                                    const items = Array.isArray(frData?.items) ? frData.items : []
+                                    setFriends(items)
+                                }
+                            } catch (e) {
+                                console.error('Failed to load friends from server:', e)
+                            }
+                        } catch {}
+                    })()
                 }
 
                 // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
@@ -998,52 +1072,24 @@ export function GameScreen() {
                         level: 1 
                     }
                     
-                    // Добавляем приглашённого в список друзей инвайтера
-                    const inviterKey = `friends_${inviterId}`
+                    // Сообщаем на сервер о регистрации реферала
                     try {
-                        const raw = localStorage.getItem(inviterKey) || '[]'
-                        const list: FriendEntry[] = JSON.parse(raw)
-                        const existingFriend = list.find(x => x.id === invitee.id)
-                        if (!existingFriend) {
-                            // Новый друг - добавляем
-                            list.push(invitee)
-                            localStorage.setItem(inviterKey, JSON.stringify(list))
-                        } else if (!wasAlreadyRegistered && existingFriend.rewardW === 0) {
-                            // Обновляем бонус, если друг вернулся и раньше не получал награду
-                            existingFriend.rewardW = 5000
-                            localStorage.setItem(inviterKey, JSON.stringify(list))
-                        }
-                    } catch {}
-                    
-                    // Добавляем инвайтера в список друзей текущего пользователя (взаимная связь)
-                    try {
-                        const curKey = `friends_${curId}`
-                        const raw2 = localStorage.getItem(curKey) || '[]'
-                        const list2: FriendEntry[] = JSON.parse(raw2)
-                        if (!list2.some(x => x.id === inviterId)) {
-                            // Пытаемся получить имя инвайтера из его данных (если они есть в localStorage)
-                            let inviterName = 'Friend'
-                            try {
-                                const inviterDataKey = `user_data_${inviterId}`
-                                const inviterDataRaw = localStorage.getItem(inviterDataKey)
-                                if (inviterDataRaw) {
-                                    const inviterData = JSON.parse(inviterDataRaw)
-                                    inviterName = inviterData.name || inviterName
-                                }
-                            } catch {}
-                            
-                            list2.push({ 
-                                id: inviterId, 
-                                name: inviterName, 
-                                rewardW: 0, // Инвайтер не получает бонус за то, что его добавили
-                                level: 1 
+                        const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+                        const url = `${API_BASE}/api/referrals/register`.replace(/\/+api/,'/api')
+                        await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                inviterId,
+                                friendId: curId,
+                                alreadyRegistered: wasAlreadyRegistered
                             })
-                            localStorage.setItem(curKey, JSON.stringify(list2))
-                            setFriends(list2)
-                        }
-                    } catch {}
-                    
-                    // Отмечаем пользователя как зарегистрированного
+                        })
+                    } catch (e) {
+                        console.error('Failed to register referral on server:', e)
+                    }
+
+                    // Отмечаем пользователя как зарегистрированного (локальный маркер – для alreadyRegistered)
                     if (!wasAlreadyRegistered) {
                         localStorage.setItem(wasRegisteredKey, '1')
                         // Сохраняем данные пользователя для будущих рефералов
