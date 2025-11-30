@@ -1027,6 +1027,7 @@ export function GameScreen() {
             '/press5.png',
             '/press6.png',
             '/friends.png',
+            '/nagrada days.png',
             // Иконки правого меню
             '/press7.png',
             '/press8.png',
@@ -1934,7 +1935,7 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
                 <button style={sheetCloseArrow} onClick={onClose}>✕</button>
             </div>
             <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/press3.png" alt="daily" style={{width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/nagrada days.png" alt="daily" style={{width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('daily_title')}</div>
