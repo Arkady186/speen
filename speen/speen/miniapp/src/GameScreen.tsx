@@ -1430,7 +1430,7 @@ export function GameScreen() {
                                     <div style={{display:'flex', justifyContent:'flex-end'}}>
                                         <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
                                     </div>
-                                    <div style={{display:'grid', placeItems:'center'}}>
+                                    <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
                                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
@@ -2542,7 +2542,7 @@ const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bo
 const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', borderRadius:8, border:'none', background:'#cbe6ff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#083068', fontWeight:800 }
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
-const inviteInnerWrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:8 }
+const inviteInnerWrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:0 }
 // центрированное модальное окно для подсказок (используется для Invite)
 const centerInfoOverlay: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
