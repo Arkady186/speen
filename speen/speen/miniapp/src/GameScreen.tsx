@@ -268,6 +268,14 @@ export function GameScreen() {
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
+    const [leaderboardOpen, setLeaderboardOpen] = React.useState<boolean>(false)
+    const [leaderboardAnimatingOut, setLeaderboardAnimatingOut] = React.useState<boolean>(false)
+    const [leaderboardHeightVh, setLeaderboardHeightVh] = React.useState<number>(85)
+    const leaderboardDragStartY = React.useRef<number | null>(null)
+    const leaderboardDragStartTs = React.useRef<number>(0)
+    const leaderboardDragStartHeightVh = React.useRef<number>(64)
+    const leaderboardLastY = React.useRef<number>(0)
+    const leaderboardLastTs = React.useRef<number>(0)
     // (reverted) responsive sizing for right menu cards
     const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
     const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
@@ -490,6 +498,40 @@ export function GameScreen() {
                 cloud.setItem('speen_balance_v1', payload, () => {})
             }
         } catch {}
+        // Отправляем данные в рейтинг (debounced через setTimeout)
+        updateLeaderboard(nextW, nextB)
+    }
+    
+    const leaderboardUpdateTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+    function updateLeaderboard(coins: number, coinsB: number) {
+        if (leaderboardUpdateTimeout.current) {
+            clearTimeout(leaderboardUpdateTimeout.current)
+        }
+        leaderboardUpdateTimeout.current = setTimeout(async () => {
+            try {
+                if (!userId || !username) return
+                const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+                const url = `${API_BASE}/api/leaderboard/upsert`.replace(/\/+api/,'/api')
+                
+                // Пока у всех уровень 1, но можно будет добавить логику расчёта уровня
+                const level = 1
+                const totalCoins = coins + coinsB * 10000 // B конвертируем в эквивалент W для сортировки
+                
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: userId,
+                        name: username,
+                        photo: avatarUrl || null,
+                        level,
+                        coins: totalCoins
+                    })
+                })
+            } catch (e) {
+                console.error('Failed to update leaderboard:', e)
+            }
+        }, 2000) // Отправляем с задержкой 2 секунды, чтобы не спамить при быстрых изменениях
     }
 
     function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
@@ -1028,6 +1070,7 @@ export function GameScreen() {
             '/press6.png',
             '/friends.png',
             '/nagrada days.png',
+            '/reiting.png',
             // Иконки правого меню
             '/press7.png',
             '/press8.png',
@@ -1325,6 +1368,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
+                                        if (act === 'leaderboard') setLeaderboardOpen(true)
                                         if (act === 'ton') { openTonConnect(); return }
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
@@ -1773,6 +1817,52 @@ export function GameScreen() {
                                 setToast(`+${amount} W за ежедневный вход`)
                                 // Окно больше не закрывается автоматически - пользователь сам закроет крестиком
                             }}
+                        />
+                    </div>
+                </div>
+            )}
+            {leaderboardOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${leaderboardHeightVh}vh`, animation: leaderboardAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ leaderboardDragStartY.current = e.clientY; leaderboardDragStartTs.current=Date.now(); leaderboardDragStartHeightVh.current = leaderboardHeightVh; leaderboardLastY.current=e.clientY; leaderboardLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (leaderboardDragStartY.current==null) return; const dy = leaderboardDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, leaderboardDragStartHeightVh.current + dy/(window.innerHeight/100))); setLeaderboardHeightVh(vh); leaderboardLastY.current=e.clientY; leaderboardLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (leaderboardDragStartY.current==null) return; const totalDy = leaderboardDragStartY.current - (leaderboardLastY.current || leaderboardDragStartY.current); const dt = Math.max(1, Date.now() - (leaderboardDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-leaderboardHeightVh)<Math.abs(a-leaderboardHeightVh)?b:a,snaps[0]); setLeaderboardHeightVh(next); triggerHaptic('impact') } leaderboardDragStartY.current=null }}
+                            onPointerCancel={()=>{ leaderboardDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <LeaderboardPanel
+                            onClose={() => { setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 300) }}
+                            userId={userId}
+                            username={username}
+                            avatarUrl={avatarUrl}
+                            t={t}
+                            lang={lang}
+                        />
+                    </div>
+                </div>
+            )}
+            {leaderboardOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${leaderboardHeightVh}vh`, animation: leaderboardAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ leaderboardDragStartY.current = e.clientY; leaderboardDragStartTs.current=Date.now(); leaderboardDragStartHeightVh.current = leaderboardHeightVh; leaderboardLastY.current=e.clientY; leaderboardLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (leaderboardDragStartY.current==null) return; const dy = leaderboardDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, leaderboardDragStartHeightVh.current + dy/(window.innerHeight/100))); setLeaderboardHeightVh(vh); leaderboardLastY.current=e.clientY; leaderboardLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (leaderboardDragStartY.current==null) return; const totalDy = leaderboardDragStartY.current - (leaderboardLastY.current || leaderboardDragStartY.current); const dt = Math.max(1, Date.now() - (leaderboardDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-leaderboardHeightVh)<Math.abs(a-leaderboardHeightVh)?b:a,snaps[0]); setLeaderboardHeightVh(next); triggerHaptic('impact') } leaderboardDragStartY.current=null }}
+                            onPointerCancel={()=>{ leaderboardDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <LeaderboardPanel
+                            onClose={() => { setLeaderboardAnimatingOut(true); setTimeout(()=>{ setLeaderboardOpen(false); setLeaderboardAnimatingOut(false) }, 300) }}
+                            userId={userId}
+                            username={username}
+                            avatarUrl={avatarUrl}
+                            t={t}
+                            lang={lang}
                         />
                     </div>
                 </div>
@@ -2676,12 +2766,293 @@ const centerInfoCard: React.CSSProperties = {
     padding:14
 }
 
-function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' }> {
+function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { onClose: () => void, userId: number | null, username: string, avatarUrl: string, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }) {
+    type LeaderboardEntry = { id: number, name: string, photo: string | null, level: number, coins: number }
+    const [topPlayers, setTopPlayers] = React.useState<LeaderboardEntry[]>([])
+    const [myRank, setMyRank] = React.useState<number | null>(null)
+    const [myData, setMyData] = React.useState<LeaderboardEntry | null>(null)
+    const [totalPlayers, setTotalPlayers] = React.useState<number>(0)
+    const [loading, setLoading] = React.useState<boolean>(true)
+
+    React.useEffect(() => {
+        async function fetchLeaderboard() {
+            try {
+                const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+                
+                // Fetch top 10
+                const topUrl = `${API_BASE}/api/leaderboard/top?limit=10`.replace(/\/+api/,'/api')
+                const topRes = await fetch(topUrl)
+                if (topRes.ok) {
+                    const topData = await topRes.json()
+                    setTopPlayers(topData.items || [])
+                }
+                
+                // Fetch current player rank
+                if (userId) {
+                    const rankUrl = `${API_BASE}/api/leaderboard/rank/${userId}`.replace(/\/+api/,'/api')
+                    const rankRes = await fetch(rankUrl)
+                    if (rankRes.ok) {
+                        const rankData = await rankRes.json()
+                        setMyRank(rankData.rank)
+                        setMyData(rankData.player)
+                        setTotalPlayers(rankData.total)
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch leaderboard:', e)
+            } finally {
+                setLoading(false)
+            }
+        }
+        
+        if (userId) {
+            fetchLeaderboard()
+        }
+    }, [userId])
+
+    const wrap: React.CSSProperties = { 
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', 
+        borderRadius:20, 
+        padding:16, 
+        boxShadow:'inset 0 0 0 3px #0b2f68', 
+        width:'88%', 
+        margin:'0 auto', 
+        position:'relative',
+        display:'grid',
+        gap:14
+    }
+    
+    const title: React.CSSProperties = { 
+        textAlign:'center', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:22, 
+        letterSpacing:1.2, 
+        textShadow:'0 2px 0 rgba(0,0,0,0.35)' 
+    }
+    
+    const subtitle: React.CSSProperties = {
+        textAlign:'center',
+        color:'#e8f1ff',
+        fontSize:13,
+        fontWeight:700,
+        opacity:0.9,
+        lineHeight:1.4
+    }
+    
+    const playerCard: React.CSSProperties = {
+        display:'grid',
+        gridTemplateColumns:'auto 56px 1fr auto auto',
+        alignItems:'center',
+        gap:12,
+        padding:'12px 14px',
+        background:'linear-gradient(180deg,#6bb3ff,#2b66b9)',
+        borderRadius:20,
+        boxShadow:'inset 0 0 0 3px #0b2f68',
+        animation:'friendSlideIn 400ms ease-out both'
+    }
+    
+    const myPlayerCard: React.CSSProperties = {
+        ...playerCard,
+        background:'linear-gradient(135deg, #ffd700 0%, #f2a93b 100%)',
+        boxShadow:'0 0 0 3px #ffd700, inset 0 0 0 3px #7a4e06'
+    }
+    
+    const rankBadge: React.CSSProperties = {
+        width:40,
+        height:40,
+        borderRadius:'50%',
+        background:'linear-gradient(135deg, #ffd700 0%, #f2a93b 100%)',
+        color:'#7a4e06',
+        fontWeight:900,
+        fontSize:16,
+        display:'grid',
+        placeItems:'center',
+        boxShadow:'0 4px 8px rgba(0,0,0,0.3), inset 0 0 0 3px #7a4e06'
+    }
+    
+    const avatar: React.CSSProperties = {
+        width:56,
+        height:56,
+        borderRadius:'50%',
+        display:'grid',
+        placeItems:'center',
+        background:'#fff',
+        boxShadow:'inset 0 0 0 3px #0b2f68',
+        overflow:'hidden'
+    }
+    
+    const playerInfo: React.CSSProperties = {
+        display:'grid',
+        gap:4
+    }
+    
+    const playerName: React.CSSProperties = {
+        color:'#fff',
+        fontWeight:900,
+        fontSize:15,
+        textShadow:'0 1px 0 rgba(0,0,0,0.35)'
+    }
+    
+    const playerLevel: React.CSSProperties = {
+        color:'#ffe27a',
+        fontSize:12,
+        fontWeight:700,
+        display:'flex',
+        alignItems:'center',
+        gap:4
+    }
+    
+    const coinsDisplay: React.CSSProperties = {
+        color:'#fff',
+        fontWeight:900,
+        fontSize:14,
+        display:'flex',
+        alignItems:'center',
+        gap:6,
+        textShadow:'0 1px 0 rgba(0,0,0,0.35)'
+    }
+
+    return (
+        <>
+        <div style={wrap}>
+            <div style={{display:'flex', justifyContent:'flex-end'}}>
+                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
+            </div>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/reiting.png" alt="leaderboard" style={{width:180, height:180, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={title}>{lang==='ru' ? 'Рейтинг игроков' : 'Leaderboard'}</div>
+            <div style={subtitle}>
+                {lang==='ru' 
+                    ? 'Отслеживай свои достижения в рейтинге среди игроков по всему миру. Стань лучшим — займи верхнюю строчку!' 
+                    : 'Track your achievements in the global leaderboard. Become the best — take the top spot!'}
+            </div>
+            
+            {loading ? (
+                <div style={{color:'#e8f1ff', textAlign:'center', padding:20}}>
+                    {lang==='ru' ? 'Загрузка...' : 'Loading...'}
+                </div>
+            ) : (
+                <>
+                    {/* My Position */}
+                    {myRank && myData && (
+                        <div style={{marginTop:8}}>
+                            <div style={{color:'#ffe27a', fontWeight:900, fontSize:14, marginBottom:8, textAlign:'center'}}>
+                                {lang==='ru' ? 'Ваша позиция' : 'Your Position'}
+                            </div>
+                            <div style={myPlayerCard}>
+                                <div style={rankBadge}>#{myRank}</div>
+                                <div style={avatar}>
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="you" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                                    ) : (
+                                        <div style={{
+                                            width:'100%',
+                                            height:'100%',
+                                            borderRadius:'50%',
+                                            background:'linear-gradient(135deg, #ffd86b 0%, #f2a93b 100%)',
+                                            display:'grid',
+                                            placeItems:'center',
+                                            fontSize:24,
+                                            fontWeight:900,
+                                            color:'#7a4e06'
+                                        }}>
+                                            {(username?.[0] || '?').toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                <div style={playerInfo}>
+                                    <div style={{...playerName, color:'#7a4e06'}}>{username || 'You'}</div>
+                                    <div style={{...playerLevel, color:'#7a4e06'}}>
+                                        <span>⭐</span>
+                                        <span>{lang==='ru' ? 'Уровень' : 'Level'} {myData.level}</span>
+                                    </div>
+                                </div>
+                                <div style={{...coinsDisplay, color:'#7a4e06'}}>
+                                    <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
+                                    {myData.coins >= 1000 ? `${(myData.coins/1000).toFixed(1)}K` : myData.coins}
+                                </div>
+                            </div>
+                            <div style={{color:'#e8f1ff', fontSize:12, textAlign:'center', marginTop:6, opacity:0.8}}>
+                                {lang==='ru' ? `из ${totalPlayers} игроков` : `of ${totalPlayers} players`}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Top 10 */}
+                    <div style={{marginTop:12}}>
+                        <div style={{color:'#fff', fontWeight:900, fontSize:16, marginBottom:10, textAlign:'center', textShadow:'0 2px 0 rgba(0,0,0,0.35)'}}>
+                            🏆 {lang==='ru' ? 'Топ-10 игроков' : 'Top 10 Players'}
+                        </div>
+                        <div style={{display:'grid', gap:10}}>
+                            {topPlayers.length === 0 ? (
+                                <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85}}>
+                                    {lang==='ru' ? 'Пока нет игроков' : 'No players yet'}
+                                </div>
+                            ) : topPlayers.map((player, idx) => {
+                                const isMe = player.id === userId
+                                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
+                                
+                                return (
+                                    <div 
+                                        key={player.id} 
+                                        style={{
+                                            ...(isMe ? myPlayerCard : playerCard),
+                                            animationDelay: `${idx * 60}ms`
+                                        }}
+                                    >
+                                        <div style={isMe ? {...rankBadge} : {...rankBadge, background:'linear-gradient(135deg, #6bb3ff 0%, #2b66b9 100%)', color:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68'}}>
+                                            {medal || `#${idx + 1}`}
+                                        </div>
+                                        <div style={avatar}>
+                                            {player.photo ? (
+                                                <img src={player.photo} alt={player.name} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                                            ) : (
+                                                <div style={{
+                                                    width:'100%',
+                                                    height:'100%',
+                                                    borderRadius:'50%',
+                                                    background:'linear-gradient(135deg, #ffd86b 0%, #f2a93b 100%)',
+                                                    display:'grid',
+                                                    placeItems:'center',
+                                                    fontSize:24,
+                                                    fontWeight:900,
+                                                    color:'#7a4e06'
+                                                }}>
+                                                    {(player.name?.[0] || '?').toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={playerInfo}>
+                                            <div style={isMe ? {...playerName, color:'#7a4e06'} : playerName}>{player.name || 'Player'}</div>
+                                            <div style={isMe ? {...playerLevel, color:'#7a4e06'} : playerLevel}>
+                                                <span>⭐</span>
+                                                <span>{lang==='ru' ? 'Уровень' : 'Level'} {player.level}</span>
+                                            </div>
+                                        </div>
+                                        <div style={isMe ? {...coinsDisplay, color:'#7a4e06'} : coinsDisplay}>
+                                            <img src="/coin-w.png" alt="W" style={{width:22,height:22}} />
+                                            {player.coins >= 1000 ? `${(player.coins/1000).toFixed(1)}K` : player.coins}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+        </>
+    )
+}
+
+function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' }> {
     return [
         { title: tr('press1_title'), badgeImg:'/coming1.png', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
         { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
         { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
-        { title: tr('press4_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
+        { title: tr('press4_title'), action: 'leaderboard', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
         { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
         { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
     ]
