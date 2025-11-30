@@ -503,6 +503,7 @@ export function GameScreen() {
     }
     
     const leaderboardUpdateTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+    const leaderboardInitSent = React.useRef<boolean>(false)
     function updateLeaderboard(coins: number, coinsB: number) {
         if (leaderboardUpdateTimeout.current) {
             clearTimeout(leaderboardUpdateTimeout.current)
@@ -533,6 +534,14 @@ export function GameScreen() {
             }
         }, 2000) // Отправляем с задержкой 2 секунды, чтобы не спамить при быстрых изменениях
     }
+
+    // Одноразовая инициализация записи игрока в таблице рейтинга после загрузки данных
+    React.useEffect(() => {
+        if (!userId || !username) return
+        if (leaderboardInitSent.current) return
+        leaderboardInitSent.current = true
+        updateLeaderboard(balanceW, balanceB)
+    }, [userId, username])
 
     function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
     async function openStarsPurchase(stars: number, toB: number) {
@@ -1368,7 +1377,11 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
-                                        if (act === 'leaderboard') setLeaderboardOpen(true)
+                                        if (act === 'leaderboard') {
+                                            // Перед открытием рейтинга отправляем текущие данные игрока
+                                            updateLeaderboard(balanceW, balanceB)
+                                            setLeaderboardOpen(true)
+                                        }
                                         if (act === 'ton') { openTonConnect(); return }
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
