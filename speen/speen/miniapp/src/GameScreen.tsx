@@ -978,6 +978,7 @@ export function GameScreen() {
             '/press4.png',
             '/press5.png',
             '/press6.png',
+            '/friends.png',
             // Иконки правого меню
             '/press7.png',
             '/press8.png',
@@ -1427,7 +1428,7 @@ export function GameScreen() {
                             return (
                                 <div style={inviteInnerWrap}>
                                     <div style={{display:'grid', placeItems:'center'}}>
-                                        <img src="/press2.png" alt="invite" style={inviteHeroImg} />
+                                        <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
                                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
                                         <div style={inviteTitleLarge}>{t('invite_title')}</div>
