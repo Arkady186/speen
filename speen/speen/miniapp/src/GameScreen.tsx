@@ -484,25 +484,35 @@ export function GameScreen() {
 
     async function syncPlayerToServer(opts: { balanceW?: number, balanceB?: number }) {
         try {
-            if (!userId) return
+            if (!userId) {
+                console.log('[Sync] No userId, skipping')
+                return
+            }
             const url = `/api/player/upsert`
             const dailyLast = localStorage.getItem('daily_last') || null
             const dailyStreakStr = localStorage.getItem('daily_streak') || '0'
             const dailyStreak = Number(dailyStreakStr) || 0
-            await fetch(url, {
+            const payload = {
+                id: userId,
+                username: username || null,
+                photo: avatarUrl || null,
+                level: 1,
+                balanceW: typeof opts.balanceW === 'number' ? opts.balanceW : balanceW,
+                balanceB: typeof opts.balanceB === 'number' ? opts.balanceB : balanceB,
+                dailyLast,
+                dailyStreak
+            }
+            console.log('[Sync] Sending to:', url, payload)
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: userId,
-                    username: username || null,
-                    photo: avatarUrl || null,
-                    level: 1,
-                    balanceW: typeof opts.balanceW === 'number' ? opts.balanceW : balanceW,
-                    balanceB: typeof opts.balanceB === 'number' ? opts.balanceB : balanceB,
-                    dailyLast,
-                    dailyStreak
-                })
+                body: JSON.stringify(payload)
             })
+            console.log('[Sync] Response status:', res.status)
+            if (res.ok) {
+                const data = await res.json()
+                console.log('[Sync] Response data:', data)
+            }
         } catch (e) {
             console.error('Failed to sync player profile:', e)
         }
@@ -988,9 +998,12 @@ export function GameScreen() {
                             // 1) Профиль игрока
                             try {
                                 const profileUrl = `/api/player/profile/${pid}`
+                                console.log('[Profile] Fetching from:', profileUrl)
                                 const res = await fetch(profileUrl)
+                                console.log('[Profile] Response status:', res.status)
                                 if (res.ok) {
                                     const data = await res.json()
+                                    console.log('[Profile] Data:', data)
                                     if (data?.exists && data.profile) {
                                         const p = data.profile
                                         if (typeof p.balanceW === 'number' && typeof p.balanceB === 'number') {
@@ -1009,11 +1022,20 @@ export function GameScreen() {
                                         }
                                     } else {
                                         // если профиля нет — создаём его на сервере на основе локальных данных
-                                        syncPlayerToServer({})
+                                        console.log('[Profile] Not found, creating new profile')
+                                        await syncPlayerToServer({})
                                     }
+                                } else {
+                                    // Если сервер вернул ошибку или профиля нет — создаём
+                                    console.log('[Profile] Server error or not found, creating profile')
+                                    await syncPlayerToServer({})
                                 }
                             } catch (e) {
                                 console.error('Failed to load profile from server:', e)
+                                // При ошибке тоже пытаемся создать профиль
+                                try {
+                                    await syncPlayerToServer({})
+                                } catch {}
                             }
                             // 2) Список друзей (рефералы)
                             try {
