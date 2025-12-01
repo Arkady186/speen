@@ -507,42 +507,60 @@ export function GameScreen() {
     const leaderboardUpdateTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const leaderboardInitSent = React.useRef<boolean>(false)
     function updateLeaderboard(coins: number, coinsB: number) {
+        console.log('[Leaderboard] updateLeaderboard called with:', { coins, coinsB, userId, username })
         if (leaderboardUpdateTimeout.current) {
             clearTimeout(leaderboardUpdateTimeout.current)
         }
         leaderboardUpdateTimeout.current = setTimeout(async () => {
             try {
-                if (!userId || !username) return
+                if (!userId || !username) {
+                    console.log('[Leaderboard] Skipping: no userId or username')
+                    return
+                }
                 const url = `/api/leaderboard/upsert`
-                
-                // Пока у всех уровень 1, но можно будет добавить логику расчёта уровня
                 const level = 1
-                const totalCoins = coins + coinsB * 10000 // B конвертируем в эквивалент W для сортировки
-                
-                await fetch(url, {
+                const totalCoins = coins + coinsB * 10000
+                const payload = {
+                    id: userId,
+                    name: username,
+                    photo: avatarUrl || null,
+                    level,
+                    coins: totalCoins
+                }
+                console.log('[Leaderboard] Sending to:', url, payload)
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: userId,
-                        name: username,
-                        photo: avatarUrl || null,
-                        level,
-                        coins: totalCoins
-                    })
+                    body: JSON.stringify(payload)
                 })
+                console.log('[Leaderboard] Response status:', res.status)
+                if (res.ok) {
+                    const data = await res.json()
+                    console.log('[Leaderboard] Response data:', data)
+                } else {
+                    console.error('[Leaderboard] Server error:', res.status, await res.text())
+                }
             } catch (e) {
-                console.error('Failed to update leaderboard:', e)
+                console.error('[Leaderboard] Failed to update:', e)
             }
-        }, 2000) // Отправляем с задержкой 2 секунды, чтобы не спамить при быстрых изменениях
+        }, 2000)
     }
 
     // Одноразовая инициализация записи игрока в таблице рейтинга после загрузки данных
     React.useEffect(() => {
-        if (!userId || !username) return
-        if (leaderboardInitSent.current) return
+        console.log('[Leaderboard Init] Effect triggered:', { userId, username, balanceW, balanceB })
+        if (!userId || !username) {
+            console.log('[Leaderboard Init] Skipping: no userId or username')
+            return
+        }
+        if (leaderboardInitSent.current) {
+            console.log('[Leaderboard Init] Already sent, skipping')
+            return
+        }
+        console.log('[Leaderboard Init] Sending initial data')
         leaderboardInitSent.current = true
         updateLeaderboard(balanceW, balanceB)
-    }, [userId, username])
+    }, [userId, username, balanceW, balanceB])
 
     function getMultiplier(m: GameMode) { return m === 'normal' ? 2 : m === 'allin' ? 5 : 0 }
     async function openStarsPurchase(stars: number, toB: number) {
