@@ -485,8 +485,7 @@ export function GameScreen() {
     async function syncPlayerToServer(opts: { balanceW?: number, balanceB?: number }) {
         try {
             if (!userId) return
-            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
-            const url = `${API_BASE}/api/player/upsert`.replace(/\/+api/,'/api')
+            const url = `/api/player/upsert`
             const dailyLast = localStorage.getItem('daily_last') || null
             const dailyStreakStr = localStorage.getItem('daily_streak') || '0'
             const dailyStreak = Number(dailyStreakStr) || 0
@@ -540,8 +539,7 @@ export function GameScreen() {
         leaderboardUpdateTimeout.current = setTimeout(async () => {
             try {
                 if (!userId || !username) return
-                const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
-                const url = `${API_BASE}/api/leaderboard/upsert`.replace(/\/+api/,'/api')
+                const url = `/api/leaderboard/upsert`
                 
                 // Пока у всех уровень 1, но можно будет добавить логику расчёта уровня
                 const level = 1
@@ -985,12 +983,11 @@ export function GameScreen() {
                     // Загружаем профиль и друзей с сервера как единого источника данных
                     ;(async () => {
                         try {
-                            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
                             const pid = Number(u.id)
                             if (!pid) return
                             // 1) Профиль игрока
                             try {
-                                const profileUrl = `${API_BASE}/api/player/profile/${pid}`.replace(/\/+api/,'/api')
+                                const profileUrl = `/api/player/profile/${pid}`
                                 const res = await fetch(profileUrl)
                                 if (res.ok) {
                                     const data = await res.json()
@@ -1020,7 +1017,7 @@ export function GameScreen() {
                             }
                             // 2) Список друзей (рефералы)
                             try {
-                                const frUrl = `${API_BASE}/api/referrals/my/${pid}`.replace(/\/+api/,'/api')
+                                const frUrl = `/api/referrals/my/${pid}`
                                 const frRes = await fetch(frUrl)
                                 if (frRes.ok) {
                                     const frData = await frRes.json()
@@ -1074,8 +1071,7 @@ export function GameScreen() {
                     
                     // Сообщаем на сервер о регистрации реферала
                     try {
-                        const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
-                        const url = `${API_BASE}/api/referrals/register`.replace(/\/+api/,'/api')
+                        const url = `/api/referrals/register`
                         ;(async () => {
                             try {
                                 await fetch(url, {
