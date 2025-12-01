@@ -482,41 +482,7 @@ export function GameScreen() {
         return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis) }
     }, [])
 
-    async function syncPlayerToServer(opts: { balanceW?: number, balanceB?: number }) {
-        try {
-            if (!userId) {
-                console.log('[Sync] No userId, skipping')
-                return
-            }
-            const url = `/api/player/upsert`
-            const dailyLast = localStorage.getItem('daily_last') || null
-            const dailyStreakStr = localStorage.getItem('daily_streak') || '0'
-            const dailyStreak = Number(dailyStreakStr) || 0
-            const payload = {
-                id: userId,
-                username: username || null,
-                photo: avatarUrl || null,
-                level: 1,
-                balanceW: typeof opts.balanceW === 'number' ? opts.balanceW : balanceW,
-                balanceB: typeof opts.balanceB === 'number' ? opts.balanceB : balanceB,
-                dailyLast,
-                dailyStreak
-            }
-            console.log('[Sync] Sending to:', url, payload)
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            console.log('[Sync] Response status:', res.status)
-            if (res.ok) {
-                const data = await res.json()
-                console.log('[Sync] Response data:', data)
-            }
-        } catch (e) {
-            console.error('Failed to sync player profile:', e)
-        }
-    }
+    // Удалена функция syncPlayerToServer - больше не нужна
 
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
@@ -534,9 +500,7 @@ export function GameScreen() {
                 cloud.setItem('speen_balance_v1', payload, () => {})
             }
         } catch {}
-        // Сохраняем профиль на сервере и обновляем рейтинг
-        syncPlayerToServer({ balanceW: nextW, balanceB: nextB })
-        // Отправляем данные в рейтинг (debounced через setTimeout, для сортировки топа)
+        // Отправляем данные в рейтинг (debounced через setTimeout)
         updateLeaderboard(nextW, nextB)
     }
     
@@ -990,67 +954,11 @@ export function GameScreen() {
                 setInitials(ini.toUpperCase())
                 if (u.id) {
                     setUserId(Number(u.id))
-                    // Загружаем профиль и друзей с сервера как единого источника данных
-                    ;(async () => {
-                        try {
-                            const pid = Number(u.id)
-                            if (!pid) return
-                            // 1) Профиль игрока
-                            try {
-                                const profileUrl = `/api/player/profile/${pid}`
-                                console.log('[Profile] Fetching from:', profileUrl)
-                                const res = await fetch(profileUrl)
-                                console.log('[Profile] Response status:', res.status)
-                                if (res.ok) {
-                                    const data = await res.json()
-                                    console.log('[Profile] Data:', data)
-                                    if (data?.exists && data.profile) {
-                                        const p = data.profile
-                                        if (typeof p.balanceW === 'number' && typeof p.balanceB === 'number') {
-                                            setBalanceW(p.balanceW)
-                                            setBalanceB(p.balanceB)
-                                            try {
-                                                localStorage.setItem('balance_w', String(p.balanceW))
-                                                localStorage.setItem('balance_b', String(p.balanceB))
-                                            } catch {}
-                                        }
-                                        if (typeof p.dailyLast === 'string') {
-                                            try { localStorage.setItem('daily_last', p.dailyLast) } catch {}
-                                        }
-                                        if (typeof p.dailyStreak === 'number') {
-                                            try { localStorage.setItem('daily_streak', String(p.dailyStreak)) } catch {}
-                                        }
-                                    } else {
-                                        // если профиля нет — создаём его на сервере на основе локальных данных
-                                        console.log('[Profile] Not found, creating new profile')
-                                        await syncPlayerToServer({})
-                                    }
-                                } else {
-                                    // Если сервер вернул ошибку или профиля нет — создаём
-                                    console.log('[Profile] Server error or not found, creating profile')
-                                    await syncPlayerToServer({})
-                                }
-                            } catch (e) {
-                                console.error('Failed to load profile from server:', e)
-                                // При ошибке тоже пытаемся создать профиль
-                                try {
-                                    await syncPlayerToServer({})
-                                } catch {}
-                            }
-                            // 2) Список друзей (рефералы)
-                            try {
-                                const frUrl = `/api/referrals/my/${pid}`
-                                const frRes = await fetch(frUrl)
-                                if (frRes.ok) {
-                                    const frData = await frRes.json()
-                                    const items = Array.isArray(frData?.items) ? frData.items : []
-                                    setFriends(items)
-                                }
-                            } catch (e) {
-                                console.error('Failed to load friends from server:', e)
-                            }
-                        } catch {}
-                    })()
+                    // Загружаем список друзей из localStorage (пока без сервера)
+                    try {
+                        const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
+                        setFriends(JSON.parse(raw))
+                    } catch { setFriends([]) }
                 }
 
                 // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
@@ -1077,46 +985,31 @@ export function GameScreen() {
             if (startParam && String(startParam).startsWith('ref_') && curId) {
                 const inviterId = Number(String(startParam).slice(4))
                 if (inviterId && inviterId !== curId) {
-                    // Проверяем, был ли пользователь уже зарегистрирован ранее
                     const wasRegisteredKey = `user_registered_${curId}`
                     const wasAlreadyRegistered = localStorage.getItem(wasRegisteredKey) === '1'
                     
-                    // Формируем данные приглашённого с реальным именем
                     const inviteeName = (u?.username || uname) || (u?.first_name ? `${u.first_name}${u?.last_name ? ' ' + u.last_name : ''}` : 'Player')
                     const invitee: FriendEntry = { 
                         id: curId, 
                         name: inviteeName, 
                         photo: u?.photo_url, 
-                        rewardW: wasAlreadyRegistered ? 0 : 5000, // Бонус только для новых пользователей
+                        rewardW: wasAlreadyRegistered ? 0 : 5000,
                         level: 1 
                     }
                     
-                    // Сообщаем на сервер о регистрации реферала
+                    // Добавляем в список друзей инвайтера
+                    const inviterKey = `friends_${inviterId}`
                     try {
-                        const url = `/api/referrals/register`
-                        ;(async () => {
-                            try {
-                                await fetch(url, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        inviterId,
-                                        friendId: curId,
-                                        alreadyRegistered: wasAlreadyRegistered
-                                    })
-                                })
-                            } catch (e) {
-                                console.error('Failed to register referral on server:', e)
-                            }
-                        })()
-                    } catch (e) {
-                        console.error('Failed to register referral on server (outer):', e)
-                    }
-
-                    // Отмечаем пользователя как зарегистрированного (локальный маркер – для alreadyRegistered)
+                        const raw = localStorage.getItem(inviterKey) || '[]'
+                        const list: FriendEntry[] = JSON.parse(raw)
+                        if (!list.some(x => x.id === invitee.id)) {
+                            list.push(invitee)
+                            localStorage.setItem(inviterKey, JSON.stringify(list))
+                        }
+                    } catch {}
+                    
                     if (!wasAlreadyRegistered) {
                         localStorage.setItem(wasRegisteredKey, '1')
-                        // Сохраняем данные пользователя для будущих рефералов
                         try {
                             const userDataKey = `user_data_${curId}`
                             localStorage.setItem(userDataKey, JSON.stringify({ name: inviteeName, photo: u?.photo_url }))
