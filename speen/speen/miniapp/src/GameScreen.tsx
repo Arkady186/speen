@@ -762,6 +762,11 @@ export function GameScreen() {
                 // Разрешаем второе и третье вращения без каких‑либо проверок и доп. списаний
                 if (currentCount >= 1 && currentCount < 3) {
                     console.log('[onBeforeSpin] Auto-spin allowed (no extra checks, no extra bet)')
+                    // Обновляем счетчик для следующего спина
+                    const nextCount = currentCount + 1
+                    pyramidSpinCountRef.current = nextCount
+                    setPyramidSpinCount(nextCount)
+                    console.log(`[onBeforeSpin] Updated pyramidSpinCountRef to ${nextCount} for auto-spin`)
                     return true
                 }
                 console.log('[onBeforeSpin] Bet already taken but currentCount is out of expected range, blocking')
@@ -891,9 +896,7 @@ export function GameScreen() {
             if (currentPyramidCount < 3) {
                 const nextSpinCount = currentPyramidCount + 1
                 console.log(`[onSpinResult] Scheduling next spin: ${nextSpinCount}`)
-                pyramidSpinCountRef.current = nextSpinCount
-                setPyramidSpinCount(nextSpinCount)
-                console.log(`[onSpinResult] Updated pyramidSpinCountRef to ${nextSpinCount}`)
+                // НЕ обновляем pyramidSpinCountRef здесь - обновим в onBeforeSpin следующего спина
                 scheduleNextPyramidSpin(nextSpinCount)
             } else {
                 console.log(`[onSpinResult] Final spin complete, calculating payout`)
