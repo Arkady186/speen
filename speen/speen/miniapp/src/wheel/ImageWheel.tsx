@@ -182,20 +182,26 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     }, [isSpinning, rotation])
 
     function spin(toIndex?: number) {
+        console.log(`[ImageWheel.spin] Called with toIndex: ${toIndex}, isSpinning: ${isSpinning}`)
         // Сначала проверяем onBeforeSpin, чтобы он мог разрешить вращение даже если isSpinning === true
         if (typeof onBeforeSpin === 'function') {
             const ok = onBeforeSpin()
+            console.log(`[ImageWheel.spin] onBeforeSpin returned: ${ok}`)
             if (ok === false) return
             // Если onBeforeSpin вернул true, разрешаем вращение даже если isSpinning === true
             // (для специальных режимов, например pyramid с автоматическими вращениями)
         } else {
             // Если onBeforeSpin не определен, проверяем isSpinning как обычно
-            if (isSpinning) return
+            if (isSpinning) {
+                console.log(`[ImageWheel.spin] Already spinning, aborting`)
+                return
+            }
         }
         setHighlightVisible(false)
         // Используем ref для получения актуального значения rotation (синхронно)
         const currentRotation = rotationRef.current
         const targetIndex = typeof toIndex === 'number' ? ((toIndex % labels.length) + labels.length) % labels.length : Math.floor(Math.random() * labels.length)
+        console.log(`[ImageWheel.spin] Target index: ${targetIndex}, label: ${labels[targetIndex]}`)
         // небольшой рандом внутри сектора, чтобы не останавливаться строго по центру
         const jitter = (Math.random() - 0.5) * (seg * 0.4) // ±20% сектора
         const base = computeRotationForIndex(targetIndex) + jitter
