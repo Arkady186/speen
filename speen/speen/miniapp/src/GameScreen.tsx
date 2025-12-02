@@ -687,11 +687,7 @@ export function GameScreen() {
 
     function scheduleNextPyramidSpin(nextSpinCount: number) {
         console.log(`[scheduleNextPyramidSpin] Scheduling spin ${nextSpinCount}`)
-        // Если таймер уже запущен, не создаем новый
-        if (pyramidAutoSpinTimeoutRef.current) {
-            console.log(`[scheduleNextPyramidSpin] Timer already running, skipping`)
-            return
-        }
+        // Очищаем предыдущие таймеры перед созданием нового
         clearPyramidTimers(true)
         let countdown = 4
         setPyramidCountdown(countdown)
