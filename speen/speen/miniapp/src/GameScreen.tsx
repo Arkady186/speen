@@ -874,10 +874,17 @@ export function GameScreen() {
             console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}`)
             const resultNumber = Number(label)
             
-            // Проверяем, не обработали ли мы уже этот результат (защита от дублирования)
+            // Проверяем, не добавлен ли уже этот результат в массив (защита от дублирования при перерендере)
+            const currentResults = pyramidResultsRef.current
+            if (currentResults.length >= currentPyramidCount) {
+                console.log(`[onSpinResult] Result already in array (${currentResults.length} results for spin ${currentPyramidCount}), skipping`)
+                return
+            }
+            
+            // Дополнительная защита: проверяем последний обработанный результат
             const lastResult = pyramidLastResultRef.current
-            if (lastResult && lastResult.count === currentPyramidCount && lastResult.result === resultNumber) {
-                console.log(`[onSpinResult] Duplicate result detected (spin ${currentPyramidCount}, result ${resultNumber}), skipping`)
+            if (lastResult && lastResult.result === resultNumber && currentResults.length === lastResult.count - 1) {
+                console.log(`[onSpinResult] Duplicate result detected (result ${resultNumber}), skipping`)
                 return
             }
             
@@ -885,7 +892,7 @@ export function GameScreen() {
             pyramidLastResultRef.current = { count: currentPyramidCount, result: resultNumber }
             
             // Добавляем результат в массив (используем ref для синхронного доступа)
-            const newResults = [...pyramidResultsRef.current, resultNumber]
+            const newResults = [...currentResults, resultNumber]
             pyramidResultsRef.current = newResults
             setPyramidResults(newResults)
             console.log(`[onSpinResult] Results so far: ${newResults.join(', ')} (spin ${currentPyramidCount} of 3)`)
