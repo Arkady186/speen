@@ -31,6 +31,27 @@ async function init(){
     coins INTEGER DEFAULT 0,
     updated_at INTEGER
   )`)
+
+  // Профили игроков (для рефералок и будущей синхронизации)
+  await db.exec(`CREATE TABLE IF NOT EXISTS players(
+    id INTEGER PRIMARY KEY,
+    username TEXT,
+    photo TEXT,
+    level INTEGER DEFAULT 1,
+    coins INTEGER DEFAULT 0,
+    created_at INTEGER,
+    updated_at INTEGER
+  )`)
+
+  // Рефералы: кто кого пригласил
+  await db.exec(`CREATE TABLE IF NOT EXISTS referrals(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inviter_id INTEGER NOT NULL,
+    friend_id INTEGER NOT NULL,
+    reward_w INTEGER DEFAULT 0,
+    created_at INTEGER,
+    UNIQUE(inviter_id, friend_id)
+  )`)
 }
 
 app.get('/health', (_req,res)=>res.send('ok'))
@@ -123,6 +144,116 @@ app.get('/api/leaderboard/rank/:id', async (req,res)=>{
   }catch(e){ 
     console.error('Leaderboard rank error:', e)
     res.status(500).json({ error:'server_error' }) 
+  }
+})
+
+// ----- PLAYER PROFILE (минимально, для рефералок) -----
+
+app.post('/api/player/upsert', async (req,res)=>{
+  try{
+    const { id, username, photo, level, coins } = req.body || {}
+    if (!id) return res.status(400).json({ error:'bad_input' })
+    const now = Date.now()
+    const row = await db.get('SELECT id FROM players WHERE id = ?', id)
+    const lvl = typeof level === 'number' ? level : 1
+    const c = typeof coins === 'number' ? coins : 0
+    if (row) {
+      await db.run(
+        'UPDATE players SET username=?, photo=?, level=?, coins=?, updated_at=? WHERE id=?',
+        username || null, photo || null, lvl, c, now, id
+      )
+    } else {
+      await db.run(
+        'INSERT INTO players(id,username,photo,level,coins,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',
+        id, username || null, photo || null, lvl, c, now, now
+      )
+    }
+    res.json({ ok:true })
+  } catch(e){
+    console.error('Player upsert error:', e)
+    res.status(500).json({ error:'server_error' })
+  }
+})
+
+// ----- REFERRALS -----
+
+// Регистрация перехода по реф-ссылке
+app.post('/api/referrals/register', async (req,res)=>{
+  try{
+    const { inviter_id, friend_id, name, photo } = req.body || {}
+    const inviterId = Number(inviter_id)
+    const friendId = Number(friend_id)
+    if (!inviterId || !friendId) return res.status(400).json({ error:'bad_input' })
+    if (inviterId === friendId) return res.json({ ok:true, shouldReward:false, already:true })
+
+    const now = Date.now()
+
+    // Обновляем/создаём профиль друга
+    const existingPlayer = await db.get('SELECT id FROM players WHERE id = ?', friendId)
+    if (existingPlayer) {
+      await db.run(
+        'UPDATE players SET username=COALESCE(?, username), photo=COALESCE(?, photo), updated_at=? WHERE id=?',
+        name || null, photo || null, now, friendId
+      )
+    } else {
+      await db.run(
+        'INSERT INTO players(id,username,photo,level,coins,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',
+        friendId, name || null, photo || null, 1, 0, now, now
+      )
+    }
+
+    // Уже есть пара inviter-friend?
+    const existingPair = await db.get(
+      'SELECT * FROM referrals WHERE inviter_id = ? AND friend_id = ?',
+      inviterId, friendId
+    )
+    if (existingPair) {
+      return res.json({ ok:true, already:true, shouldReward:false, rewardW: existingPair.reward_w || 0 })
+    }
+
+    // Друг уже был рефералом у кого-то ещё?
+    const anyRef = await db.get('SELECT * FROM referrals WHERE friend_id = ?', friendId)
+    let rewardW = 0
+    if (!anyRef) {
+      rewardW = 5000 // Бонус только за "первое приглашение" этого друга
+    }
+
+    await db.run(
+      'INSERT INTO referrals(inviter_id, friend_id, reward_w, created_at) VALUES(?,?,?,?)',
+      inviterId, friendId, rewardW, now
+    )
+
+    res.json({ ok:true, already:false, shouldReward: rewardW > 0, rewardW })
+  } catch(e){
+    console.error('Referrals register error:', e)
+    res.status(500).json({ error:'server_error' })
+  }
+})
+
+// Список друзей-инвайтов для конкретного игрока
+app.get('/api/referrals/my/:inviterId', async (req,res)=>{
+  try{
+    const inviterId = Number(req.params.inviterId)
+    if (!inviterId) return res.status(400).json({ error:'bad_input' })
+
+    const rows = await db.all(`
+      SELECT 
+        r.friend_id as id,
+        p.username as name,
+        p.photo as photo,
+        p.level as level,
+        r.reward_w as rewardW,
+        r.created_at as createdAt
+      FROM referrals r
+      LEFT JOIN players p ON p.id = r.friend_id
+      WHERE r.inviter_id = ?
+      ORDER BY r.created_at DESC
+    `, inviterId)
+
+    res.json({ items: rows })
+  } catch(e){
+    console.error('Referrals my error:', e)
+    res.status(500).json({ error:'server_error' })
   }
 })
 

@@ -547,6 +547,17 @@ export function GameScreen() {
                 } else {
                     console.error('[Leaderboard] Server error:', res.status)
                 }
+
+                // Параллельно обновляем профиль игрока для рефералок
+                try {
+                    await fetch(`${API_BASE}/api/player/upsert`, {
+                        method:'POST',
+                        headers:{ 'Content-Type':'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                } catch(e) {
+                    console.error('[Player] Failed to sync profile:', e)
+                }
             } catch (e) {
                 console.error('[Leaderboard] Failed to update:', e)
             }
@@ -967,82 +978,89 @@ export function GameScreen() {
     }
 
     React.useEffect(() => {
-        try {
-            const tg = (window as any).Telegram?.WebApp
-            tg?.ready?.()
-            const u = tg?.initDataUnsafe?.user || parseUserFromInitDataString(tg?.initData)
-            if (u) {
-                const uname = u.username || [u.first_name, u.last_name].filter(Boolean).join(' ')
-                setUsername(uname)
-                if (u.photo_url) setAvatarUrl(u.photo_url)
-                const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
-                setInitials(ini.toUpperCase())
-                if (u.id) {
-                    setUserId(Number(u.id))
-                    // Загружаем список друзей из localStorage (пока без сервера)
-                    try {
-                        const raw = localStorage.getItem(`friends_${u.id}`) || '[]'
-                        setFriends(JSON.parse(raw))
-                    } catch { setFriends([]) }
-                }
+        (async () => {
+            try {
+                const tg = (window as any).Telegram?.WebApp
+                tg?.ready?.()
+                const u = tg?.initDataUnsafe?.user || parseUserFromInitDataString(tg?.initData)
+                if (u) {
+                    const uname = u.username || [u.first_name, u.last_name].filter(Boolean).join(' ')
+                    setUsername(uname)
+                    if (u.photo_url) setAvatarUrl(u.photo_url)
+                    const ini = (u.first_name?.[0] || '') + (u.last_name?.[0] || '') || (uname?.[0] || 'I')
+                    setInitials(ini.toUpperCase())
+                    if (u.id) {
+                        const numericId = Number(u.id)
+                        setUserId(numericId)
 
-                // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
-                try {
-                    const cloud = tg?.CloudStorage
-                    if (cloud && u.id) {
-                        cloud.getItem('speen_balance_v1', (err: any, value: string | null) => {
-                            if (err || !value) return
-                            try {
-                                const parsed = JSON.parse(value)
-                                const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
-                                const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
-                                if (w != null && b != null) {
-                                    saveBalances(w, b)
+                        // Загружаем список друзей с сервера
+                        try {
+                            const API_BASE = 'https://speen-server.onrender.com'
+                            const res = await fetch(`${API_BASE}/api/referrals/my/${numericId}`)
+                            if (res.ok) {
+                                const data = await res.json()
+                                if (Array.isArray(data?.items)) {
+                                    setFriends(data.items)
                                 }
-                            } catch {}
-                        })
+                            }
+                        } catch {
+                            // при ошибке пока просто оставляем пустой список
+                        }
                     }
-                } catch {}
-            }
-            // Process referral start param (ref_XXXX)
-            const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
-            const curId: number | null = tg?.initDataUnsafe?.user?.id ? Number(tg.initDataUnsafe.user.id) : null
-            if (startParam && String(startParam).startsWith('ref_') && curId) {
-                const inviterId = Number(String(startParam).slice(4))
-                if (inviterId && inviterId !== curId) {
-                    const wasRegisteredKey = `user_registered_${curId}`
-                    const wasAlreadyRegistered = localStorage.getItem(wasRegisteredKey) === '1'
-                    
-                    const inviteeName = (u?.username || uname) || (u?.first_name ? `${u.first_name}${u?.last_name ? ' ' + u.last_name : ''}` : 'Player')
-                    const invitee: FriendEntry = { 
-                        id: curId, 
-                        name: inviteeName, 
-                        photo: u?.photo_url, 
-                        rewardW: wasAlreadyRegistered ? 0 : 5000,
-                        level: 1 
-                    }
-                    
-                    // Добавляем в список друзей инвайтера
-                    const inviterKey = `friends_${inviterId}`
+
+                    // Попробуем подтянуть баланс из CloudStorage, чтобы синхронизировать между устройствами
                     try {
-                        const raw = localStorage.getItem(inviterKey) || '[]'
-                        const list: FriendEntry[] = JSON.parse(raw)
-                        if (!list.some(x => x.id === invitee.id)) {
-                            list.push(invitee)
-                            localStorage.setItem(inviterKey, JSON.stringify(list))
+                        const cloud = tg?.CloudStorage
+                        if (cloud && u.id) {
+                            cloud.getItem('speen_balance_v1', (err: any, value: string | null) => {
+                                if (err || !value) return
+                                try {
+                                    const parsed = JSON.parse(value)
+                                    const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
+                                    const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
+                                    if (w != null && b != null) {
+                                        saveBalances(w, b)
+                                    }
+                                } catch {}
+                            })
                         }
                     } catch {}
-                    
-                    if (!wasAlreadyRegistered) {
-                        localStorage.setItem(wasRegisteredKey, '1')
+                }
+
+                // Обработка старта по реф-ссылке (ref_XXXX)
+                const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam')
+                const curId: number | null = tg?.initDataUnsafe?.user?.id ? Number(tg.initDataUnsafe.user.id) : null
+                if (startParam && String(startParam).startsWith('ref_') && curId) {
+                    const inviterId = Number(String(startParam).slice(4))
+                    if (inviterId && inviterId !== curId) {
+                        const inviteeName = (u?.username || '') || (u?.first_name ? `${u.first_name}${u?.last_name ? ' ' + u.last_name : ''}` : 'Player')
+                        const API_BASE = 'https://speen-server.onrender.com'
                         try {
-                            const userDataKey = `user_data_${curId}`
-                            localStorage.setItem(userDataKey, JSON.stringify({ name: inviteeName, photo: u?.photo_url }))
-                        } catch {}
+                            const res = await fetch(`${API_BASE}/api/referrals/register`, {
+                                method:'POST',
+                                headers:{ 'Content-Type':'application/json' },
+                                body: JSON.stringify({
+                                    inviter_id: inviterId,
+                                    friend_id: curId,
+                                    name: inviteeName,
+                                    photo: u?.photo_url || null
+                                })
+                            })
+                            if (res.ok) {
+                                const data = await res.json()
+                                if (data?.shouldReward && typeof data.rewardW === 'number' && data.rewardW > 0) {
+                                    // Начисляем бонус другу (текущему пользователю)
+                                    saveBalances(balanceW + data.rewardW, balanceB)
+                                    setToast(`+${data.rewardW} W за приглашение`)
+                                }
+                            }
+                        } catch {
+                            // тихо игнорируем ошибки сети
+                        }
                     }
                 }
-            }
-        } catch {}
+            } catch {}
+        })()
     }, [])
 
     // Предзагрузка критических изображений
