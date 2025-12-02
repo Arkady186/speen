@@ -706,9 +706,9 @@ export function GameScreen() {
                 pyramidCountdownIntervalRef.current = null
             }
             setPyramidCountdown(null)
-            // Простая логика: если мы всё ещё в режиме pyramid и счётчик совпадает — просто запускаем spin()
-            if (mode !== 'pyramid') {
-                console.log('[scheduleNextPyramidSpin] Mode changed before auto-spin, aborting')
+            // Если серия 3 из 10 уже завершена или не активна — не крутим дальше
+            if (!pyramidBetTakenRef.current) {
+                console.log('[scheduleNextPyramidSpin] Series no longer active, aborting auto-spin')
                 return
             }
             if (pyramidSpinCountRef.current !== nextSpinCount) {
@@ -848,7 +848,10 @@ export function GameScreen() {
         const currentPyramidCount = pyramidSpinCountRef.current || pyramidSpinCount
         console.log(`[onSpinResult] Mode: ${mode}, currentPyramidCount: ${currentPyramidCount}, result: ${label}`)
         
-        if (mode === 'pyramid' && currentPyramidCount > 0) {
+        // Если у нас идёт активная серия 3 из 10 (ставка уже списана и счётчик > 0),
+        // обрабатываем результат по специальным правилам, даже если пользователь
+        // успел переключить режим в интерфейсе.
+        if (pyramidBetTakenRef.current && currentPyramidCount > 0) {
             const resultNumber = Number(label)
             
             // Добавляем результат в массив
