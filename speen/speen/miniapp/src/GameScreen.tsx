@@ -1628,7 +1628,7 @@ export function GameScreen() {
                                                     )}
                                                 </div>
                                                 <div style={{display:'grid', gap:2}}>
-                                                    <div style={friendName}>{f.name || 'Unknown'}</div>
+                                                    <div style={friendName}>{f.name || 'Игрок'}</div>
                                                     <div style={{
                                                         color:'#ffe27a',
                                                         fontSize:12,
@@ -1638,7 +1638,7 @@ export function GameScreen() {
                                                         gap:4
                                                     }}>
                                                         <span>⭐</span>
-                                                        <span>{lang==='ru' ? 'Уровень' : 'Level'} {f.level || 1}</span>
+                                                        <span>lvl {f.level || 1}</span>
                                                     </div>
                                                 </div>
                                                 <div style={friendAmount}>

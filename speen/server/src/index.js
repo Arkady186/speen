@@ -151,21 +151,22 @@ app.get('/api/leaderboard/rank/:id', async (req,res)=>{
 
 app.post('/api/player/upsert', async (req,res)=>{
   try{
-    const { id, username, photo, level, coins } = req.body || {}
+    const { id, username, name, photo, level, coins } = req.body || {}
     if (!id) return res.status(400).json({ error:'bad_input' })
     const now = Date.now()
     const row = await db.get('SELECT id FROM players WHERE id = ?', id)
+    const uname = (username || name) || null
     const lvl = typeof level === 'number' ? level : 1
     const c = typeof coins === 'number' ? coins : 0
     if (row) {
       await db.run(
         'UPDATE players SET username=?, photo=?, level=?, coins=?, updated_at=? WHERE id=?',
-        username || null, photo || null, lvl, c, now, id
+        uname, photo || null, lvl, c, now, id
       )
     } else {
       await db.run(
         'INSERT INTO players(id,username,photo,level,coins,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',
-        id, username || null, photo || null, lvl, c, now, now
+        id, uname, photo || null, lvl, c, now, now
       )
     }
     res.json({ ok:true })
