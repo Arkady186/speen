@@ -154,6 +154,7 @@ export function GameScreen() {
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const pyramidResultsRef = React.useRef<number[]>([]) // Ref для синхронного доступа к результатам
     const pyramidBetRef = React.useRef<number>(0) // Сохраняем ставку для серии 3/10
+    const pyramidLastResultRef = React.useRef<{ count: number, result: number } | null>(null) // Последний обработанный результат
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
     const [pyramidCountdown, setPyramidCountdown] = React.useState<number | null>(null) // Обратный отсчет до следующего вращения
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
@@ -811,6 +812,7 @@ export function GameScreen() {
             setPyramidSpinCount(1)
             setPyramidResults([])
             pyramidResultsRef.current = []
+            pyramidLastResultRef.current = null
             setPyramidShowResults(false)
             
             console.log('[onBeforeSpin] First pyramid spin allowed and bet taken once')
@@ -866,10 +868,14 @@ export function GameScreen() {
             const resultNumber = Number(label)
             
             // Проверяем, не обработали ли мы уже этот результат (защита от дублирования)
-            if (pyramidResultsRef.current.length >= currentPyramidCount) {
-                console.log(`[onSpinResult] Result already processed (${pyramidResultsRef.current.length} results for spin ${currentPyramidCount}), skipping`)
+            const lastResult = pyramidLastResultRef.current
+            if (lastResult && lastResult.count === currentPyramidCount && lastResult.result === resultNumber) {
+                console.log(`[onSpinResult] Duplicate result detected (spin ${currentPyramidCount}, result ${resultNumber}), skipping`)
                 return
             }
+            
+            // Сохраняем текущий результат как последний обработанный
+            pyramidLastResultRef.current = { count: currentPyramidCount, result: resultNumber }
             
             // Добавляем результат в массив (используем ref для синхронного доступа)
             const newResults = [...pyramidResultsRef.current, resultNumber]
@@ -887,6 +893,7 @@ export function GameScreen() {
                 console.log(`[onSpinResult] Scheduling next spin: ${nextSpinCount}`)
                 pyramidSpinCountRef.current = nextSpinCount
                 setPyramidSpinCount(nextSpinCount)
+                console.log(`[onSpinResult] Updated pyramidSpinCountRef to ${nextSpinCount}`)
                 scheduleNextPyramidSpin(nextSpinCount)
             } else {
                 console.log(`[onSpinResult] Final spin complete, calculating payout`)
