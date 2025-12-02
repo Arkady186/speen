@@ -152,6 +152,7 @@ export function GameScreen() {
     const [pyramidSpinCount, setPyramidSpinCount] = React.useState<number>(0)
     const pyramidSpinCountRef = React.useRef<number>(0) // Ref для синхронного доступа
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
+    const pyramidResultsRef = React.useRef<number[]>([]) // Ref для синхронного доступа к результатам
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
     const [pyramidCountdown, setPyramidCountdown] = React.useState<number | null>(null) // Обратный отсчет до следующего вращения
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
@@ -641,6 +642,7 @@ export function GameScreen() {
         setPyramidSpinCount(0)
         pyramidSpinCountRef.current = 0
         setPyramidResults([])
+        pyramidResultsRef.current = []
         setPyramidShowResults(false)
         setPyramidCountdown(null)
         // Очищаем таймеры авто-вращений и обратного отсчета
@@ -855,8 +857,9 @@ export function GameScreen() {
             console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}`)
             const resultNumber = Number(label)
             
-            // Добавляем результат в массив
-            const newResults = [...pyramidResults, resultNumber]
+            // Добавляем результат в массив (используем ref для синхронного доступа)
+            const newResults = [...pyramidResultsRef.current, resultNumber]
+            pyramidResultsRef.current = newResults
             setPyramidResults(newResults)
             console.log(`[onSpinResult] Results so far: ${newResults.join(', ')}`)
             
@@ -908,6 +911,9 @@ export function GameScreen() {
                 
                 // Показываем результаты на барабане
                 setPyramidShowResults(true)
+                
+                // Сбрасываем ref результатов для следующей серии
+                pyramidResultsRef.current = []
             }
             return
         }
