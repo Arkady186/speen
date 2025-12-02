@@ -760,17 +760,13 @@ export function GameScreen() {
             
             // Если ставка уже была списана (мы внутри серии 3 из 10)
             if (pyramidBetTakenRef.current) {
-                // Разрешаем второе и третье вращения без каких‑либо проверок и доп. списаний
-                if (currentCount >= 1 && currentCount < 3) {
-                    console.log('[onBeforeSpin] Auto-spin allowed (no extra checks, no extra bet)')
-                    // Обновляем счетчик для следующего спина
-                    const nextCount = currentCount + 1
-                    pyramidSpinCountRef.current = nextCount
-                    setPyramidSpinCount(nextCount)
-                    console.log(`[onBeforeSpin] Updated pyramidSpinCountRef to ${nextCount} for auto-spin`)
+                // Проверяем, сколько результатов уже есть
+                const resultsCount = pyramidResultsRef.current.length
+                if (resultsCount < 3) {
+                    console.log(`[onBeforeSpin] Auto-spin allowed (${resultsCount} results so far)`)
                     return true
                 }
-                console.log('[onBeforeSpin] Bet already taken but currentCount is out of expected range, blocking')
+                console.log(`[onBeforeSpin] Already have ${resultsCount} results, blocking`)
                 return false
             }
             
@@ -862,14 +858,14 @@ export function GameScreen() {
         const b = Math.floor(bet)
 
         // Специальная логика для режима 3/10 (pyramid)
-        // Используем ref для синхронной проверки текущего счетчика
-        const currentPyramidCount = pyramidSpinCountRef.current || pyramidSpinCount
+        // Используем длину массива результатов как текущий номер спина
+        const currentPyramidCount = pyramidResultsRef.current.length + 1
         console.log(`[onSpinResult] Mode: ${mode}, currentPyramidCount: ${currentPyramidCount}, result: ${label}, betTaken: ${pyramidBetTakenRef.current}`)
         
-        // Если у нас идёт активная серия 3 из 10 (ставка уже списана и счётчик > 0),
+        // Если у нас идёт активная серия 3 из 10 (ставка уже списана),
         // обрабатываем результат по специальным правилам, даже если пользователь
         // успел переключить режим в интерфейсе.
-        if (pyramidBetTakenRef.current && currentPyramidCount > 0) {
+        if (pyramidBetTakenRef.current && currentPyramidCount <= 3) {
             console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}`)
             const resultNumber = Number(label)
             
@@ -887,17 +883,15 @@ export function GameScreen() {
             const newResults = [...pyramidResultsRef.current, resultNumber]
             pyramidResultsRef.current = newResults
             setPyramidResults(newResults)
-            console.log(`[onSpinResult] Results so far: ${newResults.join(', ')}`)
+            console.log(`[onSpinResult] Results so far: ${newResults.join(', ')} (spin ${currentPyramidCount} of 3)`)
             
             // Показываем результат текущего вращения
-            const spinNum = currentPyramidCount
-            setToast(`Вращение ${spinNum}: ${resultNumber}`)
+            setToast(`Вращение ${currentPyramidCount}: ${resultNumber}`)
             
             // Если это не последнее вращение, запускаем следующее автоматически
             if (currentPyramidCount < 3) {
                 const nextSpinCount = currentPyramidCount + 1
                 console.log(`[onSpinResult] Scheduling next spin: ${nextSpinCount}`)
-                // НЕ обновляем pyramidSpinCountRef здесь - обновим в onBeforeSpin следующего спина
                 scheduleNextPyramidSpin(nextSpinCount)
             } else {
                 console.log(`[onSpinResult] Final spin complete, calculating payout`)
