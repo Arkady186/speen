@@ -715,8 +715,9 @@ export function GameScreen() {
                 console.log('[scheduleNextPyramidSpin] Series no longer active, aborting auto-spin')
                 return
             }
-            if (pyramidSpinCountRef.current !== nextSpinCount) {
-                console.log(`[scheduleNextPyramidSpin] Count mismatch on timeout: expected ${nextSpinCount}, got ${pyramidSpinCountRef.current}`)
+            // Проверяем, что мы не превысили лимит спинов
+            if (pyramidResultsRef.current.length >= 3) {
+                console.log(`[scheduleNextPyramidSpin] Already have ${pyramidResultsRef.current.length} results, aborting`)
                 return
             }
             if (!wheelRef.current) {
