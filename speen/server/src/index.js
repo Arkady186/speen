@@ -240,13 +240,15 @@ app.get('/api/referrals/my/:inviterId', async (req,res)=>{
     const rows = await db.all(`
       SELECT 
         r.friend_id as id,
-        p.username as name,
-        p.photo as photo,
-        p.level as level,
+        COALESCE(p.username, lb.name) as name,
+        COALESCE(p.photo, lb.photo) as photo,
+        COALESCE(p.level, lb.level, 1) as level,
+        COALESCE(lb.coins, 0) as coins,
         r.reward_w as rewardW,
         r.created_at as createdAt
       FROM referrals r
       LEFT JOIN players p ON p.id = r.friend_id
+      LEFT JOIN leaderboard lb ON lb.id = r.friend_id
       WHERE r.inviter_id = ?
       ORDER BY r.created_at DESC
     `, inviterId)

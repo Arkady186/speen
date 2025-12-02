@@ -166,7 +166,7 @@ export function GameScreen() {
     const inviteLastY = React.useRef<number>(0)
     const inviteLastTs = React.useRef<number>(0)
     
-    type FriendEntry = { id: number, name: string, photo?: string, rewardW: number, level?: number }
+    type FriendEntry = { id: number, name: string, photo?: string, rewardW: number, level?: number, coins?: number }
     const [friends, setFriends] = React.useState<FriendEntry[]>([])
 
     // Stars bottom-sheet state
@@ -1643,7 +1643,10 @@ export function GameScreen() {
                                                 </div>
                                                 <div style={friendAmount}>
                                                     <img src="/coin-w.png" alt="c" style={{width:22,height:22,marginRight:6}}/> 
-                                                    {(f.rewardW/1000).toFixed(1)}K
+                                                    {typeof f.coins === 'number'
+                                                        ? (f.coins >= 1000 ? `${(f.coins/1000).toFixed(1)}K` : f.coins)
+                                                        : `${(f.rewardW/1000).toFixed(1)}K`
+                                                    }
                                                 </div>
                                             </div>
                                         ))}
