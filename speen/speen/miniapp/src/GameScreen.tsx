@@ -517,7 +517,9 @@ export function GameScreen() {
                     console.log('[Leaderboard] Skipping: no userId or username')
                     return
                 }
-                const url = `/api/leaderboard/upsert`
+                // Жёстко указываем backend, чтобы исключить ошибки с переменными окружения
+                const API_BASE = 'https://speen-server.onrender.com'
+                const url = `${API_BASE}/api/leaderboard/upsert`
                 const level = 1
                 const totalCoins = coins + coinsB * 10000
                 const payload = {
@@ -535,10 +537,15 @@ export function GameScreen() {
                 })
                 console.log('[Leaderboard] Response status:', res.status)
                 if (res.ok) {
-                    const data = await res.json()
+                    let data: any = null
+                    try {
+                        data = await res.json()
+                    } catch {
+                        // если бэкенд вернул пустой ответ или не-JSON — просто игнорируем
+                    }
                     console.log('[Leaderboard] Response data:', data)
                 } else {
-                    console.error('[Leaderboard] Server error:', res.status, await res.text())
+                    console.error('[Leaderboard] Server error:', res.status)
                 }
             } catch (e) {
                 console.error('[Leaderboard] Failed to update:', e)
@@ -2772,10 +2779,11 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     React.useEffect(() => {
         async function fetchLeaderboard() {
             try {
-                const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+                // Жёстко указываем backend для рейтинга
+                const API_BASE = 'https://speen-server.onrender.com'
                 
                 // Fetch top 10
-                const topUrl = `${API_BASE}/api/leaderboard/top?limit=10`.replace(/\/+api/,'/api')
+                const topUrl = `${API_BASE}/api/leaderboard/top?limit=10`
                 const topRes = await fetch(topUrl)
                 if (topRes.ok) {
                     const topData = await topRes.json()
@@ -2784,7 +2792,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                 
                 // Fetch current player rank
                 if (userId) {
-                    const rankUrl = `${API_BASE}/api/leaderboard/rank/${userId}`.replace(/\/+api/,'/api')
+                    const rankUrl = `${API_BASE}/api/leaderboard/rank/${userId}`
                     const rankRes = await fetch(rankUrl)
                     if (rankRes.ok) {
                         const rankData = await rankRes.json()
