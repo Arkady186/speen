@@ -153,6 +153,7 @@ export function GameScreen() {
     const pyramidSpinCountRef = React.useRef<number>(0) // Ref для синхронного доступа
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const pyramidResultsRef = React.useRef<number[]>([]) // Ref для синхронного доступа к результатам
+    const pyramidBetRef = React.useRef<number>(0) // Сохраняем ставку для серии 3/10
     const [pyramidShowResults, setPyramidShowResults] = React.useState<boolean>(false) // Показывать ли результаты
     const [pyramidCountdown, setPyramidCountdown] = React.useState<number | null>(null) // Обратный отсчет до следующего вращения
     const [pressedCardIdx, setPressedCardIdx] = React.useState<number | null>(null)
@@ -802,11 +803,14 @@ export function GameScreen() {
             
             // Отмечаем, что ставка для этой серии уже списана
             pyramidBetTakenRef.current = true
+            // Сохраняем ставку для расчета выигрыша в конце серии
+            pyramidBetRef.current = b
             
             // Инициализируем состояние для 3 вращений (синхронно через ref)
             pyramidSpinCountRef.current = 1
             setPyramidSpinCount(1)
             setPyramidResults([])
+            pyramidResultsRef.current = []
             setPyramidShowResults(false)
             
             console.log('[onBeforeSpin] First pyramid spin allowed and bet taken once')
@@ -901,12 +905,13 @@ export function GameScreen() {
                 //  - за первое совпадение: +200% от ставки (x2)
                 //  - за второе: +50% от ставки
                 //  - за третье: +25% от ставки
+                const pyramidBet = pyramidBetRef.current
                 let totalWin = 0
-                if (matches >= 1) totalWin += Math.floor(b * 2.0)  // +200%
-                if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
-                if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
+                if (matches >= 1) totalWin += Math.floor(pyramidBet * 2.0)  // +200%
+                if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
+                if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
                 
-                console.log(`[onSpinResult] Total win: ${totalWin}, bet: ${b}, currency: ${currency}`)
+                console.log(`[onSpinResult] Total win: ${totalWin}, bet: ${pyramidBet}, currency: ${currency}`)
                 
                 if (totalWin > 0) {
                     if (currency === 'W') {
