@@ -2970,11 +2970,6 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                     i
                 </button>
             </div>
-            <div style={subtitle}>
-                {lang==='ru' 
-                    ? 'Отслеживай свои достижения в рейтинге среди игроков по всему миру. Стань лучшим — займи верхнюю строчку!' 
-                    : 'Track your achievements in the global leaderboard. Become the best — take the top spot!'}
-            </div>
             
             {loading ? (
                 <div style={{color:'#e8f1ff', textAlign:'center', padding:20}}>
