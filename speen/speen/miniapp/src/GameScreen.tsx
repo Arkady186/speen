@@ -3033,7 +3033,13 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                                             animationDelay: `${idx * 60}ms`
                                         }}
                                     >
-                                        <div style={isMe ? {...rankBadge} : {...rankBadge, background:'linear-gradient(135deg, #6bb3ff 0%, #2b66b9 100%)', color:'#fff', boxShadow:'inset 0 0 0 3px #0b2f68'}}>
+                                        <div style={{
+                                            fontWeight:900,
+                                            fontSize:16,
+                                            minWidth:40,
+                                            color: isMe ? '#7a4e06' : '#fff',
+                                            textAlign:'left'
+                                        }}>
                                             {medal || `#${idx + 1}`}
                                         </div>
                                         <div style={avatar}>
