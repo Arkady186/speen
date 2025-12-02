@@ -897,6 +897,7 @@ export function GameScreen() {
             pyramidLastResultRef.current = { count: currentPyramidCount, result: resultNumber }
             
             // Добавляем результат в массив (используем ref для синхронного доступа)
+            const currentResults = pyramidResultsRef.current
             const newResults = [...currentResults, resultNumber]
             pyramidResultsRef.current = newResults
             setPyramidResults(newResults)
