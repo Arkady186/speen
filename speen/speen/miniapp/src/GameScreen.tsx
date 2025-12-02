@@ -2860,14 +2860,16 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     
     const playerCard: React.CSSProperties = {
         display:'grid',
-        gridTemplateColumns:'auto 56px 1fr auto',
+        gridTemplateColumns:'auto 56px minmax(0,1fr) auto',
         alignItems:'center',
-        gap:12,
-        padding:'12px 14px',
+        gap:10,
+        padding:'10px 12px',
         background:'linear-gradient(180deg,#6bb3ff,#2b66b9)',
         borderRadius:20,
         boxShadow:'inset 0 0 0 3px #0b2f68',
-        animation:'friendSlideIn 400ms ease-out both'
+        animation:'friendSlideIn 400ms ease-out both',
+        width:'100%',
+        boxSizing:'border-box'
     }
     
     const myPlayerCard: React.CSSProperties = {
@@ -2889,14 +2891,19 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     
     const playerInfo: React.CSSProperties = {
         display:'grid',
-        gap:4
+        gap:4,
+        minWidth:0
     }
     
     const playerName: React.CSSProperties = {
         color:'#fff',
         fontWeight:900,
         fontSize:15,
-        textShadow:'0 1px 0 rgba(0,0,0,0.35)'
+        textShadow:'0 1px 0 rgba(0,0,0,0.35)',
+        whiteSpace:'nowrap',
+        overflow:'hidden',
+        textOverflow:'ellipsis',
+        maxWidth:'100%'
     }
     
     const playerLevel: React.CSSProperties = {
@@ -2911,11 +2918,12 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     const coinsDisplay: React.CSSProperties = {
         color:'#fff',
         fontWeight:900,
-        fontSize:14,
+        fontSize:13,
         display:'flex',
         alignItems:'center',
-        gap:6,
-        textShadow:'0 1px 0 rgba(0,0,0,0.35)'
+        gap:4,
+        textShadow:'0 1px 0 rgba(0,0,0,0.35)',
+        justifyContent:'flex-end'
     }
 
     const infoModal: React.CSSProperties = {
