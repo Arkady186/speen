@@ -771,7 +771,11 @@ export function GameScreen() {
                 setToast(t('pick_number')); 
                 return false 
             }
-            // В 3 из 10 бонусный сектор можем использовать, если выбран, но не блокируем старт без него
+            // В 3 из 10 бонусный сектор ОБЯЗАТЕЛЕН
+            if (selectedBonusSector == null) {
+                setToast('Выберите бонусный сектор перед началом');
+                return false
+            }
             const { min, max } = getLimits(mode, currency)
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
             if (b !== bet) setBet(b)
@@ -856,6 +860,12 @@ export function GameScreen() {
         if (pyramidBetTakenRef.current && currentPyramidCount > 0) {
             console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}`)
             const resultNumber = Number(label)
+            
+            // Проверяем, не обработали ли мы уже этот результат (защита от дублирования)
+            if (pyramidResultsRef.current.length >= currentPyramidCount) {
+                console.log(`[onSpinResult] Result already processed (${pyramidResultsRef.current.length} results for spin ${currentPyramidCount}), skipping`)
+                return
+            }
             
             // Добавляем результат в массив (используем ref для синхронного доступа)
             const newResults = [...pyramidResultsRef.current, resultNumber]
