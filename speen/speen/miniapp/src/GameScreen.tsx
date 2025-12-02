@@ -2860,7 +2860,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     
     const playerCard: React.CSSProperties = {
         display:'grid',
-        gridTemplateColumns:'auto 56px 1fr auto auto',
+        gridTemplateColumns:'auto 56px 1fr auto',
         alignItems:'center',
         gap:12,
         padding:'12px 14px',
@@ -2874,19 +2874,6 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
         ...playerCard,
         background:'linear-gradient(135deg, #ffd700 0%, #f2a93b 100%)',
         boxShadow:'0 0 0 3px #ffd700, inset 0 0 0 3px #7a4e06'
-    }
-    
-    const rankBadge: React.CSSProperties = {
-        width:40,
-        height:40,
-        borderRadius:'50%',
-        background:'linear-gradient(135deg, #ffd700 0%, #f2a93b 100%)',
-        color:'#7a4e06',
-        fontWeight:900,
-        fontSize:16,
-        display:'grid',
-        placeItems:'center',
-        boxShadow:'0 4px 8px rgba(0,0,0,0.3), inset 0 0 0 3px #7a4e06'
     }
     
     const avatar: React.CSSProperties = {
@@ -2984,7 +2971,9 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                                 {lang==='ru' ? 'Ваша позиция' : 'Your Position'}
                             </div>
                             <div style={myPlayerCard}>
-                                <div style={rankBadge}>#{myRank}</div>
+                                <div style={{color:'#7a4e06', fontWeight:900, fontSize:16, minWidth:40}}>
+                                    {`#${myRank}`}
+                                </div>
                                 <div style={avatar}>
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt="you" style={{width:'100%',height:'100%',objectFit:'cover'}} />
@@ -3006,9 +2995,9 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                                 </div>
                                 <div style={playerInfo}>
                                     <div style={{...playerName, color:'#7a4e06'}}>{username || 'You'}</div>
-                                    <div style={{...playerLevel, color:'#7a4e06'}}>
+                                <div style={{...playerLevel, color:'#7a4e06'}}>
                                         <span>⭐</span>
-                                        <span>{lang==='ru' ? 'Уровень' : 'Level'} {myData.level}</span>
+                                        <span>lvl {myData.level}</span>
                                     </div>
                                 </div>
                                 <div style={{...coinsDisplay, color:'#7a4e06'}}>
@@ -3070,7 +3059,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                                             <div style={isMe ? {...playerName, color:'#7a4e06'} : playerName}>{player.name || 'Player'}</div>
                                             <div style={isMe ? {...playerLevel, color:'#7a4e06'} : playerLevel}>
                                                 <span>⭐</span>
-                                                <span>{lang==='ru' ? 'Уровень' : 'Level'} {player.level}</span>
+                                                <span>lvl {player.level}</span>
                                             </div>
                                         </div>
                                         <div style={isMe ? {...coinsDisplay, color:'#7a4e06'} : coinsDisplay}>
