@@ -846,17 +846,19 @@ export function GameScreen() {
         // Специальная логика для режима 3/10 (pyramid)
         // Используем ref для синхронной проверки текущего счетчика
         const currentPyramidCount = pyramidSpinCountRef.current || pyramidSpinCount
-        console.log(`[onSpinResult] Mode: ${mode}, currentPyramidCount: ${currentPyramidCount}, result: ${label}`)
+        console.log(`[onSpinResult] Mode: ${mode}, currentPyramidCount: ${currentPyramidCount}, result: ${label}, betTaken: ${pyramidBetTakenRef.current}`)
         
         // Если у нас идёт активная серия 3 из 10 (ставка уже списана и счётчик > 0),
         // обрабатываем результат по специальным правилам, даже если пользователь
         // успел переключить режим в интерфейсе.
         if (pyramidBetTakenRef.current && currentPyramidCount > 0) {
+            console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}`)
             const resultNumber = Number(label)
             
             // Добавляем результат в массив
             const newResults = [...pyramidResults, resultNumber]
             setPyramidResults(newResults)
+            console.log(`[onSpinResult] Results so far: ${newResults.join(', ')}`)
             
             // Показываем результат текущего вращения
             const spinNum = currentPyramidCount
@@ -870,6 +872,7 @@ export function GameScreen() {
                 setPyramidSpinCount(nextSpinCount)
                 scheduleNextPyramidSpin(nextSpinCount)
             } else {
+                console.log(`[onSpinResult] Final spin complete, calculating payout`)
                 // Это было последнее вращение (pyramidSpinCount === 3) - завершаем и показываем результаты
                 // Сбрасываем счетчик СРАЗУ, чтобы предотвратить дальнейшие вращения
                 clearPyramidTimers(true)
@@ -879,6 +882,7 @@ export function GameScreen() {
                 
                 const selectedNum = pickedDigit
                 const matches = newResults.filter(n => n === selectedNum).length
+                console.log(`[onSpinResult] Selected: ${selectedNum}, Matches: ${matches}`)
                 
                 // Вычисляем выигрыш:
                 //  - за первое совпадение: +200% от ставки (x2)
@@ -888,6 +892,8 @@ export function GameScreen() {
                 if (matches >= 1) totalWin += Math.floor(b * 2.0)  // +200%
                 if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
                 if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
+                
+                console.log(`[onSpinResult] Total win: ${totalWin}, bet: ${b}, currency: ${currency}`)
                 
                 if (totalWin > 0) {
                     if (currency === 'W') {
