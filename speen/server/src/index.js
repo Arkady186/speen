@@ -8,7 +8,7 @@ app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
 let db
-const DATA_PATH = process.env.SQLITE_PATH || './data.sqlite'
+const DATA_PATH = process.env.SQLITE_PATH || (process.env.RENDER ? '/app/data/data.sqlite' : './data.sqlite')
 
 async function init(){
   db = await open({ filename: DATA_PATH, driver: sqlite3.Database })
