@@ -2775,6 +2775,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     const [myData, setMyData] = React.useState<LeaderboardEntry | null>(null)
     const [totalPlayers, setTotalPlayers] = React.useState<number>(0)
     const [loading, setLoading] = React.useState<boolean>(true)
+    const [infoOpen, setInfoOpen] = React.useState<boolean>(false)
 
     React.useEffect(() => {
         async function fetchLeaderboard() {
@@ -2825,6 +2826,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
         gap:14
     }
     
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:4 }
     const title: React.CSSProperties = { 
         textAlign:'center', 
         color:'#fff', 
@@ -2832,6 +2834,19 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
         fontSize:22, 
         letterSpacing:1.2, 
         textShadow:'0 2px 0 rgba(0,0,0,0.35)' 
+    }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
     }
     
     const subtitle: React.CSSProperties = {
@@ -2916,6 +2931,25 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
         textShadow:'0 1px 0 rgba(0,0,0,0.35)'
     }
 
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
+
     return (
         <>
         <div style={wrap}>
@@ -2925,7 +2959,17 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/reiting.png" alt="leaderboard" style={{width:180, height:180, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
-            <div style={title}>{lang==='ru' ? 'Рейтинг игроков' : 'Leaderboard'}</div>
+            <div style={titleWrap}>
+                <div style={title}>{lang==='ru' ? 'Рейтинг игроков' : 'Leaderboard'}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
+            </div>
             <div style={subtitle}>
                 {lang==='ru' 
                     ? 'Отслеживай свои достижения в рейтинге среди игроков по всему миру. Стань лучшим — займи верхнюю строчку!' 
@@ -3046,6 +3090,20 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                 </>
             )}
         </div>
+        {infoOpen && (
+            <div style={infoModal} onClick={() => setInfoOpen(false)}>
+                <div style={infoModalContent} onClick={(e)=>e.stopPropagation()}>
+                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4}}>
+                        {lang==='ru'
+                            ? 'Отслеживай свои достижения в рейтинге среди игроков по всему миру. Стань лучшим — займи верхнюю строчку!'
+                            : 'Track your achievements in the global leaderboard. Climb to the very top and become the best!'}
+                    </div>
+                    <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                        <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                    </div>
+                </div>
+            </div>
+        )}
         </>
     )
 }
