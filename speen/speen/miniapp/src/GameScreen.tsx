@@ -880,9 +880,12 @@ export function GameScreen() {
                 const selectedNum = pickedDigit
                 const matches = newResults.filter(n => n === selectedNum).length
                 
-                // Вычисляем выигрыш: +100% за первое совпадение, +50% за второе, +25% за третье
+                // Вычисляем выигрыш:
+                //  - за первое совпадение: +200% от ставки (x2)
+                //  - за второе: +50% от ставки
+                //  - за третье: +25% от ставки
                 let totalWin = 0
-                if (matches >= 1) totalWin += Math.floor(b * 1.0)  // +100%
+                if (matches >= 1) totalWin += Math.floor(b * 2.0)  // +200%
                 if (matches >= 2) totalWin += Math.floor(b * 0.5)   // +50%
                 if (matches >= 3) totalWin += Math.floor(b * 0.25)  // +25%
                 
