@@ -489,6 +489,115 @@ export function GameScreen() {
 
     // Удалена функция syncPlayerToServer - больше не нужна
 
+    // Полная синхронизация всех игровых данных в CloudStorage
+    const syncAllDataToCloud = React.useCallback(() => {
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            const cloud = tg?.CloudStorage
+            if (!cloud || !userId) return
+
+            const data = {
+                balanceW,
+                balanceB,
+                lastLoginTs: Number(localStorage.getItem('speen_last_login_ts') || '0'),
+                dailyLast: localStorage.getItem('daily_last') || null,
+                dailyStreak: Number(localStorage.getItem('daily_streak') || '0'),
+                bonusesInv: localStorage.getItem('bonuses_inv') || '[]',
+                midW: Number(localStorage.getItem('mid_w') || '0'),
+                midWLastTs: Number(localStorage.getItem('mid_w_last_ts') || '0'),
+                syncVersion: 2,
+                syncTimestamp: Date.now()
+            }
+            
+            cloud.setItem('speen_full_sync_v2', JSON.stringify(data), () => {
+                console.log('[Sync] All data saved to CloudStorage')
+            })
+        } catch (err) {
+            console.error('[Sync] Error saving to CloudStorage:', err)
+        }
+    }, [balanceW, balanceB, userId])
+
+    // Загрузка всех данных из CloudStorage при старте
+    function loadAllDataFromCloud() {
+        try {
+            const tg = (window as any).Telegram?.WebApp
+            const cloud = tg?.CloudStorage
+            if (!cloud || !userId) return
+
+            cloud.getItem('speen_full_sync_v2', (err: any, value: string | null) => {
+                if (err || !value) {
+                    console.log('[Sync] No data in CloudStorage or error:', err)
+                    return
+                }
+
+                try {
+                    const data = JSON.parse(value)
+                    console.log('[Sync] Loading data from CloudStorage:', data)
+
+                    // Синхронизируем баланс (берем максимальный из локального и облачного)
+                    if (data.balanceW !== undefined && data.balanceW > balanceW) {
+                        setBalanceW(data.balanceW)
+                        localStorage.setItem('balance_w', String(data.balanceW))
+                    }
+                    if (data.balanceB !== undefined && data.balanceB > balanceB) {
+                        setBalanceB(data.balanceB)
+                        localStorage.setItem('balance_b', String(data.balanceB))
+                    }
+
+                    // Синхронизируем время последнего входа (берем более позднее)
+                    const localLastLogin = Number(localStorage.getItem('speen_last_login_ts') || '0')
+                    if (data.lastLoginTs && data.lastLoginTs > localLastLogin) {
+                        localStorage.setItem('speen_last_login_ts', String(data.lastLoginTs))
+                    }
+
+                    // Синхронизируем ежедневные награды
+                    if (data.dailyLast) {
+                        const localDailyLast = localStorage.getItem('daily_last')
+                        if (!localDailyLast || data.dailyLast > localDailyLast) {
+                            localStorage.setItem('daily_last', data.dailyLast)
+                        }
+                    }
+                    if (data.dailyStreak !== undefined) {
+                        const localStreak = Number(localStorage.getItem('daily_streak') || '0')
+                        if (data.dailyStreak > localStreak) {
+                            localStorage.setItem('daily_streak', String(data.dailyStreak))
+                        }
+                    }
+
+                    // Синхронизируем инвентарь бонусов
+                    if (data.bonusesInv) {
+                        try {
+                            const cloudInv = JSON.parse(data.bonusesInv)
+                            const localInvRaw = localStorage.getItem('bonuses_inv') || '[]'
+                            const localInv = JSON.parse(localInvRaw)
+                            // Объединяем массивы и убираем дубликаты
+                            const mergedInv = [...new Set([...localInv, ...cloudInv])]
+                            localStorage.setItem('bonuses_inv', JSON.stringify(mergedInv))
+                        } catch {}
+                    }
+
+                    // Синхронизируем mid_w (накопленные монеты)
+                    if (data.midW !== undefined) {
+                        const localMidW = Number(localStorage.getItem('mid_w') || '0')
+                        if (data.midW > localMidW) {
+                            localStorage.setItem('mid_w', String(data.midW))
+                            setMidW(data.midW)
+                        }
+                    }
+                    if (data.midWLastTs && data.midWLastTs > Number(localStorage.getItem('mid_w_last_ts') || '0')) {
+                        localStorage.setItem('mid_w_last_ts', String(data.midWLastTs))
+                    }
+
+                    console.log('[Sync] Data loaded successfully')
+                } catch (parseErr) {
+                    console.error('[Sync] Error parsing CloudStorage data:', parseErr)
+                }
+            })
+        } catch (err) {
+            console.error('[Sync] Error loading from CloudStorage:', err)
+        }
+    }
+
     function saveBalances(nextW: number, nextB: number) {
         setBalanceW(nextW)
         setBalanceB(nextB)
@@ -505,6 +614,8 @@ export function GameScreen() {
                 cloud.setItem('speen_balance_v1', payload, () => {})
             }
         } catch {}
+        // Полная синхронизация всех данных
+        syncAllDataToCloud()
         // Отправляем данные в рейтинг (debounced через setTimeout)
         updateLeaderboard(nextW, nextB)
     }
@@ -665,6 +776,19 @@ export function GameScreen() {
         pyramidBetTakenRef.current = false
     }, [])
 
+    // Загружаем данные из CloudStorage при первом получении userId
+    React.useEffect(() => {
+        if (userId) {
+            // Загружаем данные из CloudStorage (асинхронно, но это нормально)
+            loadAllDataFromCloud()
+            // Синхронизируем данные каждые 30 секунд
+            const syncInterval = setInterval(() => {
+                syncAllDataToCloud()
+            }, 30000)
+            return () => clearInterval(syncInterval)
+        }
+    }, [userId, syncAllDataToCloud])
+
     // Фоновое начисление монет: 0.01 в секунду, максимум 3 часа после последнего входа
     const backgroundRewardIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
     const backgroundRewardSyncTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -678,6 +802,7 @@ export function GameScreen() {
         const SYNC_INTERVAL_MS = 30000 // Синхронизация с CloudStorage и рейтингом каждые 30 секунд
 
         // Получаем время последнего входа
+        // Загрузка из CloudStorage происходит в loadAllDataFromCloud, который вызывается раньше
         const lastLoginTs = Number(localStorage.getItem(LAST_LOGIN_KEY) || '0')
         const now = Date.now()
         const timeSinceLastLogin = now - lastLoginTs
@@ -714,6 +839,8 @@ export function GameScreen() {
         // Сохраняем текущее время как время последнего входа
         const startTime = Date.now()
         localStorage.setItem(LAST_LOGIN_KEY, String(startTime))
+        // Синхронизируем с CloudStorage
+        syncAllDataToCloud()
 
         let lastSyncTime = startTime
 
