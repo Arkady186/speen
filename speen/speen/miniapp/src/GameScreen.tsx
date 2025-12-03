@@ -2408,7 +2408,17 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
 function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang }: { onClose: () => void, bonusLabels: string[], bonusImages: string[], onPurchase: (title: string) => void, t: (k:string, vars?: any) => string, lang: 'ru'|'en' }){
     const [infoOpen, setInfoOpen] = React.useState(false)
     
-    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const wrap: React.CSSProperties = { 
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', 
+        borderRadius:20, 
+        padding:16, 
+        boxShadow:'inset 0 0 0 3px #0b2f68', 
+        display:'grid', 
+        gap:12,
+        width:'100%',
+        maxWidth:'100%',
+        boxSizing:'border-box'
+    }
     const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
     const infoBtn: React.CSSProperties = { 
@@ -2425,6 +2435,54 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
         boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
     }
     const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
+    const bonusGrid: React.CSSProperties = {
+        display:'grid',
+        gridTemplateColumns:'repeat(auto-fit, minmax(min(140px, 100%), 1fr))',
+        gap:12,
+        width:'100%'
+    }
+    const bonusCard: React.CSSProperties = {
+        display:'grid',
+        gridTemplateRows:'auto 1fr auto',
+        gap:10,
+        background:'linear-gradient(180deg,#6bb3ff 0%, #2b66b9 100%)',
+        borderRadius:16,
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)',
+        padding:14,
+        minHeight:140,
+        position:'relative',
+        transition:'transform 120ms ease, boxShadow 120ms ease'
+    }
+    const bonusIcon: React.CSSProperties = {
+        width:64,
+        height:64,
+        objectFit:'contain',
+        filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.35))',
+        margin:'0 auto'
+    }
+    const bonusLabel: React.CSSProperties = {
+        color:'#fff',
+        fontWeight:900,
+        fontSize:16,
+        textAlign:'center',
+        textShadow:'0 1px 2px rgba(0,0,0,0.35)'
+    }
+    const bonusButton: React.CSSProperties = {
+        padding:'10px 16px',
+        borderRadius:10,
+        border:'none',
+        background:'linear-gradient(180deg, #ffd23a 0%, #f2a93b 100%)',
+        color:'#0b2f68',
+        fontWeight:900,
+        fontSize:14,
+        boxShadow:'inset 0 0 0 2px #7a4e06, 0 2px 4px rgba(0,0,0,0.25)',
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        gap:6
+    }
     const infoModal: React.CSSProperties = {
         position:'fixed', left:0, right:0, top:0, bottom:0,
         background:'rgba(0,0,0,0.7)',
@@ -2451,7 +2509,7 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                 <button style={sheetCloseArrow} onClick={onClose}>✕</button>
             </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/moneywheel.png" alt="wheel" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/moneywheel.png" alt="wheel" style={{width:'clamp(120px, 40vw, 165px)',height:'clamp(120px, 40vw, 165px)',objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('press7_title')}</div>
@@ -2464,17 +2522,39 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                     i
                 </button>
             </div>
-            <div style={{display:'grid', gap:12}}>
-                <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>{t('buy_bonus_1b')}</div>
-                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                    {bonusLabels.map((b, i) => (
-                        <div key={`wb-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-                            <img src={bonusImages[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
-                            <div style={{color:'#fff', fontWeight:800}}>{b}</div>
-                            <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onPurchase(b)}>1 B</button>
-                        </div>
-                    ))}
-                </div>
+            <div style={bonusGrid}>
+                {bonusLabels.map((b, i) => (
+                    <div 
+                        key={`wb-${i}`} 
+                        style={bonusCard}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.02)'
+                            e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 6px 12px rgba(0,0,0,0.35)'
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)'
+                            e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)'
+                        }}
+                    >
+                        <img src={bonusImages[i]} alt={b} style={bonusIcon} />
+                        <div style={bonusLabel}>{b}</div>
+                        <button 
+                            style={bonusButton}
+                            onClick={() => onPurchase(b)}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(180deg, #ffd86b 0%, #f2a93b 100%)'
+                                e.currentTarget.style.transform = 'scale(1.05)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(180deg, #ffd23a 0%, #f2a93b 100%)'
+                                e.currentTarget.style.transform = 'scale(1)'
+                            }}
+                        >
+                            <Coin />
+                            <span>1 B</span>
+                        </button>
+                    </div>
+                ))}
             </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
