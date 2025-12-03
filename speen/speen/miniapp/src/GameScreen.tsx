@@ -2772,11 +2772,11 @@ const menuList: React.CSSProperties = { display:'grid', gap:8, height:'100%', al
 
 const menuCard: React.CSSProperties = {
     display:'grid',
-    gridTemplateColumns:'54px 1fr',
+    gridTemplateColumns:'38px 1fr',
     alignItems:'center',
-    gap:10,
-    padding:'14px 12px',
-    minHeight:70,
+    gap:7,
+    padding:'10px 8px',
+    minHeight:53,
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderRadius:14,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
@@ -2785,7 +2785,7 @@ const menuCard: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrap: React.CSSProperties = { width:50, height:50, display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:34, height:34, display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 // Right menu styles (increased by 20% for 5->6 card effect)
@@ -2808,9 +2808,9 @@ const menuCardRight: React.CSSProperties = {
 
 const menuIconWrapRight: React.CSSProperties = { width:46, height:46, display:'grid', placeItems:'center' }
 
-const menuTextWrap: React.CSSProperties = { display:'grid', gap:5 }
-const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.8, textAlign:'center', fontSize:17 }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:13, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
+const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.8, textAlign:'center', fontSize:14 }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:11, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
