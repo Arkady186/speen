@@ -2437,51 +2437,51 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
     const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
     const bonusGrid: React.CSSProperties = {
         display:'grid',
-        gridTemplateColumns:'repeat(auto-fit, minmax(min(140px, 100%), 1fr))',
-        gap:12,
+        gridTemplateColumns:'repeat(2, 1fr)',
+        gap:10,
         width:'100%'
     }
     const bonusCard: React.CSSProperties = {
         display:'grid',
         gridTemplateRows:'auto 1fr auto',
-        gap:10,
+        gap:8,
         background:'linear-gradient(180deg,#6bb3ff 0%, #2b66b9 100%)',
-        borderRadius:16,
-        boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)',
-        padding:14,
-        minHeight:140,
+        borderRadius:12,
+        boxShadow:'inset 0 0 0 2px #0b2f68, 0 3px 6px rgba(0,0,0,0.25)',
+        padding:10,
+        minHeight:110,
         position:'relative',
         transition:'transform 120ms ease, boxShadow 120ms ease'
     }
     const bonusIcon: React.CSSProperties = {
-        width:64,
-        height:64,
+        width:48,
+        height:48,
         objectFit:'contain',
-        filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.35))',
+        filter:'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
         margin:'0 auto'
     }
     const bonusLabel: React.CSSProperties = {
         color:'#fff',
         fontWeight:900,
-        fontSize:16,
+        fontSize:13,
         textAlign:'center',
         textShadow:'0 1px 2px rgba(0,0,0,0.35)'
     }
     const bonusButton: React.CSSProperties = {
-        padding:'10px 16px',
-        borderRadius:10,
+        padding:'8px 12px',
+        borderRadius:8,
         border:'none',
         background:'linear-gradient(180deg, #ffd23a 0%, #f2a93b 100%)',
         color:'#0b2f68',
         fontWeight:900,
-        fontSize:14,
+        fontSize:12,
         boxShadow:'inset 0 0 0 2px #7a4e06, 0 2px 4px rgba(0,0,0,0.25)',
         cursor:'pointer',
         transition:'all 120ms ease',
         display:'flex',
         alignItems:'center',
         justifyContent:'center',
-        gap:6
+        gap:4
     }
     const infoModal: React.CSSProperties = {
         position:'fixed', left:0, right:0, top:0, bottom:0,
