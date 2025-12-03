@@ -1809,11 +1809,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <div style={menuHeaderTitle}>{t('tasks_title')}</div>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }}>✕</button>
-                        </div>
-                        <TasksPanel t={t} lang={lang} onClose={() => { setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
+                        <TasksPanel t={t} lang={lang} onClose={() => { triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
                                 const tg = (window as any).Telegram?.WebApp
                                 const url = window.location.href
@@ -2149,6 +2145,7 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
 }
 
 function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+    const [infoOpen, setInfoOpen] = React.useState(false)
     const spins = Number(localStorage.getItem('task_spins') || '0')
     const loginStreak = (()=>{
         try {
@@ -2171,29 +2168,204 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
         onReward(reward)
         try { localStorage.setItem(key,'1') } catch {}
     }
-    const card = (title: string, progress: string, canClaim: boolean, onClick: () => void) => (
-        <div style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-            <div>
-                <div style={{color:'#fff', fontWeight:900}}>{title}</div>
-                <div style={{color:'#e8f1ff', opacity:.9, fontSize:12}}>{progress}</div>
-            </div>
-            <button disabled={!canClaim} style={{ padding:'6px 10px', borderRadius:8, border:'none', background: canClaim ? '#22c55e' : '#889bb9', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor: canClaim ? 'pointer' : 'default' }} onClick={onClick}>{t('get')}</button>
-        </div>
-    )
+
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
+    }
+    const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
+    const taskCard: React.CSSProperties = {
+        display:'grid',
+        gridTemplateColumns:'1fr auto',
+        alignItems:'center',
+        gap:12,
+        background:'linear-gradient(180deg,#6bb3ff 0%, #2b66b9 100%)',
+        borderRadius:14,
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)',
+        padding:14,
+        position:'relative',
+        transition:'transform 120ms ease, boxShadow 120ms ease'
+    }
+    const taskCardDone: React.CSSProperties = {
+        ...taskCard,
+        background:'linear-gradient(180deg, #4b5563 0%, #1f2937 100%)',
+        opacity:0.7
+    }
+    const taskInfo: React.CSSProperties = { display:'grid', gap:6 }
+    const taskTitle: React.CSSProperties = { color:'#fff', fontWeight:900, fontSize:15, textShadow:'0 1px 2px rgba(0,0,0,0.35)' }
+    const taskProgress: React.CSSProperties = { color:'#e8f1ff', opacity:0.9, fontSize:13, fontWeight:700 }
+    const taskButton: React.CSSProperties = {
+        padding:'10px 18px',
+        borderRadius:10,
+        border:'none',
+        background:'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+        color:'#0b2f68',
+        fontWeight:900,
+        fontSize:13,
+        boxShadow:'inset 0 0 0 2px #0a5d2b, 0 2px 4px rgba(0,0,0,0.25)',
+        cursor:'pointer',
+        transition:'all 120ms ease'
+    }
+    const taskButtonDisabled: React.CSSProperties = {
+        ...taskButton,
+        background:'linear-gradient(180deg, #889bb9 0%, #64748b 100%)',
+        cursor:'default',
+        opacity:0.6
+    }
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
+
     const spin50Done = (localStorage.getItem('task_done_spin50') === '1')
     const spin100Done = (localStorage.getItem('task_done_spin100') === '1')
     const streak7Done = (localStorage.getItem('task_done_streak7') === '1')
     const share5Done = (localStorage.getItem('task_done_share5') === '1')
+
+    const renderTask = (title: string, progress: string, canClaim: boolean, done: boolean, onClick: () => void) => (
+        <div 
+            key={title}
+            style={done ? taskCardDone : taskCard}
+            onMouseEnter={(e) => {
+                if (!done) {
+                    e.currentTarget.style.transform = 'scale(1.02)'
+                    e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 6px 12px rgba(0,0,0,0.35)'
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (!done) {
+                    e.currentTarget.style.transform = 'scale(1)'
+                    e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)'
+                }
+            }}
+        >
+            {done && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 10,
+                    fontSize: 48,
+                    color: '#22c55e',
+                    textShadow: '0 0 4px #0b2f68, 0 0 10px rgba(0,0,0,0.7)'
+                }}>✓</div>
+            )}
+            <div style={taskInfo}>
+                <div style={taskTitle}>{title}</div>
+                <div style={taskProgress}>{progress}</div>
+            </div>
+            <button 
+                disabled={!canClaim || done}
+                style={(!canClaim || done) ? taskButtonDisabled : taskButton}
+                onClick={onClick}
+                onMouseEnter={(e) => {
+                    if (canClaim && !done) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #2dd977 0%, #16a34a 100%)'
+                        e.currentTarget.style.transform = 'scale(1.05)'
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (canClaim && !done) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)'
+                        e.currentTarget.style.transform = 'scale(1)'
+                    }
+                }}
+            >
+                {t('get')}
+            </button>
+        </div>
+    )
+
     return (
-        <div style={{display:'grid', gap:10}}>
-            {card(lang==='ru' ? '50 прокрутов — 1000 W' : '50 spins — 1000 W', `${Math.min(50, spins)}/50`, !spin50Done && spins >= 50, () => claim('spin50', {W:1000}))}
-            {card(lang==='ru' ? '100 прокрутов — 1 B' : '100 spins — 1 B', `${Math.min(100, spins)}/100`, !spin100Done && spins >= 100, () => claim('spin100', {B:1}))}
-            {card(lang==='ru' ? 'Заходи 7 дней подряд — 1 B' : 'Login 7 days in a row — 1 B', `${Math.min(7, loginStreak)}/7`, !streak7Done && loginStreak >= 7, () => claim('streak7', {B:1}))}
-            {card(lang==='ru' ? 'Поделись с 5 друзьями — 5000 W' : 'Share with 5 friends — 5000 W', `${Math.min(5, sharedCount)}/5`, !share5Done && sharedCount >= 5, () => claim('share5', {W:5000}))}
-            <div style={{display:'grid', placeItems:'center'}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
+        <>
+        <div style={wrap}>
+            <div style={{display:'flex', justifyContent:'flex-end'}}>
+                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
+            </div>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/press9.png" alt="tasks" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={titleWrap}>
+                <div style={title}>{t('tasks_title')}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
+            </div>
+            <div style={{display:'grid', gap:12}}>
+                {renderTask(
+                    lang==='ru' ? '50 прокрутов — 1000 W' : '50 spins — 1000 W', 
+                    `${Math.min(50, spins)}/50`, 
+                    !spin50Done && spins >= 50, 
+                    spin50Done,
+                    () => claim('spin50', {W:1000})
+                )}
+                {renderTask(
+                    lang==='ru' ? '100 прокрутов — 1 B' : '100 spins — 1 B', 
+                    `${Math.min(100, spins)}/100`, 
+                    !spin100Done && spins >= 100, 
+                    spin100Done,
+                    () => claim('spin100', {B:1})
+                )}
+                {renderTask(
+                    lang==='ru' ? 'Заходи 7 дней подряд — 1 B' : 'Login 7 days in a row — 1 B', 
+                    `${Math.min(7, loginStreak)}/7`, 
+                    !streak7Done && loginStreak >= 7, 
+                    streak7Done,
+                    () => claim('streak7', {B:1})
+                )}
+                {renderTask(
+                    lang==='ru' ? 'Поделись с 5 друзьями — 5000 W' : 'Share with 5 friends — 5000 W', 
+                    `${Math.min(5, sharedCount)}/5`, 
+                    !share5Done && sharedCount >= 5, 
+                    share5Done,
+                    () => {
+                        claim('share5', {W:5000})
+                        onShare5()
+                    }
+                )}
             </div>
         </div>
+        <div style={infoModal} onClick={() => setInfoOpen(false)}>
+            <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div style={descrPill}>{lang==='ru' ? 'Выполняй задания и получай награды. Каждое задание можно выполнить только один раз.' : 'Complete tasks and get rewards. Each task can only be completed once.'}</div>
+                <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                    <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                </div>
+            </div>
+        </div>
+        </>
     )
 }
 
