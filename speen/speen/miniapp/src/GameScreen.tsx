@@ -664,6 +664,111 @@ export function GameScreen() {
         clearPyramidTimers(true)
         pyramidBetTakenRef.current = false
     }, [])
+
+    // Фоновое начисление монет: 0.01 в секунду, максимум 3 часа после последнего входа
+    const backgroundRewardIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+    const backgroundRewardSyncTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+    
+    React.useEffect(() => {
+        const LAST_LOGIN_KEY = 'speen_last_login_ts'
+        const MAX_OFFLINE_HOURS = 3
+        const MAX_OFFLINE_MS = MAX_OFFLINE_HOURS * 60 * 60 * 1000 // 3 часа в миллисекундах
+        const COINS_PER_SECOND = 0.01
+        const INTERVAL_MS = 1000 // 1 секунда
+        const SYNC_INTERVAL_MS = 30000 // Синхронизация с CloudStorage и рейтингом каждые 30 секунд
+
+        // Получаем время последнего входа
+        const lastLoginTs = Number(localStorage.getItem(LAST_LOGIN_KEY) || '0')
+        const now = Date.now()
+        const timeSinceLastLogin = now - lastLoginTs
+
+        // Если прошло больше 3 часов, начисляем только за 3 часа
+        const timeToReward = Math.min(timeSinceLastLogin, MAX_OFFLINE_MS)
+        const offlineReward = Math.floor(timeToReward / 1000 * COINS_PER_SECOND * 100) / 100 // Округляем до 2 знаков
+
+        if (offlineReward > 0 && lastLoginTs > 0) {
+            // Начисляем накопленные монеты за оффлайн время
+            setBalanceW(prev => {
+                const next = prev + offlineReward
+                try {
+                    localStorage.setItem('balance_w', String(next))
+                } catch {}
+                return next
+            })
+            // Синхронизируем с CloudStorage и рейтингом
+            if (backgroundRewardSyncTimeoutRef.current) {
+                clearTimeout(backgroundRewardSyncTimeoutRef.current)
+            }
+            backgroundRewardSyncTimeoutRef.current = setTimeout(() => {
+                setBalanceW(currentW => {
+                    setBalanceB(currentB => {
+                        saveBalances(currentW, currentB)
+                        return currentB
+                    })
+                    return currentW
+                })
+            }, 100)
+            console.log(`[BackgroundReward] Offline reward: ${offlineReward} W (${Math.floor(timeToReward / 1000 / 60)} minutes)`)
+        }
+
+        // Сохраняем текущее время как время последнего входа
+        const startTime = Date.now()
+        localStorage.setItem(LAST_LOGIN_KEY, String(startTime))
+
+        let lastSyncTime = startTime
+
+        // Запускаем интервал для фонового начисления
+        backgroundRewardIntervalRef.current = setInterval(() => {
+            const elapsedTime = Date.now() - startTime
+
+            // Если прошло больше 3 часов с момента входа, останавливаем начисление
+            if (elapsedTime >= MAX_OFFLINE_MS) {
+                if (backgroundRewardIntervalRef.current) {
+                    clearInterval(backgroundRewardIntervalRef.current)
+                    backgroundRewardIntervalRef.current = null
+                }
+                console.log('[BackgroundReward] Stopped after 3 hours')
+                return
+            }
+
+            // Начисляем 0.01 монет каждую секунду
+            setBalanceW(prev => {
+                const next = Number((prev + COINS_PER_SECOND).toFixed(2))
+                try {
+                    localStorage.setItem('balance_w', String(next))
+                } catch {}
+                
+                // Синхронизируем с CloudStorage и рейтингом каждые 30 секунд
+                const now = Date.now()
+                if (now - lastSyncTime >= SYNC_INTERVAL_MS) {
+                    lastSyncTime = now
+                    if (backgroundRewardSyncTimeoutRef.current) {
+                        clearTimeout(backgroundRewardSyncTimeoutRef.current)
+                    }
+                    backgroundRewardSyncTimeoutRef.current = setTimeout(() => {
+                        setBalanceB(currentB => {
+                            saveBalances(next, currentB)
+                            return currentB
+                        })
+                    }, 100)
+                }
+                
+                return next
+            })
+        }, INTERVAL_MS)
+
+        // Очистка при размонтировании
+        return () => {
+            if (backgroundRewardIntervalRef.current) {
+                clearInterval(backgroundRewardIntervalRef.current)
+                backgroundRewardIntervalRef.current = null
+            }
+            if (backgroundRewardSyncTimeoutRef.current) {
+                clearTimeout(backgroundRewardSyncTimeoutRef.current)
+                backgroundRewardSyncTimeoutRef.current = null
+            }
+        }
+    }, []) // Запускаем только один раз при монтировании
     
     // Автоматический запуск следующего вращения в режиме pyramid после завершения предыдущего
     const pyramidAutoSpinTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
