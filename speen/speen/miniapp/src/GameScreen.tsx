@@ -1776,32 +1776,24 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={inviteSheetHeader}>
-                            <div style={menuHeaderTitle}>{t('press7_title')}</div>
-                            <button style={sheetCloseArrow} onClick={()=>{ triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}>✕</button>
-                        </div>
-                        <div style={{display:'grid', gap:12}}>
-                            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>{t('buy_bonus_1b')}</div>
-                            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-                                {BONUS_LABELS.map((b, i) => (
-                                    <div key={`wb-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
-                                        <img src={BONUS_IMAGES[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
-                                        <div style={{color:'#fff', fontWeight:800}}>{b}</div>
-                                        <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => {
-                                            if (balanceB < 1) { setToast('Недостаточно B'); return }
-                                            saveBalances(balanceW, balanceB - 1)
-                                            try {
-                                                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                                                const inv: string[] = JSON.parse(invRaw)
-                                                inv.push(b)
-                                                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                                            } catch {}
-                                            setToast(`Куплено: ${b} за 1 B`)
-                                        }}>1 B</button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <WheelShopPanel
+                            t={t}
+                            lang={lang}
+                            onClose={() => { triggerHaptic('impact'); setWheelAnimatingOut(true); setTimeout(()=>{ setWheelShopOpen(false); setWheelAnimatingOut(false) }, 300) }}
+                            bonusLabels={BONUS_LABELS}
+                            bonusImages={BONUS_IMAGES}
+                            onPurchase={(b) => {
+                                if (balanceB < 1) { setToast('Недостаточно B'); return }
+                                saveBalances(balanceW, balanceB - 1)
+                                try {
+                                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                    const inv: string[] = JSON.parse(invRaw)
+                                    inv.push(b)
+                                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                } catch {}
+                                setToast(`Куплено: ${b} за 1 B`)
+                            }}
+                        />
                     </div>
                 </div>
             )}
@@ -2404,6 +2396,90 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
             <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
                 <div style={descrPill}>{lang==='ru' ? 'Данный раздел — это твой рюкзак. Тут хранятся все твои покупки и бонусы, полученные в игре.' : 'This section is your backpack. Here are all your purchases and bonuses received in the game.'}</div>
+                <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                    <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                </div>
+            </div>
+        </div>
+        </>
+    )
+}
+
+function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang }: { onClose: () => void, bonusLabels: string[], bonusImages: string[], onPurchase: (title: string) => void, t: (k:string, vars?: any) => string, lang: 'ru'|'en' }){
+    const [infoOpen, setInfoOpen] = React.useState(false)
+    
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
+    }
+    const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
+
+    return (
+        <>
+        <div style={wrap}>
+            <div style={{display:'flex', justifyContent:'flex-end'}}>
+                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
+            </div>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/moneywheel.png" alt="wheel" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={titleWrap}>
+                <div style={title}>{t('press7_title')}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
+            </div>
+            <div style={{display:'grid', gap:12}}>
+                <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>{t('buy_bonus_1b')}</div>
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                    {bonusLabels.map((b, i) => (
+                        <div key={`wb-${i}`} style={{display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:8, background:'linear-gradient(180deg,#3d74c6,#2b66b9)', borderRadius:12, boxShadow:'inset 0 0 0 3px #0b2f68', padding:'8px 10px'}}>
+                            <img src={bonusImages[i]} alt={b} style={{width:44,height:44,objectFit:'contain'}} />
+                            <div style={{color:'#fff', fontWeight:800}}>{b}</div>
+                            <button style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#ffd23a', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #7a4e06', cursor:'pointer' }} onClick={() => onPurchase(b)}>1 B</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+        <div style={infoModal} onClick={() => setInfoOpen(false)}>
+            <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div style={descrPill}>{lang==='ru' ? 'Покупай бонусы за 1 B и используй их в игре для увеличения выигрыша.' : 'Buy bonuses for 1 B and use them in the game to increase your winnings.'}</div>
                 <div style={{display:'grid', placeItems:'center', marginTop:16}}>
                     <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
                 </div>
