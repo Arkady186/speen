@@ -568,7 +568,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     position: 'absolute',
                     left: '50%',
                     top: '50%',
-                    transform: 'translate(-50%, -50%)',
+                    transform: `translate(-50%, -50%) rotate(-${rotation}deg)`,
                     width: Math.round(size * 0.26),
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
@@ -576,6 +576,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     background: `url(${(isSpinning || hideCenterButton) ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
                     boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
                     cursor: (isSpinning || hideCenterButton) ? 'default' : 'pointer',
+                    willChange: 'transform',
+                    transition: 'none', // Без transition для мгновенной компенсации вращения
                 }}
             />
         </div>
