@@ -895,18 +895,39 @@ export function GameScreen() {
             pyramidProcessedSpinIdRef.current = currentSpinId
             console.log(`[onSpinResult] Marked spin ID ${currentSpinId} as processed`)
             
+            // Проверяем уникальность числа - все три числа должны быть разными
+            const currentResults = pyramidResultsRef.current
+            let finalResultNumber = resultNumber
+            
+            // Если число уже выпало, находим следующее уникальное число
+            if (currentResults.includes(resultNumber)) {
+                console.log(`[onSpinResult] Duplicate number ${resultNumber} detected, finding next unique number`)
+                // Находим следующее уникальное число (начиная с resultNumber + 1, по кругу)
+                const findNextUniqueNumber = (startNum: number): number => {
+                    for (let i = 1; i < 10; i++) {
+                        const nextNum = (startNum + i) % 10
+                        if (!currentResults.includes(nextNum)) {
+                            return nextNum
+                        }
+                    }
+                    // Если все числа уже выпали (невозможно для 3 спинов, но на всякий случай)
+                    return (startNum + 1) % 10
+                }
+                finalResultNumber = findNextUniqueNumber(resultNumber)
+                console.log(`[onSpinResult] Replaced duplicate ${resultNumber} with unique number: ${finalResultNumber}`)
+            }
+            
             // Сохраняем текущий результат как последний обработанный
-            pyramidLastResultRef.current = { count: currentPyramidCount, result: resultNumber }
+            pyramidLastResultRef.current = { count: currentPyramidCount, result: finalResultNumber }
             
             // Добавляем результат в массив (используем ref для синхронного доступа)
-            const currentResults = pyramidResultsRef.current
-            const newResults = [...currentResults, resultNumber]
+            const newResults = [...currentResults, finalResultNumber]
             pyramidResultsRef.current = newResults
             setPyramidResults(newResults)
             console.log(`[onSpinResult] Results so far: ${newResults.join(', ')} (spin ${currentPyramidCount} of 3)`)
             
             // Показываем результат текущего вращения
-            setToast(`Вращение ${currentPyramidCount}: ${resultNumber}`)
+            setToast(`Вращение ${currentPyramidCount}: ${finalResultNumber}`)
             
             // Если это не последнее вращение, запускаем следующее автоматически
             if (currentPyramidCount < 3) {
