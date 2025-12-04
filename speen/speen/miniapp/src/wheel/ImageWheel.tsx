@@ -324,8 +324,11 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
                     if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
                     innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
-                    // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
-                    // Сброс будет происходить только когда hideCenterButton станет false (завершение режима 3/10)
+                    // Сбрасываем вращение кнопки после каждого спина, чтобы она всегда была в исходном положении
+                    if (centerBtnRef.current) {
+                        centerBtnRef.current.style.transition = 'transform 200ms ease'
+                        centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
+                    }
                 }}
             >
                 {/* цельное кольцо бонусов поверх колеса (прячем во время спина и когда скрыты знаки) */}
@@ -568,7 +571,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     position: 'absolute',
                     left: '50%',
                     top: '50%',
-                    transform: `translate(-50%, -50%) rotate(-${rotation}deg)`,
+                    transform: 'translate(-50%, -50%)',
                     width: Math.round(size * 0.26),
                     height: Math.round(size * 0.26),
                     borderRadius: '50%',
@@ -576,8 +579,6 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     background: `url(${(isSpinning || hideCenterButton) ? '/centerspin.png' : '/center.png'}) center/contain no-repeat`,
                     boxShadow: '0 6px 12px rgba(0,0,0,0.35)',
                     cursor: (isSpinning || hideCenterButton) ? 'default' : 'pointer',
-                    willChange: 'transform',
-                    transition: 'none', // Без transition для мгновенной компенсации вращения
                 }}
             />
         </div>
