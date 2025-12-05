@@ -1117,20 +1117,16 @@ export function GameScreen() {
                             
                             // Проверка блокировки игры на нескольких устройствах
                             cloud.getItem('speen_active_device', (err: any, value: string | null) => {
-                                if (err) {
-                                    setIsLoading(false)
-                                    return
-                                }
                                 try {
                                     const now = Date.now()
                                     const currentDeviceId = deviceIdRef.current
-                                    
-                                    if (value) {
+
+                                    if (!err && value) {
                                         const activeDevice = JSON.parse(value)
                                         const activeDeviceId = activeDevice?.deviceId
                                         const lastActivity = activeDevice?.lastActivity || 0
                                         const TIMEOUT_MS = 5 * 60 * 1000 // 5 минут бездействия
-                                        
+
                                         // Если игра запущена на другом устройстве и оно активно (было активно менее 5 минут назад)
                                         if (activeDeviceId && activeDeviceId !== currentDeviceId && (now - lastActivity) < TIMEOUT_MS) {
                                             setIsGameBlocked(true)
@@ -1138,15 +1134,17 @@ export function GameScreen() {
                                             return
                                         }
                                     }
-                                    
-                                    // Записываем текущее устройство как активное
+
+                                    // Записываем текущее устройство как активное (даже при ошибке CloudStorage)
                                     cloud.setItem('speen_active_device', JSON.stringify({
                                         deviceId: currentDeviceId,
                                         lastActivity: now
                                     }), () => {})
-                                    
-                                    setIsLoading(false)
-                                } catch {
+                                } catch (e) {
+                                    // При ошибке CloudStorage все равно разрешаем игру
+                                    console.warn('CloudStorage error in multi-device check:', e)
+                                } finally {
+                                    // Всегда завершаем загрузку
                                     setIsLoading(false)
                                 }
                             })
