@@ -1,5 +1,6 @@
 import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
+import { ImageWheel, ImageWheelRef } from './wheel/ImageWheel'
 
 // CSS анимации для всплывающих окон
 const animationStyle = document.createElement('style')
