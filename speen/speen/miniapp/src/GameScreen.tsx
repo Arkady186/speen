@@ -1,6 +1,5 @@
 import React from 'react'
 import { FortuneWheel } from './wheel/FortuneWheel'
-import { ImageWheel, ImageWheelRef } from './wheel/ImageWheel'
 
 // CSS анимации для всплывающих окон
 const animationStyle = document.createElement('style')
@@ -134,6 +133,17 @@ export function GameScreen() {
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
+    const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
+    // Генерируем уникальный ID устройства при первом запуске
+    const getDeviceId = () => {
+        let id = localStorage.getItem('device_id')
+        if (!id) {
+            id = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            localStorage.setItem('device_id', id)
+        }
+        return id
+    }
+    const deviceIdRef = React.useRef<string>(getDeviceId())
     // balances and game controls
     const [balanceW, setBalanceW] = React.useState<number>(() => {
         const v = Number(localStorage.getItem('balance_w') || '0')
@@ -1103,6 +1113,42 @@ export function GameScreen() {
                                     }
                                 } catch {}
                             })
+                            
+                            // Проверка блокировки игры на нескольких устройствах
+                            cloud.getItem('speen_active_device', (err: any, value: string | null) => {
+                                if (err) {
+                                    setIsLoading(false)
+                                    return
+                                }
+                                try {
+                                    const now = Date.now()
+                                    const currentDeviceId = deviceIdRef.current
+                                    
+                                    if (value) {
+                                        const activeDevice = JSON.parse(value)
+                                        const activeDeviceId = activeDevice?.deviceId
+                                        const lastActivity = activeDevice?.lastActivity || 0
+                                        const TIMEOUT_MS = 5 * 60 * 1000 // 5 минут бездействия
+                                        
+                                        // Если игра запущена на другом устройстве и оно активно (было активно менее 5 минут назад)
+                                        if (activeDeviceId && activeDeviceId !== currentDeviceId && (now - lastActivity) < TIMEOUT_MS) {
+                                            setIsGameBlocked(true)
+                                            setIsLoading(false)
+                                            return
+                                        }
+                                    }
+                                    
+                                    // Записываем текущее устройство как активное
+                                    cloud.setItem('speen_active_device', JSON.stringify({
+                                        deviceId: currentDeviceId,
+                                        lastActivity: now
+                                    }), () => {})
+                                    
+                                    setIsLoading(false)
+                                } catch {
+                                    setIsLoading(false)
+                                }
+                            })
                         }
                     } catch {}
                 }
@@ -1142,6 +1188,70 @@ export function GameScreen() {
             } catch {}
         })()
     }, [])
+
+    // Периодическое обновление активности устройства и очистка при закрытии
+    React.useEffect(() => {
+        if (isGameBlocked || !userId) return
+        
+        const tg = (window as any).Telegram?.WebApp
+        const cloud = tg?.CloudStorage
+        if (!cloud) return
+
+        const currentDeviceId = deviceIdRef.current
+        
+        // Периодически обновляем активность (каждые 30 секунд)
+        const activityInterval = setInterval(() => {
+            cloud.getItem('speen_active_device', (err: any, value: string | null) => {
+                if (!err && value) {
+                    try {
+                        const activeDevice = JSON.parse(value)
+                        // Обновляем только если это наше устройство
+                        if (activeDevice?.deviceId === currentDeviceId) {
+                            cloud.setItem('speen_active_device', JSON.stringify({
+                                deviceId: currentDeviceId,
+                                lastActivity: Date.now()
+                            }), () => {})
+                        }
+                    } catch {}
+                }
+            })
+        }, 30000)
+        
+        // Очистка при закрытии игры
+        const handleBeforeUnload = () => {
+            cloud.getItem('speen_active_device', (err: any, value: string | null) => {
+                if (!err && value) {
+                    try {
+                        const activeDevice = JSON.parse(value)
+                        // Освобождаем слот только если это наше устройство
+                        if (activeDevice?.deviceId === currentDeviceId) {
+                            cloud.setItem('speen_active_device', JSON.stringify({
+                                deviceId: null,
+                                lastActivity: 0
+                            }), () => {})
+                        }
+                    } catch {}
+                }
+            })
+        }
+        
+        // Очистка при потере фокуса (переключение вкладки/приложения)
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // При скрытии вкладки не освобождаем сразу, но можно добавить таймаут
+            }
+        }
+        
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        
+        return () => {
+            clearInterval(activityInterval)
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            handleBeforeUnload()
+        }
+    }, [isGameBlocked, userId])
 
     // Предзагрузка критических изображений
     React.useEffect(() => {
@@ -1213,6 +1323,51 @@ export function GameScreen() {
             window.clearTimeout(safetyTimeout)
         }
     }, [])
+
+    // Блокирующий экран для случая, когда игра запущена на другом устройстве
+    if (isGameBlocked) {
+        return (
+            <div style={{
+                ...root,
+                display: 'grid',
+                placeItems: 'center',
+                padding: 20,
+                background: 'linear-gradient(180deg, #68b1ff 0%, #3f7ddb 60%, #2e63bf 100%)'
+            }}>
+                <div style={{
+                    background: 'linear-gradient(180deg, #2a67b7 0%, #1a4b97 100%)',
+                    borderRadius: 24,
+                    padding: 32,
+                    boxShadow: 'inset 0 0 0 3px #0b2f68, 0 12px 32px rgba(0,0,0,0.4)',
+                    maxWidth: '90%',
+                    textAlign: 'center',
+                    display: 'grid',
+                    gap: 20
+                }}>
+                    <div style={{ fontSize: 64, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>📱</div>
+                    <div style={{
+                        color: '#fff',
+                        fontWeight: 900,
+                        fontSize: 24,
+                        letterSpacing: 1.2,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.35)'
+                    }}>
+                        {lang === 'ru' ? 'Игра запущена на другом устройстве' : 'Game is running on another device'}
+                    </div>
+                    <div style={{
+                        color: '#e8f1ff',
+                        fontSize: 16,
+                        lineHeight: 1.5,
+                        fontWeight: 700
+                    }}>
+                        {lang === 'ru' 
+                            ? 'Игра уже активна на другом устройстве. Закройте игру там, чтобы продолжить здесь.'
+                            : 'The game is already active on another device. Close it there to continue here.'}
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <>
