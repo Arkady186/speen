@@ -324,11 +324,8 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
                     if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
                     innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
-                    // Сбрасываем вращение кнопки после каждого спина, чтобы она всегда была в исходном положении
-                    if (centerBtnRef.current) {
-                        centerBtnRef.current.style.transition = 'transform 200ms ease'
-                        centerBtnRef.current.style.transform = 'translate(-50%, -50%) rotate(0deg)'
-                    }
+                    // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
+                    // Сброс будет происходить только когда hideCenterButton станет false (завершение режима 3/10)
                 }}
             >
                 {/* цельное кольцо бонусов поверх колеса (прячем во время спина и когда скрыты знаки) */}
