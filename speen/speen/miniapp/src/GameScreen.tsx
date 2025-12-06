@@ -3138,16 +3138,6 @@ const inviteSheet: React.CSSProperties = {
     overflowY:'auto' as const
 }
 
-const inviteSheetFixed: React.CSSProperties = {
-    position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'82%', maxWidth: 420, height:'85vh',
-    background:'linear-gradient(180deg, #2b66b9 0%, #1a4b97 100%)',
-    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
-    boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
-    padding: 12,
-    overflowY:'auto' as const
-}
-
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
 // универсальная круглая кнопка закрытия для всех вкладок/окон
 const sheetCloseArrow: React.CSSProperties = { 
