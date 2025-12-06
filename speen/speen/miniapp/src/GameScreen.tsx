@@ -1710,6 +1710,7 @@ export function GameScreen() {
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280) }}>
                     <div style={{...inviteSheetFixed, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{position:'relative', width:'100%', height:'100%'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1733,10 +1734,12 @@ export function GameScreen() {
                                 setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280)
                             }
                             return (
-                                <div style={inviteInnerWrap}>
-                                    <div style={{display:'flex', justifyContent:'flex-end'}}>
-                                        <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
-                                    </div>
+                                <>
+                                    <div style={inviteInnerWrap} />
+                                    <div style={inviteContentWrap}>
+                                        <div style={{display:'flex', justifyContent:'flex-end'}}>
+                                            <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
+                                        </div>
                                     <div style={{display:'grid', placeItems:'center', marginTop:-10}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
@@ -1845,9 +1848,11 @@ export function GameScreen() {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                    </div>
+                                </>
                             )
                         })()}
+                        </div>
                     </div>
                 </div>
             )}
@@ -3300,19 +3305,32 @@ const inviteInnerWrap: React.CSSProperties = {
     display:'grid', 
     gap:12,
     boxShadow:'inset 0 0 0 3px #0b2f68',
-    marginBottom:12
+    position:'absolute',
+    top:12,
+    left:12,
+    right:12,
+    bottom:12,
+    pointerEvents:'none'
+}
+
+const inviteContentWrap: React.CSSProperties = {
+    position:'relative',
+    zIndex:1,
+    padding:16,
+    display:'grid',
+    gap:12,
+    pointerEvents:'auto'
 }
 
 const inviteSheetFixed: React.CSSProperties = {
-    position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'82%', maxWidth: 420, height:'85vh',
+    position:'fixed', left:'50%', bottom:'20px', transform:'translateX(-50%)',
+    width:'82%', maxWidth: 420, maxHeight:'calc(85vh - 20px)',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
-    padding: 12,
+    padding: 0,
     overflowY:'auto' as const,
-    display:'flex',
-    flexDirection:'column'
+    overflowX:'hidden' as const
 }
 
 // центрированное модальное окно для подсказок (используется для Invite)
