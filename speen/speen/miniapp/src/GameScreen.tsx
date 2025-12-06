@@ -1709,47 +1709,7 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280) }}>
-                    <div style={{...inviteSheet, height: `${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
-                        <div
-                            style={inviteGrabWrap}
-                            onPointerDown={(e) => {
-                                inviteDragStartY.current = e.clientY
-                                inviteDragStartTs.current = Date.now()
-                                inviteDragStartHeightVh.current = inviteHeightVh
-                                inviteLastY.current = e.clientY
-                                inviteLastTs.current = Date.now()
-                            }}
-                            onPointerMove={(e) => {
-                                if (inviteDragStartY.current == null) return
-                                const dy = inviteDragStartY.current - e.clientY // вверх = положительно
-                                const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy / (window.innerHeight / 100)))
-                                setInviteHeightVh(vh)
-                                inviteLastY.current = e.clientY
-                                inviteLastTs.current = Date.now()
-                            }}
-                            onPointerUp={() => {
-                                if (inviteDragStartY.current == null) return
-                                const totalDy = inviteDragStartY.current - (inviteLastY.current || inviteDragStartY.current)
-                                const dt = Math.max(1, Date.now() - (inviteDragStartTs.current || Date.now()))
-                                const velocity = (totalDy / dt) // px per ms (вверх положительно)
-                                // быстрый свайп вниз -> закрыть
-                                if (velocity < -0.8) { // порог скорости
-                                    triggerHaptic('impact')
-                                    setInviteAnimatingOut(true)
-                                    setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false) }, 250)
-                                } else {
-                                    // снап к ближайшей точке
-                                    const snaps = [40, 60, 80, 90]
-                                    const next = snaps.reduce((a,b)=> Math.abs(b - inviteHeightVh) < Math.abs(a - inviteHeightVh) ? b : a, snaps[0])
-                                    setInviteHeightVh(next)
-                                    triggerHaptic('impact')
-                                }
-                                inviteDragStartY.current = null
-                            }}
-                            onPointerCancel={() => { inviteDragStartY.current = null }}
-                        >
-                            <div style={inviteGrabBar} />
-                        </div>
+                    <div style={{...inviteSheetFixed, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -3178,6 +3138,16 @@ const inviteSheet: React.CSSProperties = {
     overflowY:'auto' as const
 }
 
+const inviteSheetFixed: React.CSSProperties = {
+    position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
+    width:'82%', maxWidth: 420, height:'85vh',
+    background:'linear-gradient(180deg, #2b66b9 0%, #1a4b97 100%)',
+    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+    boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
+    padding: 12,
+    overflowY:'auto' as const
+}
+
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
 // универсальная круглая кнопка закрытия для всех вкладок/окон
 const sheetCloseArrow: React.CSSProperties = { 
@@ -3333,7 +3303,7 @@ const comingSoonBanner: React.CSSProperties = { position:'absolute', left:-6, bo
 const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', borderRadius:8, border:'none', background:'#cbe6ff', boxShadow:'inset 0 0 0 3px #0b2f68', color:'#083068', fontWeight:800 }
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
-const inviteInnerWrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+const inviteInnerWrap: React.CSSProperties = { background:'transparent', padding:16, display:'grid', gap:12 }
 // центрированное модальное окно для подсказок (используется для Invite)
 const centerInfoOverlay: React.CSSProperties = {
     position:'fixed', left:0, right:0, top:0, bottom:0,
