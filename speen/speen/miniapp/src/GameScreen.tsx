@@ -1777,7 +1777,7 @@ export function GameScreen() {
                                     <div style={{display:'flex', justifyContent:'flex-end'}}>
                                         <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
                                     </div>
-                                    <div style={{display:'grid', placeItems:'center', marginTop:0}}>
+                                    <div style={{display:'grid', placeItems:'center', marginTop:-10}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
                                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
