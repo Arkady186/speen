@@ -319,6 +319,38 @@ export function GameScreen() {
     }
     const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
     const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
+    
+    // Случайные бонусы для последних 2 квадратиков (обновляются при каждом спине)
+    type RandomBonus = { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }
+    const [randomBonuses, setRandomBonuses] = React.useState<[RandomBonus, RandomBonus]>(() => {
+        // Генерируем начальные случайные бонусы
+        const bonusOptions: RandomBonus[] = [
+            { type: 'bonus', image: '/spacewh.png', label: 'Ракета' },
+            { type: 'bonus', image: '/heardwh.png', label: 'Сердце' },
+            { type: 'bonus', image: '/battery.png', label: 'Батарейка' },
+            { type: 'money', amount: 100 },
+            { type: 'money', amount: 1000 },
+            { type: 'money', amount: 10000 },
+            { type: 'money', amount: 100000 }
+        ]
+        const shuffled = [...bonusOptions].sort(() => Math.random() - 0.5)
+        return [shuffled[0], shuffled[1]] as [RandomBonus, RandomBonus]
+    })
+    
+    // Функция для генерации случайных бонусов
+    const generateRandomBonuses = (): [RandomBonus, RandomBonus] => {
+        const bonusOptions: RandomBonus[] = [
+            { type: 'bonus', image: '/spacewh.png', label: 'Ракета' },
+            { type: 'bonus', image: '/heardwh.png', label: 'Сердце' },
+            { type: 'bonus', image: '/battery.png', label: 'Батарейка' },
+            { type: 'money', amount: 100 },
+            { type: 'money', amount: 1000 },
+            { type: 'money', amount: 10000 },
+            { type: 'money', amount: 100000 }
+        ]
+        const shuffled = [...bonusOptions].sort(() => Math.random() - 0.5)
+        return [shuffled[0], shuffled[1]] as [RandomBonus, RandomBonus]
+    }
     // Минимальная базовая скорость автопополнения: 0.01 W/сек = 36 W/час = 108 W за 3 часа
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
@@ -1020,6 +1052,9 @@ export function GameScreen() {
                 // Показываем результаты на барабане
                 setPyramidShowResults(true)
                 
+                // Обновляем случайные бонусы при каждом спине
+                setRandomBonuses(generateRandomBonuses())
+                
                 // Сбрасываем ref результатов для следующей серии
                 pyramidResultsRef.current = []
             }
@@ -1116,6 +1151,9 @@ export function GameScreen() {
             setToast(`Промах (${label})`)
         }
 
+        // Обновляем случайные бонусы при каждом спине
+        setRandomBonuses(generateRandomBonuses())
+        
         // задачи: учёт спинов
         try {
             const spins = Number(localStorage.getItem('task_spins') || '0') + 1
@@ -1962,6 +2000,7 @@ export function GameScreen() {
                             onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
+                            randomBonuses={randomBonuses}
                             onPurchase={(title, priceB) => {
                                 // списываем B, добавляем в инвентарь покупок
                                 if (balanceB < priceB) { setToast('Недостаточно B'); return false }
@@ -2666,7 +2705,7 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     )
 }
 
-function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, onOpenWheelShop, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, onOpenWheelShop: () => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, onOpenWheelShop, randomBonuses, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, onOpenWheelShop: () => void, randomBonuses: [{ type: 'bonus', image: string, label: string } | { type: 'money', amount: number }, { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }], t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // визуальный инвентарь в стиле макета
     const [infoOpen, setInfoOpen] = React.useState(false)
     
@@ -2801,9 +2840,31 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                         </div>
                     )
                 })}
-                {Array.from({length:2}).map((_,i)=> (
-                    <div key={`soon-${i}`} style={comingSoonCell}>
-                        <div style={questionMark}>?</div>
+                {randomBonuses.map((bonus, i) => (
+                    <div key={`random-${i}`} style={cellBase}>
+                        {bonus.type === 'bonus' ? (
+                            <img src={bonus.image} alt={bonus.label} style={iconImg} />
+                        ) : (
+                            <>
+                                <img src="/coin-w.png" alt="coin" style={{width:48, height:48, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))'}} />
+                                <div style={{
+                                    position:'absolute',
+                                    top:8,
+                                    left:'50%',
+                                    transform:'translateX(-50%)',
+                                    background:'rgba(11,47,104,0.9)',
+                                    color:'#fff',
+                                    padding:'2px 8px',
+                                    borderRadius:8,
+                                    fontSize:14,
+                                    fontWeight:900,
+                                    textShadow:'0 1px 2px rgba(0,0,0,0.5)',
+                                    whiteSpace:'nowrap'
+                                }}>
+                                    {bonus.amount.toLocaleString()}
+                                </div>
+                            </>
+                        )}
                     </div>
                 ))}
             </div>
