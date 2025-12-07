@@ -1032,7 +1032,44 @@ export function GameScreen() {
             else if (n === cw) delta = Math.max(1, Math.floor(b * 1.5))
             else if (n === ccw) delta = Math.max(1, Math.floor(b * 1.25))
         }
+        
+        // Применяем активный бонус из инвентаря, если он выбран и есть в наличии
+        let bonusMultiplier = 1
+        let bonusAddPercent = 0
+        if (selectedBonusBucket != null && numCorrect) {
+            try {
+                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                const inv: string[] = JSON.parse(invRaw)
+                const bonusName = BONUS_LABELS[selectedBonusBucket]
+                const bonusIndex = inv.indexOf(bonusName)
+                
+                if (bonusIndex !== -1) {
+                    // Бонус найден в инвентаре, применяем его
+                    if (bonusName === 'x2') {
+                        bonusMultiplier = 2
+                    } else if (bonusName === 'x3') {
+                        bonusMultiplier = 3
+                    } else if (bonusName === '+50%') {
+                        bonusAddPercent = 50
+                    } else if (bonusName === '+25%') {
+                        bonusAddPercent = 25
+                    }
+                    
+                    // Удаляем бонус из инвентаря после использования
+                    inv.splice(bonusIndex, 1)
+                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                }
+            } catch {}
+        }
+        
+        // Применяем бонус к выигрышу
         if (delta > 0) {
+            if (bonusMultiplier > 1) {
+                delta = delta * bonusMultiplier
+            } else if (bonusAddPercent > 0) {
+                delta = delta + Math.floor(delta * bonusAddPercent / 100)
+            }
+            
             if (currency === 'W') saveBalances(balanceW + delta, balanceB)
             else saveBalances(balanceW, balanceB + delta)
             setToast(`Победа! +${delta} ${currency}`)
