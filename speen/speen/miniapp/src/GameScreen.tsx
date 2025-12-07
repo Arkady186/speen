@@ -1917,9 +1917,6 @@ export function GameScreen() {
                                 <>
                                     <div style={inviteInnerWrap} />
                                     <div style={inviteContentWrap}>
-                                        <div style={{display:'flex', justifyContent:'flex-end'}}>
-                                            <button style={sheetCloseArrow} onClick={handleInviteClose}>✕</button>
-                                        </div>
                                     <div style={{display:'grid', placeItems:'center', marginTop:-10}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
@@ -2162,7 +2159,6 @@ export function GameScreen() {
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
                             <div style={newsPopupTitle}>{t('news_title')}</div>
-                            <button style={newsCloseBtn} onClick={() => setNewsOpen(false)}>✕</button>
                         </div>
                         <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
                     </div>
@@ -2173,7 +2169,6 @@ export function GameScreen() {
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
                             <div style={newsPopupTitle}>{t('settings')}</div>
-                            <button style={newsCloseBtn} onClick={()=> setSettingsOpen(false)}>✕</button>
                         </div>
                         <div style={{display:'grid', gap:10}}>
                             <label style={{display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', color:'#fff', fontWeight:800}}>
@@ -2420,9 +2415,6 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'flex', justifyContent:'flex-end'}}>
-                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
-            </div>
             <div style={{display:'grid', placeItems:'center'}}>
                 <img src="/nagrada days.png" alt="daily" style={{width:180, height:180, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
@@ -2635,9 +2627,6 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'flex', justifyContent:'flex-end'}}>
-                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
-            </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/press9.png" alt="tasks" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
@@ -2865,9 +2854,6 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'flex', justifyContent:'flex-end'}}>
-                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
-            </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/lev bonus.png" alt="bag" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
@@ -3047,9 +3033,6 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'flex', justifyContent:'flex-end'}}>
-                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
-            </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/moneywheel.png" alt="wheel" style={{width:'clamp(120px, 40vw, 165px)',height:'clamp(120px, 40vw, 165px)',objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
@@ -3748,9 +3731,6 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     return (
         <>
         <div style={wrap}>
-            <div style={{display:'flex', justifyContent:'flex-end'}}>
-                <button style={sheetCloseArrow} onClick={onClose}>✕</button>
-            </div>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/reiting.png" alt="leaderboard" style={{width:180, height:180, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
