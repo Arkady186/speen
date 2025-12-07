@@ -2157,7 +2157,7 @@ export function GameScreen() {
                 </div>
             )}
             {newsOpen && (
-                <div style={{...overlayDim, background:'rgba(0,0,0,0.5)'}} onClick={() => setNewsOpen(false)}>
+                <div style={overlayDim} onClick={() => setNewsOpen(false)}>
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
                             <div style={newsPopupTitle}>{t('news_title')}</div>
