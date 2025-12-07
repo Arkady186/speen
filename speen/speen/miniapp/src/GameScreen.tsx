@@ -3355,7 +3355,6 @@ const inviteSheet: React.CSSProperties = {
     width:'82%', maxWidth: 420, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
-    boxShadow:'inset 0 0 0 3px #0b2f68, 0 -8px 24px rgba(0,0,0,0.35) ',
     padding: 12,
     paddingBottom: 42,
     overflowY:'auto' as const
