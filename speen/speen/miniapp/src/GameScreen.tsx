@@ -1560,7 +1560,7 @@ export function GameScreen() {
                 </div>
                 <div style={balances}>
                     <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
-                    <div style={balanceRow}><Coin /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
+                    <div style={balanceRow}><img src="/Bcoin.png" alt="B" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
                 </div>
                 {/* Прозрачная кнопка для теста (добавляет 1000 W) */}
                 <div 
