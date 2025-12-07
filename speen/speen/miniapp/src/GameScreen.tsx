@@ -3375,7 +3375,7 @@ const inviteSheet: React.CSSProperties = {
 const shopSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
     width:'82%', maxWidth: 420, maxHeight:'85vh',
-    background:'linear-gradient(180deg, #2a67b7 0%, #1a4b97 100%)',
+    background:'linear-gradient(180deg, #1f4d8f 0%, #153a6b 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     padding: 12,
     paddingBottom: 42,
