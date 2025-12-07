@@ -1890,7 +1890,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={{position:'relative', width:'100%', height:'100%'}}>
+                        <div style={{position:'relative', width:'100%', height:'100%', padding:'12px'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1911,7 +1911,7 @@ export function GameScreen() {
                             }
                             const handleInviteClose = () => {
                                 setInviteAnimatingOut(true)
-                                setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280)
+                                setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320)
                             }
                             return (
                                 <>
@@ -3535,18 +3535,16 @@ const inviteInnerWrap: React.CSSProperties = {
     display:'grid', 
     gap:12,
     boxShadow:'inset 0 0 0 3px #0b2f68',
-    position:'absolute',
-    top:12,
-    left:12,
-    right:12,
-    bottom:12,
+    width:'88%',
+    margin:'0 auto',
+    position:'relative',
     pointerEvents:'none'
 }
 
 const inviteContentWrap: React.CSSProperties = {
     position:'relative',
     zIndex:1,
-    padding:16,
+    padding:0,
     display:'grid',
     gap:12,
     pointerEvents:'auto'
