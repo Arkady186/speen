@@ -1739,16 +1739,19 @@ export function GameScreen() {
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>{t('choose_bonus')}</div>
                                     <div style={{...bonusGrid, gridTemplateColumns:'repeat(2, 1fr)'}}>
-                                         {BONUS_LABELS.map((b, i) => (
+                                         {BONUS_LABELS.filter((b) => b !== '+50%').map((b, i) => {
+                                            // Пересчитываем индекс для правильного отображения изображений
+                                            const originalIndex = BONUS_LABELS.indexOf(b)
+                                            return (
                                             <div
                                                 key={i}
                                                 style={{
                                                      ...bonusCard,
                                                      boxShadow: selectedBonusBucket===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
                                                 }}
-                                                 onClick={()=>{ setSelectedBonusBucket(i); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
+                                                 onClick={()=>{ setSelectedBonusBucket(originalIndex); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
                                             >
-                                                <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
+                                                <img src={BONUS_IMAGES[originalIndex]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
                                                 {/* count placeholder: show current count from inventory */}
                                                 <div style={{marginTop:6, color:'#e8f1ff', fontWeight:800, opacity:.9}}>
@@ -1762,7 +1765,8 @@ export function GameScreen() {
                                                     })()}
                                                 </div>
                                             </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                     <div style={{display:'grid', placeItems:'center', marginTop:10}}>
                                         <button style={bonusCloseBtn} onClick={()=>setBonusesOpen(false)}>{t('close')}</button>
@@ -3006,6 +3010,24 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
         transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
         transition:'transform 200ms ease'
     }
+    const comingSoonCell: React.CSSProperties = {
+        ...bonusCard,
+        background:'linear-gradient(180deg,rgba(107,179,255,0.15),rgba(43,102,185,0.25))',
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.5)',
+        opacity:0.5,
+        cursor:'default'
+    }
+    const questionMark: React.CSSProperties = { 
+        width:48, 
+        height:48, 
+        borderRadius:12, 
+        display:'grid', 
+        placeItems:'center', 
+        background:'transparent', 
+        color:'rgba(255,255,255,0.6)', 
+        fontWeight:900, 
+        fontSize:40 
+    }
 
     return (
         <>
@@ -3061,6 +3083,9 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                     </div>
                     )
                 })}
+                <div style={comingSoonCell}>
+                    <div style={questionMark}>?</div>
+                </div>
             </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
