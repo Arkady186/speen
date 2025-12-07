@@ -3042,7 +3042,7 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/moneywheel.png" alt="wheel" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/press7.png" alt="wheel" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('press7_title')}</div>
