@@ -3323,8 +3323,8 @@ const inviteContentWrap: React.CSSProperties = {
 }
 
 const inviteSheetFixed: React.CSSProperties = {
-    position:'fixed', left:'50%', bottom:'20px', transform:'translateX(-50%)',
-    width:'82%', maxWidth: 420, maxHeight:'calc(80vh - 20px)',
+    position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
+    width:'82%', maxWidth: 420, maxHeight:'80vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
     borderRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
