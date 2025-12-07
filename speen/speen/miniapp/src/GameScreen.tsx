@@ -2425,7 +2425,7 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center'}}>
-                <img src="/nagrada days.png" alt="daily" style={{width:180, height:180, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/nagrada days.png" alt="daily" style={{width:110, height:110, objectFit:'contain', filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('daily_title')}</div>
@@ -2637,7 +2637,7 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/press9.png" alt="tasks" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/press9.png" alt="tasks" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('tasks_title')}</div>
@@ -2867,7 +2867,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/lev bonus.png" alt="bag" style={{width:165,height:165,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/lev bonus.png" alt="bag" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('shop_title')}</div>
@@ -3042,7 +3042,7 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
         <>
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/moneywheel.png" alt="wheel" style={{width:'clamp(120px, 40vw, 165px)',height:'clamp(120px, 40vw, 165px)',objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img src="/moneywheel.png" alt="wheel" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
                 <div style={title}>{t('press7_title')}</div>
