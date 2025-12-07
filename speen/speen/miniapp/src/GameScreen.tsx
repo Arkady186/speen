@@ -1295,7 +1295,7 @@ export function GameScreen() {
                                         const activeDevice = JSON.parse(value)
                                         const activeDeviceId = activeDevice?.deviceId
                                         const lastActivity = activeDevice?.lastActivity || 0
-                                        const TIMEOUT_MS = 5 * 60 * 1000 // 5 минут бездействия
+                                        const TIMEOUT_MS = 5 * 1000 // 5 секунд бездействия
 
                                         // Если игра запущена на другом устройстве и оно активно (было активно менее 5 минут назад)
                                         if (activeDeviceId && activeDeviceId !== currentDeviceId && (now - lastActivity) < TIMEOUT_MS) {
