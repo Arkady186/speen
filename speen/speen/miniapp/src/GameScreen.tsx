@@ -1297,7 +1297,7 @@ export function GameScreen() {
                                         const lastActivity = activeDevice?.lastActivity || 0
                                         const TIMEOUT_MS = 5 * 1000 // 5 секунд бездействия
 
-                                        // Если игра запущена на другом устройстве и оно активно (было активно менее 5 минут назад)
+                                        // Если игра запущена на другом устройстве и оно активно (было активно менее 5 секунд назад)
                                         if (activeDeviceId && activeDeviceId !== currentDeviceId && (now - lastActivity) < TIMEOUT_MS) {
                                             setIsGameBlocked(true)
                                             setIsLoading(false)
