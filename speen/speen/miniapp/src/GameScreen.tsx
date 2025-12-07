@@ -3357,7 +3357,8 @@ const inviteSheet: React.CSSProperties = {
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     padding: 12,
     paddingBottom: 42,
-    overflowY:'auto' as const
+    overflowY:'auto' as const,
+    overflowX:'hidden' as const
 }
 
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
