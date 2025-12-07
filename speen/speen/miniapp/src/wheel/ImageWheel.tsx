@@ -343,7 +343,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                             const cx = size / 2
                             const cy = size / 2
                             const rInnerIcon = size * 0.205
-                            const iconSize = size * 0.12
+                            const iconSize = size * 0.08 // Уменьшено с 0.12 до 0.08
                             const toRad = (d: number) => (Math.PI / 180) * d
                             const nodes: JSX.Element[] = []
                             for (let i = 0; i < labels.length; i++) {
@@ -388,7 +388,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                                                 dominantBaseline="middle"
                                                 fill="#ffffff"
                                                 fontWeight={900}
-                                                fontSize={iconSize * 0.25}
+                                                fontSize={iconSize * 0.18} // Уменьшено с 0.25 до 0.18
                                                 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
                                             >
                                                 {bonus.amount >= 1000 ? (bonus.amount / 1000).toFixed(bonus.amount >= 10000 ? 0 : 1) + 'к' : bonus.amount}

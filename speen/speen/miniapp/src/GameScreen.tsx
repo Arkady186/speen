@@ -352,24 +352,36 @@ export function GameScreen() {
         return [shuffled[0], shuffled[1]] as [RandomBonus, RandomBonus]
     }
     
-    // Функция для генерации 10 случайных бонусов для секторов колеса
+    // Функция для генерации 10 случайных бонусов для секторов колеса с взвешенной вероятностью
     const generateSectorBonuses = (): RandomBonus[] => {
-        const bonusOptions: RandomBonus[] = [
-            { type: 'bonus', image: '/spacewh.png', label: 'Ракета' },
-            { type: 'bonus', image: '/heardwh.png', label: 'Сердце' },
-            { type: 'bonus', image: '/battery.png', label: 'Батарейка' },
-            { type: 'money', amount: 100 },
-            { type: 'money', amount: 1000 },
-            { type: 'money', amount: 10000 },
-            { type: 'money', amount: 100000 }
+        // Взвешенные вероятности:
+        // 100: 40% (очень часто)
+        // 1000: 30% (часто)
+        // 10000: 15% (редко)
+        // 100000: 5% (очень редко)
+        // Бонусы (ракета, сердце, батарейка): по 3.33% каждый (всего 10%)
+        const weightedOptions: Array<{ bonus: RandomBonus, weight: number }> = [
+            { bonus: { type: 'money', amount: 100 }, weight: 40 },
+            { bonus: { type: 'money', amount: 1000 }, weight: 30 },
+            { bonus: { type: 'money', amount: 10000 }, weight: 15 },
+            { bonus: { type: 'money', amount: 100000 }, weight: 5 },
+            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 3.33 },
+            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 3.33 },
+            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 3.34 }
         ]
-        // Генерируем 10 случайных бонусов (с повторениями)
+        
+        // Генерируем 10 случайных бонусов с учетом весов
         const sectorBonuses: RandomBonus[] = []
+        const totalWeight = weightedOptions.reduce((sum, opt) => sum + opt.weight, 0)
+        
         for (let i = 0; i < 10; i++) {
-            const randomIndex = Math.floor(Math.random() * bonusOptions.length)
-            const selectedBonus = bonusOptions[randomIndex]
-            if (selectedBonus) {
-                sectorBonuses.push(selectedBonus)
+            let random = Math.random() * totalWeight
+            for (const option of weightedOptions) {
+                random -= option.weight
+                if (random <= 0) {
+                    sectorBonuses.push(option.bonus)
+                    break
+                }
             }
         }
         return sectorBonuses
