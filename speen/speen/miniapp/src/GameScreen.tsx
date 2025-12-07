@@ -1883,18 +1883,8 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320) }}>
-                    <div style={{...inviteSheet, height:`${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
-                        <div
-                            style={inviteGrabWrap}
-                            onPointerDown={(e)=>{ inviteDragStartY.current = e.clientY; inviteDragStartTs.current=Date.now(); inviteDragStartHeightVh.current = inviteHeightVh; inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
-                            onPointerMove={(e)=>{ if (inviteDragStartY.current==null) return; const dy = inviteDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy/(window.innerHeight/100))); setInviteHeightVh(vh); inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (inviteDragStartY.current==null) return; const totalDy = inviteDragStartY.current - (inviteLastY.current || inviteDragStartY.current); const dt = Math.max(1, Date.now() - (inviteDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-inviteHeightVh)<Math.abs(a-inviteHeightVh)?b:a,snaps[0]); setInviteHeightVh(next); triggerHaptic('impact') } inviteDragStartY.current=null }}
-                            onPointerCancel={()=>{ inviteDragStartY.current=null }}
-                        >
-                            <div style={inviteGrabBar} />
-                        </div>
-                        <div style={{position:'relative', width:'100%', height:'100%', padding:'12px'}}>
+                <div style={overlayDim} onClick={() => { triggerHaptic('impact'); setInviteOpen(false); setInviteInfoOpen(false) }}>
+                    <div style={sheet} onClick={(e) => e.stopPropagation()}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1902,7 +1892,7 @@ export function GameScreen() {
                             const payload = uid ? `ref_${uid}` : 'invite'
                             const url = `https://t.me/${bot}?startapp=${encodeURIComponent(payload)}`
                             const handleShare = () => {
-                                    const text = lang==='ru' ? 'Присоединяйся в игру!' : 'Join the game!'
+                                const text = lang==='ru' ? 'Присоединяйся в игру!' : 'Join the game!'
                                 try {
                                     if (tg?.openTelegramLink) {
                                         const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
@@ -1911,16 +1901,22 @@ export function GameScreen() {
                                     }
                                 } catch {}
                                 if ((navigator as any)?.share) { (navigator as any).share({ title:'WHEEL', text, url }).catch(()=>{}); return }
-                                        navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
+                                navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
                             }
-                            const handleInviteClose = () => {
-                                setInviteAnimatingOut(true)
-                                setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320)
+                            const wrap: React.CSSProperties = { 
+                                background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', 
+                                borderRadius:20, 
+                                padding:16, 
+                                boxShadow:'inset 0 0 0 3px #0b2f68', 
+                                width:'88%', 
+                                margin:'0 auto', 
+                                position:'relative',
+                                display:'grid',
+                                gap:12
                             }
                             return (
-                                <>
-                                    <div style={inviteContentWrap}>
-                                    <div style={{display:'grid', placeItems:'center', marginTop:-10}}>
+                                <div style={wrap}>
+                                    <div style={{display:'grid', placeItems:'center'}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
                                     </div>
                                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:8}}>
@@ -2028,11 +2024,9 @@ export function GameScreen() {
                                             </div>
                                         ))}
                                     </div>
-                                    </div>
-                                </>
+                                </div>
                             )
                         })()}
-                        </div>
                     </div>
                 </div>
             )}
