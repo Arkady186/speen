@@ -2157,12 +2157,12 @@ export function GameScreen() {
                 </div>
             )}
             {newsOpen && (
-                <div style={overlayDim} onClick={() => setNewsOpen(false)}>
+                <div style={{...overlayDim, background:'rgba(0,0,0,0.5)'}} onClick={() => setNewsOpen(false)}>
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
                         <div style={newsPopupHeader}>
                             <div style={newsPopupTitle}>{t('news_title')}</div>
                         </div>
-                        <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} />
+                        <NewsPanel onClose={() => setNewsOpen(false)} isAdmin={userId === 1408757717} lang={lang} />
                     </div>
                 </div>
             )}
@@ -2689,7 +2689,7 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
     )
 }
 
-function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean }){
+function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: boolean, lang: 'ru'|'en' }){
     const [title, setTitle] = React.useState('')
     const [text, setText] = React.useState('')
     const [images, setImages] = React.useState<string[]>([])
