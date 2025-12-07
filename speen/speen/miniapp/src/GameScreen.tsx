@@ -1884,7 +1884,7 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDim} onClick={() => { triggerHaptic('impact'); setInviteOpen(false); setInviteInfoOpen(false) }}>
-                    <div style={sheet} onClick={(e) => e.stopPropagation()}>
+                    <div style={{...sheet, maxHeight:'calc(100vh - 100px)', height:'calc(100vh - 100px)', paddingBottom:0}} onClick={(e) => e.stopPropagation()}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1907,12 +1907,16 @@ export function GameScreen() {
                                 background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', 
                                 borderRadius:20, 
                                 padding:16, 
+                                paddingBottom:16,
                                 boxShadow:'inset 0 0 0 3px #0b2f68', 
                                 width:'88%', 
                                 margin:'0 auto', 
                                 position:'relative',
                                 display:'grid',
-                                gap:12
+                                gap:12,
+                                height:'100%',
+                                boxSizing:'border-box',
+                                overflowY:'auto'
                             }
                             return (
                                 <div style={wrap}>
