@@ -1894,7 +1894,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={{position:'relative', width:'100%', height:'100%', padding:'12px'}}>
+                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'12px'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -2037,6 +2037,7 @@ export function GameScreen() {
                                 </div>
                             )
                         })()}
+                        </div>
                     </div>
                 </div>
             )}
