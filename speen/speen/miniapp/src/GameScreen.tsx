@@ -2698,7 +2698,7 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                         <div style={countBadge}>{bonusCounts['+25%']}</div>
                     )}
                 </div>
-                {Array.from({length:7}).map((_,i)=> (
+                {Array.from({length:4}).map((_,i)=> (
                     <div key={`p-${i}`} style={emptyCell}>
                         <div style={plusInner}>+</div>
                     </div>
