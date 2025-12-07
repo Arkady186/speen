@@ -1879,8 +1879,17 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 280) }}>
-                    <div style={{...inviteSheetFixed, animation: inviteAnimatingOut ? 'bottomSheetDown 280ms ease forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ inviteDragStartY.current = e.clientY; inviteDragStartTs.current=Date.now(); inviteDragStartHeightVh.current = inviteHeightVh; inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (inviteDragStartY.current==null) return; const dy = inviteDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy/(window.innerHeight/100))); setInviteHeightVh(vh); inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (inviteDragStartY.current==null) return; const totalDy = inviteDragStartY.current - (inviteLastY.current || inviteDragStartY.current); const dt = Math.max(1, Date.now() - (inviteDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-inviteHeightVh)<Math.abs(a-inviteHeightVh)?b:a,snaps[0]); setInviteHeightVh(next); triggerHaptic('impact') } inviteDragStartY.current=null }}
+                            onPointerCancel={()=>{ inviteDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
                         <div style={{position:'relative', width:'100%', height:'100%'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
@@ -3543,16 +3552,6 @@ const inviteContentWrap: React.CSSProperties = {
     pointerEvents:'auto'
 }
 
-const inviteSheetFixed: React.CSSProperties = {
-    position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
-    width:'82%', maxWidth: 420, maxHeight:'80vh',
-    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)', // светло-синий фон как в DailyBonus
-    borderRadius: 16,
-    boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
-    padding: 0,
-    overflowY:'auto' as const,
-    overflowX:'hidden' as const
-}
 
 // центрированное модальное окно для подсказок (используется для Invite)
 const centerInfoOverlay: React.CSSProperties = {
