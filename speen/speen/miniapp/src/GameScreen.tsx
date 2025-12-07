@@ -1884,7 +1884,7 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDim} onClick={() => { triggerHaptic('impact'); setInviteOpen(false); setInviteInfoOpen(false) }}>
-                    <div style={sheet} onClick={(e) => e.stopPropagation()}>
+                    <div style={{...sheet, maxHeight:'calc(100vh - 100px)', height:'calc(100vh - 100px)'}} onClick={(e) => e.stopPropagation()}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
