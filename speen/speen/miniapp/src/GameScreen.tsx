@@ -2057,7 +2057,7 @@ export function GameScreen() {
             )}
             {shopOpen && (
                 <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 320) }}>
-                    <div style={{...inviteSheet, height:`${shopHeightVh}vh`, animation: shopAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                    <div style={{...shopSheet, height:`${shopHeightVh}vh`, animation: shopAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ shopDragStartY.current = e.clientY; shopDragStartTs.current=Date.now(); shopDragStartHeightVh.current = shopHeightVh; shopLastY.current=e.clientY; shopLastTs.current=Date.now() }}
@@ -3364,6 +3364,18 @@ const inviteSheet: React.CSSProperties = {
     position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
     width:'82%', maxWidth: 420, maxHeight:'85vh',
     background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    borderTopLeftRadius: 16, borderTopRightRadius: 16,
+    padding: 12,
+    paddingBottom: 42,
+    overflowY:'auto' as const,
+    overflowX:'hidden' as const,
+    boxSizing:'border-box' as const
+}
+
+const shopSheet: React.CSSProperties = {
+    position:'absolute', left:'50%', bottom:0, transform:'translateX(-50%)',
+    width:'82%', maxWidth: 420, maxHeight:'85vh',
+    background:'linear-gradient(180deg, #2a67b7 0%, #1a4b97 100%)',
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     padding: 12,
     paddingBottom: 42,
