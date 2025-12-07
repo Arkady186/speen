@@ -3520,7 +3520,7 @@ const inviteInput: React.CSSProperties = { width:'100%', padding:'8px 10px', bor
 const inviteBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
 const inviteSecondaryBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, border:'none', background:'#244e96', color:'#fff', fontWeight:800, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
 const inviteInnerWrap: React.CSSProperties = { 
-    background:'linear-gradient(180deg, #2a67b7 0%, #1a4b97 100%)', 
+    background:'linear-gradient(180deg, #2a67b7 0%, #1a4b97 100%)', // темно-синий фон как в DailyBonus
     borderRadius:20, 
     padding:16, 
     display:'grid', 
@@ -3546,7 +3546,7 @@ const inviteContentWrap: React.CSSProperties = {
 const inviteSheetFixed: React.CSSProperties = {
     position:'fixed', left:'50%', bottom:0, transform:'translateX(-50%)',
     width:'82%', maxWidth: 420, maxHeight:'80vh',
-    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)',
+    background:'linear-gradient(180deg, #3d74c6 0%, #2b66b9 100%)', // светло-синий фон как в DailyBonus
     borderRadius: 16,
     boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.35)',
     padding: 0,
