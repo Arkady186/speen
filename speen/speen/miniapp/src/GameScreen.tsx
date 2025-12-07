@@ -1919,7 +1919,6 @@ export function GameScreen() {
                             }
                             return (
                                 <>
-                                    <div style={inviteInnerWrap} />
                                     <div style={inviteContentWrap}>
                                     <div style={{display:'grid', placeItems:'center', marginTop:-10}}>
                                         <img src="/friends.png" alt="friends" style={inviteHeroImg} />
