@@ -1107,6 +1107,19 @@ export function GameScreen() {
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
         const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
+        
+        // Проверяем, выпал ли денежный бонус в секторе и начисляем деньги
+        if (sectorBonuses.length > index) {
+            const bonus = sectorBonuses[index]
+            if (bonus && bonus.type === 'money') {
+                // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
+                if (currency === 'W') {
+                    saveBalances(balanceW + bonus.amount, balanceB)
+                } else {
+                    saveBalances(balanceW, balanceB + bonus.amount)
+                }
+            }
+        }
 
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
