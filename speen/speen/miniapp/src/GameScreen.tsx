@@ -2063,7 +2063,6 @@ export function GameScreen() {
                             onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
-                            randomBonuses={randomBonuses}
                             onPurchase={(title, priceB) => {
                                 // списываем B, добавляем в инвентарь покупок
                                 if (balanceB < priceB) { setToast('Недостаточно B'); return false }
@@ -2760,7 +2759,7 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     )
 }
 
-function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, onOpenWheelShop, randomBonuses, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, onOpenWheelShop: () => void, randomBonuses: [{ type: 'bonus', image: string, label: string } | { type: 'money', amount: number }, { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }], t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, onOpenWheelShop, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, onOpenWheelShop: () => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // визуальный инвентарь в стиле макета
     const [infoOpen, setInfoOpen] = React.useState(false)
     
@@ -2892,31 +2891,9 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                         </div>
                     )
                 })}
-                {randomBonuses.map((bonus, i) => (
-                    <div key={`random-${i}`} style={cellBase}>
-                        {bonus.type === 'bonus' ? (
-                            <img src={bonus.image} alt={bonus.label} style={iconImg} />
-                        ) : (
-                            <>
-                                <img src="/coin-w.png" alt="coin" style={{width:48, height:48, objectFit:'contain', filter:'drop-shadow(0 8px 12px rgba(0,0,0,0.35))'}} />
-                                <div style={{
-                                    position:'absolute',
-                                    top:8,
-                                    left:'50%',
-                                    transform:'translateX(-50%)',
-                                    background:'rgba(11,47,104,0.9)',
-                                    color:'#fff',
-                                    padding:'2px 8px',
-                                    borderRadius:8,
-                                    fontSize:14,
-                                    fontWeight:900,
-                                    textShadow:'0 1px 2px rgba(0,0,0,0.5)',
-                                    whiteSpace:'nowrap'
-                                }}>
-                                    {bonus.amount.toLocaleString()}
-                                </div>
-                            </>
-                        )}
+                {Array.from({length:2}).map((_,i)=> (
+                    <div key={`soon-${i}`} style={comingSoonCell}>
+                        <div style={questionMark}>?</div>
                     </div>
                 ))}
             </div>
