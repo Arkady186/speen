@@ -968,6 +968,42 @@ export function GameScreen() {
                 if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
                 if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
                 
+                // Применяем активный бонус из инвентаря для режима pyramid
+                let bonusMultiplier = 1
+                let bonusAddPercent = 0
+                if (selectedBonusBucket != null && totalWin > 0) {
+                    try {
+                        const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                        const inv: string[] = JSON.parse(invRaw)
+                        const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
+                        const bonusIndex = inv.indexOf(bonusName)
+                        
+                        if (bonusIndex !== -1) {
+                            // Бонус найден в инвентаре, применяем его
+                            if (bonusName === 'x2') {
+                                bonusMultiplier = 2
+                            } else if (bonusName === 'x3') {
+                                bonusMultiplier = 3
+                            } else if (bonusName === '+50%') {
+                                bonusAddPercent = 50
+                            } else if (bonusName === '+25%') {
+                                bonusAddPercent = 25
+                            }
+                            
+                            // Удаляем бонус из инвентаря после использования
+                            inv.splice(bonusIndex, 1)
+                            localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        }
+                    } catch {}
+                }
+                
+                // Применяем бонус к выигрышу
+                if (bonusMultiplier > 1) {
+                    totalWin = totalWin * bonusMultiplier
+                } else if (bonusAddPercent > 0) {
+                    totalWin = totalWin + Math.floor(totalWin * bonusAddPercent / 100)
+                }
+                
                 console.log(`[onSpinResult] Total win: ${totalWin}, bet: ${pyramidBet}, currency: ${currency}`)
                 
                 if (totalWin > 0) {
@@ -1034,28 +1070,31 @@ export function GameScreen() {
         }
         
         // Применяем активный бонус из инвентаря, если он выбран и есть в наличии
+        // Бонус уменьшается при любом спине, если он выбран (не только при выигрыше)
         let bonusMultiplier = 1
         let bonusAddPercent = 0
-        if (selectedBonusBucket != null && numCorrect) {
+        if (selectedBonusBucket != null) {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                 const inv: string[] = JSON.parse(invRaw)
-                const bonusName = BONUS_LABELS[selectedBonusBucket]
+                const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
                 const bonusIndex = inv.indexOf(bonusName)
                 
                 if (bonusIndex !== -1) {
-                    // Бонус найден в инвентаре, применяем его
-                    if (bonusName === 'x2') {
-                        bonusMultiplier = 2
-                    } else if (bonusName === 'x3') {
-                        bonusMultiplier = 3
-                    } else if (bonusName === '+50%') {
-                        bonusAddPercent = 50
-                    } else if (bonusName === '+25%') {
-                        bonusAddPercent = 25
+                    // Бонус найден в инвентаре, применяем его только при выигрыше
+                    if (numCorrect) {
+                        if (bonusName === 'x2') {
+                            bonusMultiplier = 2
+                        } else if (bonusName === 'x3') {
+                            bonusMultiplier = 3
+                        } else if (bonusName === '+50%') {
+                            bonusAddPercent = 50
+                        } else if (bonusName === '+25%') {
+                            bonusAddPercent = 25
+                        }
                     }
                     
-                    // Удаляем бонус из инвентаря после использования
+                    // Удаляем бонус из инвентаря после использования (при любом спине, если выбран)
                     inv.splice(bonusIndex, 1)
                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
                 }
