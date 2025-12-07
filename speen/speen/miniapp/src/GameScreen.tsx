@@ -1894,7 +1894,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'12px'}}>
+                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'12px', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -1918,11 +1918,13 @@ export function GameScreen() {
                                 borderRadius:20, 
                                 padding:16, 
                                 boxShadow:'inset 0 0 0 3px #0b2f68', 
-                                width:'88%', 
+                                width:'100%', 
+                                maxWidth:'100%',
                                 margin:'0 auto', 
                                 position:'relative',
                                 display:'grid',
-                                gap:12
+                                gap:12,
+                                boxSizing:'border-box'
                             }
                             return (
                                 <div style={wrap}>
@@ -3366,7 +3368,8 @@ const inviteSheet: React.CSSProperties = {
     padding: 12,
     paddingBottom: 42,
     overflowY:'auto' as const,
-    overflowX:'hidden' as const
+    overflowX:'hidden' as const,
+    boxSizing:'border-box' as const
 }
 
 const inviteSheetHeader: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 36px', alignItems:'center', marginBottom:10 }
