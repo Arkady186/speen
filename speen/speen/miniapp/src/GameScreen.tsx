@@ -2694,6 +2694,7 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
     const [text, setText] = React.useState('')
     const [images, setImages] = React.useState<string[]>([])
     const [list, setList] = React.useState<Array<{title:string, text:string, images:string[], ts:number}>>([])
+    // Загружаем новости для всех игроков (не только для админа)
     React.useEffect(() => {
         const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
         const url = `${API_BASE}/api/news`.replace(/\/+api/,'/api')
@@ -2727,6 +2728,7 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
     const newsCard: React.CSSProperties = { background:'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))', borderRadius:16, boxShadow:'0 8px 20px rgba(0,0,0,0.2), inset 0 0 0 2px rgba(255,255,255,0.25)', padding:'12px 14px' }
     return (
         <div style={{display:'grid', gap:14}}>
+            {/* Админка: показывается только админу */}
             {isAdmin && (
                 <div style={{display:'grid', gap:10, background:'rgba(255,255,255,0.12)', borderRadius:14, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.25)', padding:'12px 14px'}}>
                     <div style={{color:'#fff', fontWeight:900, fontSize:16}}>➕ Добавить новость</div>
@@ -2742,6 +2744,7 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
                     </div>
                 </div>
             )}
+            {/* Список новостей: виден всем игрокам */}
             <div style={{display:'grid', gap:12}}>
                 {list.length===0 ? (
                     <div style={{color:'#e8f1ff', textAlign:'center', opacity:.85, padding:20}}>Новостей пока нет</div>
