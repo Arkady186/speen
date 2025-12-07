@@ -1883,8 +1883,18 @@ export function GameScreen() {
                 </div>
             )}
             {inviteOpen && (
-                <div style={overlayDim} onClick={() => { triggerHaptic('impact'); setInviteOpen(false); setInviteInfoOpen(false) }}>
-                    <div style={{...sheet, maxHeight:'calc(100vh - 100px)', height:'calc(100vh - 100px)'}} onClick={(e) => e.stopPropagation()}>
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ inviteDragStartY.current = e.clientY; inviteDragStartTs.current=Date.now(); inviteDragStartHeightVh.current = inviteHeightVh; inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (inviteDragStartY.current==null) return; const dy = inviteDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, inviteDragStartHeightVh.current + dy/(window.innerHeight/100))); setInviteHeightVh(vh); inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (inviteDragStartY.current==null) return; const totalDy = inviteDragStartY.current - (inviteLastY.current || inviteDragStartY.current); const dt = Math.max(1, Date.now() - (inviteDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-inviteHeightVh)<Math.abs(a-inviteHeightVh)?b:a,snaps[0]); setInviteHeightVh(next); triggerHaptic('impact') } inviteDragStartY.current=null }}
+                            onPointerCancel={()=>{ inviteDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={{position:'relative', width:'100%', height:'100%', padding:'12px'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
