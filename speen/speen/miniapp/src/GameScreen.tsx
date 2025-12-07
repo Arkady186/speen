@@ -2696,7 +2696,7 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
     const [list, setList] = React.useState<Array<{title:string, text:string, images:string[], ts:number}>>([])
     // Загружаем новости для всех игроков (не только для админа)
     React.useEffect(() => {
-        const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+        const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || 'https://speen-server.onrender.com').trim()
         const url = `${API_BASE}/api/news`.replace(/\/+api/,'/api')
         fetch(url)
             .then(async r => r.ok ? r.json() : Promise.resolve({ items: [] }))
@@ -2708,7 +2708,7 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
         try{
             const tg = (window as any).Telegram?.WebApp
             const adminId = tg?.initDataUnsafe?.user?.id
-            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || '').trim()
+            const API_BASE = ((import.meta as any)?.env?.VITE_API_BASE || 'https://speen-server.onrender.com').trim()
             const url = `${API_BASE}/api/news`.replace(/\/+api/,'/api')
             const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ adminId, title, text, images }) })
             if (res.ok) {
