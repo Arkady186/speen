@@ -1900,6 +1900,14 @@ export function GameScreen() {
                                 return true
                             }}
                             onBuyStars={(stars, toB) => openStarsPurchase(stars, toB)}
+                            onOpenWheelShop={() => {
+                                setShopAnimatingOut(true)
+                                setTimeout(() => {
+                                    setShopOpen(false)
+                                    setShopAnimatingOut(false)
+                                    setWheelShopOpen(true)
+                                }, 300)
+                            }}
                         />
                     </div>
                 </div>
@@ -2582,7 +2590,7 @@ function NewsPanel({ onClose, isAdmin }: { onClose: () => void, isAdmin: boolean
     )
 }
 
-function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, onOpenWheelShop, t, lang }: { onClose: () => void, onPurchase: (title: string, priceB: number) => boolean, bonusLabels: string[], bonusImages: string[], onBuyStars: (stars: number, toB: number) => void, onOpenWheelShop: () => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
     // визуальный инвентарь в стиле макета
     const [infoOpen, setInfoOpen] = React.useState(false)
     
@@ -2627,9 +2635,17 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
         ...cellBase, 
         background:'linear-gradient(180deg,rgba(107,179,255,0.25),rgba(43,102,185,0.4))', 
         boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.7)',
-        opacity:0.75 
+        opacity:0.75,
+        cursor:'pointer'
+    }
+    const comingSoonCell: React.CSSProperties = {
+        ...cellBase,
+        background:'linear-gradient(180deg,rgba(107,179,255,0.15),rgba(43,102,185,0.25))',
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.5)',
+        opacity:0.5
     }
     const plusInner: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'transparent', color:'#ffffff', fontWeight:900, fontSize:40 }
+    const questionMark: React.CSSProperties = { width:48, height:48, borderRadius:12, display:'grid', placeItems:'center', background:'transparent', color:'rgba(255,255,255,0.6)', fontWeight:900, fontSize:40 }
     const countBadge: React.CSSProperties = {
         position:'absolute',
         bottom:8,
@@ -2686,21 +2702,32 @@ function ShopPanel({ onClose, onPurchase, bonusLabels, bonusImages, onBuyStars, 
                 </button>
             </div>
             <div style={grid}>
-                <div style={cellBase}>
-                    <img src="/heardwh.png" alt="heart" style={iconImg} />
-                    {bonusCounts['x3'] > 0 && (
-                        <div style={countBadge}>{bonusCounts['x3']}</div>
-                    )}
-                </div>
-                <div style={cellBase}>
-                    <img src="/spacewh.png" alt="rocket" style={iconImg} />
-                    {bonusCounts['+25%'] > 0 && (
-                        <div style={countBadge}>{bonusCounts['+25%']}</div>
-                    )}
-                </div>
-                {Array.from({length:4}).map((_,i)=> (
-                    <div key={`p-${i}`} style={emptyCell}>
-                        <div style={plusInner}>+</div>
+                {bonusLabels.slice(0, 4).map((bonusLabel, i) => {
+                    const hasBonus = bonusCounts[bonusLabel] > 0
+                    return (
+                        <div 
+                            key={`bonus-${i}`} 
+                            style={hasBonus ? cellBase : emptyCell}
+                            onClick={() => {
+                                if (!hasBonus) {
+                                    onOpenWheelShop()
+                                }
+                            }}
+                        >
+                            {hasBonus ? (
+                                <>
+                                    <img src={bonusImages[i]} alt={bonusLabel} style={iconImg} />
+                                    <div style={countBadge}>{bonusCounts[bonusLabel]}</div>
+                                </>
+                            ) : (
+                                <div style={plusInner}>+</div>
+                            )}
+                        </div>
+                    )
+                })}
+                {Array.from({length:2}).map((_,i)=> (
+                    <div key={`soon-${i}`} style={comingSoonCell}>
+                        <div style={questionMark}>?</div>
                     </div>
                 ))}
             </div>
