@@ -3025,9 +3025,12 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                 </button>
             </div>
             <div style={bonusGrid}>
-                {bonusLabels.map((b, i) => (
+                {bonusLabels.filter((b) => b !== '+50%').map((b) => {
+                    // Пересчитываем индекс для правильного отображения изображений
+                    const originalIndex = bonusLabels.indexOf(b)
+                    return (
                     <div 
-                        key={`wb-${i}`} 
+                        key={`wb-${b}`} 
                         style={bonusCard}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'scale(1.02)'
@@ -3038,7 +3041,7 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                             e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)'
                         }}
                     >
-                        <img src={bonusImages[i]} alt={b} style={bonusIcon} />
+                        <img src={bonusImages[originalIndex]} alt={b} style={bonusIcon} />
                         <div style={bonusLabel}>{b}</div>
                         <button 
                             style={bonusButton}
@@ -3056,7 +3059,8 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                             <span>1 B</span>
                         </button>
                     </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
         <div style={infoModal} onClick={() => setInfoOpen(false)}>
