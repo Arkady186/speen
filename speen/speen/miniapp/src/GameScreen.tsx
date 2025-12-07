@@ -3523,7 +3523,6 @@ const inviteInnerWrap: React.CSSProperties = {
     padding:16, 
     display:'grid', 
     gap:12,
-    boxShadow:'inset 0 0 0 3px #0b2f68',
     width:'88%',
     margin:'0 auto',
     position:'relative',
