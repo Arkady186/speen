@@ -337,7 +337,7 @@ export function GameScreen() {
         return [shuffled[0], shuffled[1]] as [RandomBonus, RandomBonus]
     })
     
-    // Функция для генерации случайных бонусов
+    // Функция для генерации случайных бонусов (2 для квадратиков)
     const generateRandomBonuses = (): [RandomBonus, RandomBonus] => {
         const bonusOptions: RandomBonus[] = [
             { type: 'bonus', image: '/spacewh.png', label: 'Ракета' },
@@ -351,6 +351,35 @@ export function GameScreen() {
         const shuffled = [...bonusOptions].sort(() => Math.random() - 0.5)
         return [shuffled[0], shuffled[1]] as [RandomBonus, RandomBonus]
     }
+    
+    // Функция для генерации 10 случайных бонусов для секторов колеса
+    const generateSectorBonuses = (): RandomBonus[] => {
+        const bonusOptions: RandomBonus[] = [
+            { type: 'bonus', image: '/spacewh.png', label: 'Ракета' },
+            { type: 'bonus', image: '/heardwh.png', label: 'Сердце' },
+            { type: 'bonus', image: '/battery.png', label: 'Батарейка' },
+            { type: 'money', amount: 100 },
+            { type: 'money', amount: 1000 },
+            { type: 'money', amount: 10000 },
+            { type: 'money', amount: 100000 }
+        ]
+        // Генерируем 10 случайных бонусов (с повторениями)
+        const sectorBonuses: RandomBonus[] = []
+        for (let i = 0; i < 10; i++) {
+            const randomIndex = Math.floor(Math.random() * bonusOptions.length)
+            const selectedBonus = bonusOptions[randomIndex]
+            if (selectedBonus) {
+                sectorBonuses.push(selectedBonus)
+            }
+        }
+        return sectorBonuses
+    }
+    
+    // Состояние для бонусов в секторах колеса
+    const [sectorBonuses, setSectorBonuses] = React.useState<RandomBonus[]>(() => {
+        const bonuses = generateSectorBonuses()
+        return bonuses.length === 10 ? bonuses : generateSectorBonuses() // Убеждаемся, что ровно 10
+    })
     // Минимальная базовая скорость автопополнения: 0.01 W/сек = 36 W/час = 108 W за 3 часа
     const MID_RATE_PER_SEC = 0.01
     const MID_INTERVAL_MS = 1_000
@@ -1054,6 +1083,7 @@ export function GameScreen() {
                 
                 // Обновляем случайные бонусы при каждом спине
                 setRandomBonuses(generateRandomBonuses())
+                setSectorBonuses(generateSectorBonuses())
                 
                 // Сбрасываем ref результатов для следующей серии
                 pyramidResultsRef.current = []
@@ -1153,6 +1183,7 @@ export function GameScreen() {
 
         // Обновляем случайные бонусы при каждом спине
         setRandomBonuses(generateRandomBonuses())
+        setSectorBonuses(generateSectorBonuses())
         
         // задачи: учёт спинов
         try {
@@ -1629,7 +1660,8 @@ export function GameScreen() {
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }}
                                      hideCenterButton={mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3}
-                                     disableSelection={mode === 'pyramid' && pyramidSpinCount > 0} />
+                                     disableSelection={mode === 'pyramid' && pyramidSpinCount > 0}
+                                     sectorBonuses={sectorBonuses} />
                              </div>
                         </div>
                         {pyramidShowResults && pyramidResults.length === 3 && (

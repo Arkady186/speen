@@ -1,5 +1,7 @@
 import React from 'react'
 
+type RandomBonus = { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }
+
 type ImageWheelProps = {
     size?: number
     imageSrc: string
@@ -15,13 +17,14 @@ type ImageWheelProps = {
     onSelectBonusSector?: (index: number) => void
     hideCenterButton?: boolean // Скрыть центральную кнопку (для режима 3/10)
     disableSelection?: boolean // Заблокировать выбор числа и бонусного сектора
+    sectorBonuses?: RandomBonus[] // Бонусы для каждого сектора (10 элементов)
 }
 
 export type ImageWheelRef = {
     spin: (toIndex?: number) => void
 }
 
-export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false, disableSelection = false }, ref) => {
+export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false, disableSelection = false, sectorBonuses = [] }, ref) => {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
@@ -328,13 +331,75 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     // Сброс будет происходить только когда hideCenterButton станет false (завершение режима 3/10)
                 }}
             >
-                {/* цельное кольцо бонусов поверх колеса (прячем во время спина и когда скрыты знаки) */}
-                {!isSpinning && !concealInner && (
-                    <img
-                        src="/bonus.png"
-                        alt="bonus-ring"
-                        style={{ position:'absolute', left: '50%', top: '50%', width: '100%', height: '100%', objectFit:'contain', pointerEvents:'none', transform: 'translate(-50%, -50%) scale(0.5)' }}
-                    />
+                {/* Индивидуальные бонусы для каждого сектора (прячем во время спина и когда скрыты знаки) */}
+                {!isSpinning && !concealInner && sectorBonuses.length === labels.length && (
+                    <svg
+                        width={size}
+                        height={size}
+                        style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                        viewBox={`0 0 ${size} ${size}`}
+                    >
+                        {(() => {
+                            const cx = size / 2
+                            const cy = size / 2
+                            const rInnerIcon = size * 0.205
+                            const iconSize = size * 0.12
+                            const toRad = (d: number) => (Math.PI / 180) * d
+                            const nodes: JSX.Element[] = []
+                            for (let i = 0; i < labels.length; i++) {
+                                const bonus = sectorBonuses[i]
+                                if (!bonus) continue
+                                const center = i * seg + seg / 2
+                                const ang = center - 90
+                                const x2 = cx + rInnerIcon * Math.cos(toRad(ang))
+                                const y2 = cy + rInnerIcon * Math.sin(toRad(ang))
+                                
+                                if (bonus.type === 'bonus') {
+                                    nodes.push(
+                                        <g key={`bonus-icon-${i}`} transform={`translate(${x2}, ${y2}) rotate(${ang + 90})`}>
+                                            <image
+                                                href={bonus.image}
+                                                width={iconSize}
+                                                height={iconSize}
+                                                x={-iconSize / 2}
+                                                y={-iconSize / 2}
+                                                preserveAspectRatio="xMidYMid meet"
+                                                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
+                                            />
+                                        </g>
+                                    )
+                                } else {
+                                    // Денежный бонус: монетка + число
+                                    nodes.push(
+                                        <g key={`money-icon-${i}`} transform={`translate(${x2}, ${y2}) rotate(${ang + 90})`}>
+                                            <image
+                                                href="/coin-w.png"
+                                                width={iconSize * 0.7}
+                                                height={iconSize * 0.7}
+                                                x={-iconSize * 0.35}
+                                                y={-iconSize * 0.35}
+                                                preserveAspectRatio="xMidYMid meet"
+                                                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
+                                            />
+                                            <text
+                                                x={0}
+                                                y={iconSize * 0.25}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fill="#ffffff"
+                                                fontWeight={900}
+                                                fontSize={iconSize * 0.25}
+                                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                                            >
+                                                {bonus.amount >= 1000 ? (bonus.amount / 1000).toFixed(bonus.amount >= 10000 ? 0 : 1) + 'к' : bonus.amount}
+                                            </text>
+                                        </g>
+                                    )
+                                }
+                            }
+                            return <g>{nodes}</g>
+                        })()}
+                    </svg>
                 )}
                 {/* Вопросительные знаки показываем во время спина или когда нужно скрыть бонусы (первый вход и после результата) */}
                 {(isSpinning || concealInner) && (
