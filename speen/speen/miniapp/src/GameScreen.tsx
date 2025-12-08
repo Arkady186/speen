@@ -1829,32 +1829,32 @@ export function GameScreen() {
                     </div>
                 )}
             </div>
-            <div style={{...bottomNav, pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
+            <div style={{...getBottomNav(scale), pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
                 <div
-                    style={{...navBtn, ...(isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
+                    style={{...getNavBtn(scale), ...(isMenuOpen && !isRightMenuOpen ? getNavBtnActive(scale) : {})}}
                     onClick={() => {
                         if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsRightMenuOpen(false)
                         setIsMenuOpen(true)
                     }}
                 >
-                    <img src="/zad.png" alt="Задания" style={navIcon} />
+                    <img src="/zad.png" alt="Задания" style={getNavIcon(scale)} />
                 </div>
                 <div
-                    style={{...navBtn, ...(!isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
+                    style={{...getNavBtn(scale), ...(!isMenuOpen && !isRightMenuOpen ? getNavBtnActive(scale) : {})}}
                     onClick={() => { if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return; setIsMenuOpen(false); setIsRightMenuOpen(false) }}
                 >
-                    <img src="/bank.png" alt="Банк" style={navIcon} />
+                    <img src="/bank.png" alt="Банк" style={getNavIcon(scale)} />
                 </div>
                 <div
-                    style={{...navBtn, ...(isRightMenuOpen ? navBtnActive : {})}}
+                    style={{...getNavBtn(scale), ...(isRightMenuOpen ? getNavBtnActive(scale) : {})}}
                     onClick={() => {
                         if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsMenuOpen(false)
                         setIsRightMenuOpen(true)
                     }}
                 >
-                    <img src="/shop.png" alt="Магазин" style={navIcon} />
+                    <img src="/shop.png" alt="Магазин" style={getNavIcon(scale)} />
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
