@@ -128,17 +128,6 @@ export function GameScreen() {
             window.removeEventListener('orientationchange', updateWheelSize)
         }
     }, [])
-    
-    // Функция масштабирования на основе размера колеса (базовая единица - 260px)
-    // Используем useMemo для оптимизации производительности
-    const scale = React.useMemo(() => {
-        const baseSize = 260
-        const ratio = wheelSize / baseSize
-        // Ограничиваем коэффициент масштабирования для сохранения читаемости
-        const clampedRatio = Math.max(0.8, Math.min(1.5, ratio))
-        return (value: number) => Math.round(value * clampedRatio * 100) / 100
-    }, [wheelSize])
-    
     const [userId, setUserId] = React.useState<number | null>(null)
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
@@ -1553,25 +1542,25 @@ export function GameScreen() {
         <>
             {isLoading && <Preloader />}
             <div style={{...root, opacity: isLoading ? 0 : 1, transition: 'opacity 300ms ease', pointerEvents: isLoading ? 'none' : 'auto'}}>
-            <div style={getTopBar(scale)}>
-                <div style={getLeftUser(scale)}>
-                    <div style={getAvatar(scale)}>
+            <div style={topBar}>
+                <div style={leftUser}>
+                    <div style={avatar}>
                         {avatarUrl
                             ? <img src={avatarUrl} alt="avatar" style={avatarImg} onError={() => setAvatarUrl('')} />
                             : <span style={avatarText}>{initials || '🧑'}</span>
                         }
                     </div>
                     <div style={{display:'grid'}}>
-                        <div style={getUsernameRow(scale)}>
-                            <div style={getUsernameStyle(scale)}>{username || 'Игрок'}</div>
-                            <div style={getUsernameCheck(scale)}>✓</div>
+                        <div style={usernameRow}>
+                            <div style={usernameStyle}>{username || 'Игрок'}</div>
+                            <div style={usernameCheck}>✓</div>
                         </div>
-                        <div style={getLevelStyle(scale)}>1 lvl</div>
+                        <div style={levelStyle}>1 lvl</div>
                     </div>
                 </div>
-                <div style={getBalances(scale)}>
-                    <div style={getBalanceRow(scale)}><img src="/coin-w.png" alt="W" style={getCoinImg(scale)} /> <span style={{marginLeft: scale(6)}}>{balanceW}</span></div>
-                    <div style={getBalanceRow(scale)}><img src="/Bcoin.png" alt="B" style={getCoinImg(scale)} /> <span style={{marginLeft: scale(6)}}>{balanceB}</span></div>
+                <div style={balances}>
+                    <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
+                    <div style={balanceRow}><img src="/Bcoin.png" alt="B" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
                 </div>
                 {/* Прозрачная кнопка для теста (добавляет 1000 W) */}
                 <div 
@@ -1590,61 +1579,61 @@ export function GameScreen() {
                     }}
                 />
             </div>
-            <div style={getContent(scale)} ref={contentRef}>
+            <div style={content} ref={contentRef}>
                 {(!isMenuOpen && !isRightMenuOpen) ? (
                     <>
-                        <div ref={panelsRef} style={{...getPanelsWrap(scale), pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
+                        <div ref={panelsRef} style={{...panelsWrap, pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
                             {/* Row 1: режим игры (с фоном панели) */}
-                            <PanelShell scale={scale}>
-                                <div style={getRowGrid(scale)}>
-                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} } dir="left" scale={scale} />
-                                    <div style={getControlBoxText(scale)}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? '3 из 10' : '3 of 10') : 'x5'}</div>
-                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} } dir="right" scale={scale} />
+                            <PanelShell>
+                                <div style={rowGrid}>
+                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'allin': prev==='pyramid'?'normal':'pyramid')} } dir="left" />
+                                    <div style={controlBoxText}>{mode==='normal' ? 'x2' : mode==='pyramid' ? (lang==='ru' ? '3 из 10' : '3 of 10') : 'x5'}</div>
+                                    <Arrow onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setMode(prev => prev==='normal'?'pyramid': prev==='pyramid'?'allin':'normal')} } dir="right" />
                                 </div>
                                 <div
                                     onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setSettingsOpen(true) }}
-                                    style={{ position:'absolute', right: scale(-52), top:'30%', transform:'translateY(-50%)', width: scale(44), height: scale(44), display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer' }}
+                                    style={{ position:'absolute', right:-52, top:'30%', transform:'translateY(-50%)', width:44, height:44, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer' }}
                                 >
-                                    <img src="/satting.png" alt="settings" style={{width: scale(36), height: scale(36), objectFit:'contain', filter:`drop-shadow(0 ${scale(4)}px ${scale(6)}px rgba(0,0,0,0.25))`, opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}} />
+                                    <img src="/satting.png" alt="settings" style={{width:'36px',height:'36px',objectFit:'contain', filter:'drop-shadow(0 4px 6px rgba(0,0,0,0.25))', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}} />
                                 </div>
                             </PanelShell>
                             {/* Row 2: валюта */}
-                            <PanelShell scale={scale}>
-                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap: scale(8)}}>
-                                    <div style={{...getCurrencyCell(scale), background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('W')}}>
-                                        <div style={{fontWeight:900, fontSize: Math.max(14, scale(18)), color:'#2b66b9'}}>W</div>
+                            <PanelShell>
+                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                                    <div style={{...currencyCell, background: currency==='W' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('W')}}>
+                                        <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>W</div>
                                     </div>
-                                    <div style={{...getCurrencyCell(scale), background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('B')}}>
-                                        <div style={{fontWeight:900, fontSize: Math.max(14, scale(18)), color:'#2b66b9'}}>B</div>
+                                    <div style={{...currencyCell, background: currency==='B' ? '#ffffff' : 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1, cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer'}} onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setCurrency('B')}}>
+                                        <div style={{fontWeight:900, fontSize:18, color:'#2b66b9'}}>B</div>
                                     </div>
                                 </div>
                             </PanelShell>
                             {/* Row 3: ставка */}
-                            <PanelShell scale={scale}>
-                                <div style={getRowGrid(scale)}>
+                            <PanelShell>
+                                <div style={rowGrid}>
                                     <RoundBtn onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setBet(b => {
                                         const {min} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
                                         const next = cur - 100
                                         return Math.max(baseMin, next)
-                                    })}} kind="minus" scale={scale} />
-                                    <div style={getControlBoxText(scale)}>{bet}</div>
+                                    })}} kind="minus" />
+                                    <div style={controlBoxText}>{bet}</div>
                                     <RoundBtn onClick={() => { if (mode === 'pyramid' && pyramidSpinCount > 0) return; setBet(b => {
                                         const {max} = getLimits(mode, currency)
                                         const baseMin = Math.max(100, getLimits(mode, currency).min)
                                         const cur = Math.max(baseMin, Math.floor(b || baseMin))
                                         const next = cur + 100
                                         return Math.min(max, next)
-                                    })}} kind="plus" scale={scale} />
+                                    })}} kind="plus" />
                                 </div>
                             </PanelShell>
 
                             {/* Mid W ticker */}
-                            <div style={getMidCounterShell(scale)}>
-                            <div style={getMidCounterInner(scale)}>
+                            <div style={midCounterShell}>
+                            <div style={midCounterInner}>
                                     <div 
-                                        style={{position:'relative', width: scale(48), height: scale(48), display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}}
+                                        style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}}
                                         onClick={() => {
                                             if (mode === 'pyramid' && pyramidSpinCount > 0) return;
                                             if (midW > 0) {
@@ -1659,10 +1648,10 @@ export function GameScreen() {
                                             }
                                         }}
                                     >
-                                        <img src="/coin-w.png" alt="W" style={{width: scale(44), height: scale(44), transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
-                                        {midAnim && <div style={getMidPlusOne(scale)}>+1</div>}
+                                        <img src="/coin-w.png" alt="W" style={{width:44,height:44, transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
+                                        {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
-                                    <div style={getMidValue(scale)}>{midW.toFixed(2)}</div>
+                                    <div style={midValue}>{midW.toFixed(2)}</div>
                                     
                                 </div>
                             </div>
@@ -1832,32 +1821,32 @@ export function GameScreen() {
                     </div>
                 )}
             </div>
-            <div style={{...getBottomNav(scale), pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
+            <div style={{...bottomNav, pointerEvents: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? 'none' : 'auto', opacity: (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) ? .6 : 1}}>
                 <div
-                    style={{...getNavBtn(scale), ...(isMenuOpen && !isRightMenuOpen ? getNavBtnActive(scale) : {})}}
+                    style={{...navBtn, ...(isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
                     onClick={() => {
                         if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsRightMenuOpen(false)
                         setIsMenuOpen(true)
                     }}
                 >
-                    <img src="/zad.png" alt="Задания" style={getNavIcon(scale)} />
+                    <img src="/zad.png" alt="Задания" style={navIcon} />
                 </div>
                 <div
-                    style={{...getNavBtn(scale), ...(!isMenuOpen && !isRightMenuOpen ? getNavBtnActive(scale) : {})}}
+                    style={{...navBtn, ...(!isMenuOpen && !isRightMenuOpen ? navBtnActive : {})}}
                     onClick={() => { if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return; setIsMenuOpen(false); setIsRightMenuOpen(false) }}
                 >
-                    <img src="/bank.png" alt="Банк" style={getNavIcon(scale)} />
+                    <img src="/bank.png" alt="Банк" style={navIcon} />
                 </div>
                 <div
-                    style={{...getNavBtn(scale), ...(isRightMenuOpen ? getNavBtnActive(scale) : {})}}
+                    style={{...navBtn, ...(isRightMenuOpen ? navBtnActive : {})}}
                     onClick={() => {
                         if (spinning || (mode === 'pyramid' && pyramidSpinCount > 0)) return
                         setIsMenuOpen(false)
                         setIsRightMenuOpen(true)
                     }}
                 >
-                    <img src="/shop.png" alt="Магазин" style={getNavIcon(scale)} />
+                    <img src="/shop.png" alt="Магазин" style={navIcon} />
                 </div>
             </div>
             {/* Меню теперь показывается в контенте, а не как оверлей */}
@@ -3163,166 +3152,30 @@ const preloaderText: React.CSSProperties = {
     textShadow: '0 2px 4px rgba(0,0,0,0.3)',
 }
 
-// Адаптивные функции для стилей верхней панели
-function getTopBar(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        padding: `${scale(10)}px ${scale(12)}px` 
-    }
-}
-function getLeftUser(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'flex', 
-        alignItems:'center', 
-        gap: scale(10) 
-    }
-}
-function getAvatar(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        width: scale(56), 
-        height: scale(56), 
-        borderRadius: '50%', 
-        background: '#fff', 
-        border: `${scale(3)}px solid #2a5b9f`, 
-        boxShadow:`0 ${scale(2)}px 0 #0b2f68`, 
-        display:'grid', 
-        placeItems:'center', 
-        overflow:'hidden' 
-    }
-}
+const topBar: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }
+const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap:10 }
+
+const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }
 const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
-function getUsernameRow(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'flex', 
-        alignItems:'center', 
-        gap: scale(6) 
-    }
-}
-function getUsernameStyle(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        color:'#083068', 
-        fontWeight: 900, 
-        fontSize: Math.max(14, scale(22)), 
-        letterSpacing: scale(0.2), 
-        textShadow:`0 ${scale(2)}px 0 rgba(255,255,255,0.7)`, 
-        fontFamily:'"Rubik", Inter, system-ui' 
-    }
-}
-function getUsernameCheck(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        width: scale(18), 
-        height: scale(18), 
-        borderRadius:'50%', 
-        background:'#22c55e', 
-        color:'#fff', 
-        display:'grid', 
-        placeItems:'center', 
-        fontSize: Math.max(10, scale(12)), 
-        fontWeight:900, 
-        boxShadow:`0 ${scale(1)}px ${scale(2)}px rgba(0,0,0,0.3)` 
-    }
-}
-function getLevelStyle(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        color:'#083068', 
-        fontWeight:900, 
-        fontSize: Math.max(12, scale(16)), 
-        lineHeight:1.2, 
-        padding:`${scale(2)}px ${scale(10)}px`, 
-        background:'linear-gradient(90deg,#ffe27a 0%, #ffbe3d 100%)', 
-        borderRadius:999, 
-        boxShadow:`inset 0 0 0 ${scale(2)}px rgba(255,255,255,0.75), 0 ${scale(2)}px ${scale(8)}px rgba(0,0,0,0.25)`, 
-        textShadow:'none', 
-        justifySelf:'start' 
-    }
-}
+const usernameRow: React.CSSProperties = { display:'flex', alignItems:'center', gap:6 }
+const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 900, fontSize:22, letterSpacing:0.2, textShadow:'0 2px 0 rgba(255,255,255,0.7)', fontFamily:'"Rubik", Inter, system-ui' }
+const usernameCheck: React.CSSProperties = { width:18, height:18, borderRadius:'50%', background:'#22c55e', color:'#fff', display:'grid', placeItems:'center', fontSize:12, fontWeight:900, boxShadow:'0 1px 2px rgba(0,0,0,0.3)' }
+const levelStyle: React.CSSProperties = { color:'#083068', fontWeight:900, fontSize:16, lineHeight:1.2, padding:'2px 10px', background:'linear-gradient(90deg,#ffe27a 0%, #ffbe3d 100%)', borderRadius:999, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.75), 0 2px 8px rgba(0,0,0,0.25)', textShadow:'none', justifySelf:'start' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
-function getBalances(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'grid', 
-        gap: scale(8) 
-    }
-}
-function getBalanceRow(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'flex', 
-        alignItems:'center', 
-        padding:`${scale(6)}px ${scale(10)}px`, 
-        background: 'linear-gradient(90deg,#2a5b9f,#184b97)', 
-        borderRadius: scale(12), 
-        color:'#fff', 
-        boxShadow:`inset 0 0 0 ${scale(2)}px #8cbcff` 
-    }
-}
-function getCoinImg(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        width: scale(20), 
-        height: scale(20), 
-        borderRadius: '50%', 
-        objectFit: 'contain' 
-    }
-}
-function getContent(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        margin: `${scale(8)}px ${scale(10)}px`, 
-        borderRadius: scale(12), 
-        boxShadow:`inset 0 0 0 ${scale(3)}px #8cbcff`, 
-        background:'rgba(0,0,0,0.05)', 
-        position:'relative', 
-        display:'flex', 
-        flexDirection:'column', 
-        minHeight:0 
-    }
-}
-function getPanelsWrap(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        position:'absolute', 
-        top: scale(8), 
-        left: '50%', 
-        transform:'translateX(-50%)', 
-        display:'grid', 
-        gap: scale(8), 
-        width:`calc(100% - ${scale(40)}px)`, 
-        maxWidth: scale(440), 
-        zIndex: 2 
-    }
-}
-function getBottomNav(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'grid', 
-        gridTemplateColumns:'1fr 1fr 1fr', 
-        gap: scale(8), 
-        padding: scale(8), 
-        transform:`translateY(${scale(-10)}px)` 
-    }
-}
-function getNavBtn(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        background:'#244e96', 
-        color:'#fff', 
-        borderRadius: scale(10), 
-        padding:`${scale(4)}px ${scale(4)}px`, 
-        textAlign:'center', 
-        boxShadow:`inset 0 0 0 ${scale(3)}px #0b2f68`, 
-        transition:'transform 140ms ease, background 160ms ease, box-shadow 160ms ease' 
-    }
-}
-function getNavBtnActive(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        background:'#2b7bd9', 
-        boxShadow:`inset 0 0 0 ${scale(3)}px #8cbcff, 0 ${scale(2)}px 0 rgba(0,0,0,0.25)`, 
-        transform:`translateY(${scale(1)}px)` 
-    }
-}
-function getNavIcon(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        width: scale(36), 
-        height: scale(36), 
-        objectFit: 'contain' 
-    }
-}
+const balances: React.CSSProperties = { display:'grid', gap:8 }
+const balanceRow: React.CSSProperties = { display:'flex', alignItems:'center', padding:'6px 10px', background: 'linear-gradient(90deg,#2a5b9f,#184b97)', borderRadius: 12, color:'#fff', boxShadow:'inset 0 0 0 2px #8cbcff' }
+const coinImg: React.CSSProperties = { width: 20, height: 20, borderRadius: '50%', objectFit: 'contain' }
+
+const content: React.CSSProperties = { margin: '8px 10px', borderRadius: 12, boxShadow:'inset 0 0 0 3px #8cbcff', background:'rgba(0,0,0,0.05)', position:'relative', display:'flex', flexDirection:'column', minHeight:0 }
+// wheelWrap будет создан динамически с учетом размера колеса
+const plusNearWheel: React.CSSProperties = { position:'absolute', left: -10, bottom: -40, width: 48, height: 48, objectFit:'contain', pointerEvents:'none', filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }
+// removed external plusOutsideWrap
+const panelsWrap: React.CSSProperties = { position:'absolute', top: 8, left: '50%', transform:'translateX(-50%)', display:'grid', gap:8, width:'calc(100% - 40px)', maxWidth: 440, zIndex: 2 }
+
+const bottomNav: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, padding:8, transform:'translateY(-10px)' }
+const navBtn: React.CSSProperties = { background:'#244e96', color:'#fff', borderRadius:10, padding:'4px 4px', textAlign:'center', boxShadow:'inset 0 0 0 3px #0b2f68', transition:'transform 140ms ease, background 160ms ease, box-shadow 160ms ease' }
+const navBtnActive: React.CSSProperties = { background:'#2b7bd9', boxShadow:'inset 0 0 0 3px #8cbcff, 0 2px 0 rgba(0,0,0,0.25)', transform:'translateY(1px)' }
+const navIcon: React.CSSProperties = { width: 36, height: 36, objectFit: 'contain' }
 
 const toastWrap: React.CSSProperties = { position:'fixed', left:0, right:0, bottom:18, display:'grid', placeItems:'center', zIndex:60, pointerEvents:'none' }
 const toastCard: React.CSSProperties = {
@@ -3345,131 +3198,73 @@ const bonusCard: React.CSSProperties = { display:'grid', placeItems:'center', ga
 const bonusCloseBtn: React.CSSProperties = { padding:'8px 12px', borderRadius:8, background:'#244e96', color:'#fff', fontWeight:800, border:'none', boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const bonusOptions = ['x2', 'x3', '+50%', '+25%', 'Free Spin', 'Shield']
 
-// Адаптивные функции для панелей управления
-function getControlBoxText(scale: (v: number) => number): React.CSSProperties {
-    return {
-        background: 'linear-gradient(180deg, #cbe6ff 0%, #9cc9ff 100%)',
-        boxShadow: `inset 0 0 0 ${scale(3)}px #0b2f68`,
-        color: '#ffffff',
-        borderRadius: scale(8),
-        textAlign: 'center',
-        padding: `${scale(6)}px ${scale(10)}px`,
-        fontFamily: '"Russo One", Inter, system-ui',
-        textShadow: `0 ${scale(1)}px 0 rgba(0,0,0,0.35)`,
-        fontSize: Math.max(12, scale(16)),
-        letterSpacing: scale(0.4)
-    }
-}
-function getCurrencyCell(scale: (v: number) => number): React.CSSProperties {
-    return {
-        display:'grid', 
-        placeItems:'center', 
-        height: scale(28), 
-        borderRadius: scale(6),
-        background: 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)',
-        boxShadow: `inset 0 0 0 ${scale(3)}px #0b2f68`, 
-        cursor:'pointer'
-    }
-}
-function getRowGrid(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        display:'grid', 
-        gridTemplateColumns:`${scale(36)}px 1fr ${scale(36)}px`, 
-        alignItems:'center', 
-        gap: scale(8) 
-    }
-}
-const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
-function getMidCounterShell(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        width:'88%', 
-        margin:`${scale(2)}px auto 0`, 
-        display:'grid' 
-    }
-}
-function getMidCounterInner(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        justifySelf:'center', 
-        display:'grid', 
-        gridTemplateColumns:'auto 1fr auto', 
-        alignItems:'center', 
-        gap: scale(8), 
-        background:'transparent', 
-        padding:0, 
-        borderRadius:0, 
-        boxShadow:'none', 
-        width:'88%' 
-    }
-}
-function getMidValue(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        color:'#fff', 
-        fontWeight:900, 
-        minWidth: scale(36), 
-        textAlign:'center', 
-        textShadow:`0 ${scale(1)}px 0 rgba(0,0,0,0.35)`, 
-        fontFamily:'"Russo One", Inter, system-ui', 
-        fontSize: scale(48), 
-        lineHeight:1 
-    }
-}
-function getMidPlusOne(scale: (v: number) => number): React.CSSProperties {
-    return { 
-        position:'absolute', 
-        bottom: scale(24), 
-        color:'#22c55e', 
-        fontWeight:900, 
-        animation:'midpop 900ms ease forwards', 
-        textShadow:`0 ${scale(1)}px 0 rgba(0,0,0,0.35)`,
-        fontSize: Math.max(14, scale(18))
-    }
+// Controls UI
+function ControlRow({ children }: { children: React.ReactNode }){
+    return <div style={{display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8}}>{children}</div>
 }
 
-function Arrow({ dir, onClick, variant = 'blue', scale }: { dir:'left'|'right', onClick?: () => void, variant?: 'blue' | 'red', scale: (v: number) => number }){
+function Arrow({ dir, onClick, variant = 'blue' }: { dir:'left'|'right', onClick?: () => void, variant?: 'blue' | 'red' }){
     const base: React.CSSProperties = {
-        width: scale(36),
-        height: scale(24),
-        borderRadius: scale(6),
+        width: 36,
+        height: 24,
+        borderRadius: 6,
         background: variant==='red' ? 'linear-gradient(180deg, #e5534b 0%, #c83d37 100%)' : '#1e4b95',
         boxShadow: variant==='red'
-            ? `inset 0 0 0 ${scale(2)}px #7a1d12, 0 ${scale(1)}px 0 rgba(0,0,0,0.2)`
-            : `inset 0 0 0 ${scale(2)}px #0b2f68`,
+            ? 'inset 0 0 0 2px #7a1d12, 0 1px 0 rgba(0,0,0,0.2)'
+            : 'inset 0 0 0 2px #0b2f68',
         color: variant==='red' ? '#ffffff' : '#e5534b',
         display: 'grid',
         placeItems: 'center',
         cursor: 'pointer',
         userSelect: 'none',
-        fontWeight: 900,
-        fontSize: Math.max(12, scale(14))
+        fontWeight: 900
     }
     return <div style={base} onClick={onClick}>{dir==='left'?'◀':'▶'}</div>
 }
 
-function RoundBtn({ kind, onClick, scale }: { kind:'plus'|'minus', onClick?: () => void, scale: (v: number) => number }){
+function RoundBtn({ kind, onClick }: { kind:'plus'|'minus', onClick?: () => void }){
     const base: React.CSSProperties = {
-        width: scale(36), 
-        height: scale(24), 
-        borderRadius: scale(6),
+        width:36, height:24, borderRadius:6,
         background:'#1e4b95',
-        boxShadow: `inset 0 0 0 ${scale(2)}px #0b2f68`,
+        boxShadow:'inset 0 0 0 2px #0b2f68',
         color: kind==='plus' ? '#22c55e' : '#e5534b',
-        display:'grid', 
-        placeItems:'center', 
-        cursor:'pointer', 
-        userSelect:'none', 
-        fontWeight:900,
-        fontSize: Math.max(14, scale(16))
+        display:'grid', placeItems:'center', cursor:'pointer', userSelect:'none', fontWeight:900
     }
     return <div style={base} onClick={onClick}>{kind==='plus'?'+':'−'}</div>
 }
 
-function PanelShell({ children, scale }: { children: React.ReactNode, scale: (v: number) => number }){
+const controlBoxText: React.CSSProperties = {
+    background: 'linear-gradient(180deg, #cbe6ff 0%, #9cc9ff 100%)',
+    boxShadow: 'inset 0 0 0 3px #0b2f68',
+    color: '#ffffff',
+    borderRadius: 8,
+    textAlign: 'center',
+    padding: '6px 10px',
+    fontFamily: '"Russo One", Inter, system-ui',
+    textShadow: '0 1px 0 rgba(0,0,0,0.35)',
+    fontSize: 16,
+    letterSpacing: .4
+}
+const controlCurrency: React.CSSProperties = { display:'grid', placeItems:'center', height:36, borderRadius:8, background:'#2b66b9', boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+const currencyCell: React.CSSProperties = {
+    display:'grid', placeItems:'center', height:28, borderRadius:6,
+    background: 'linear-gradient(180deg, #9cc9ff 0%, #7db6ff 100%)',
+    boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer'
+}
+const rowGrid: React.CSSProperties = { display:'grid', gridTemplateColumns:'36px 1fr 36px', alignItems:'center', gap:8 }
+const rowBare: React.CSSProperties = { background:'transparent', width:'88%', margin:'0 auto' }
+const midCounterShell: React.CSSProperties = { width:'88%', margin:'2px auto 0', display:'grid' }
+const midCounterInner: React.CSSProperties = { justifySelf:'center', display:'grid', gridTemplateColumns:'auto 1fr auto', alignItems:'center', gap:8, background:'transparent', padding:0, borderRadius:0, boxShadow:'none', width:'88%' }
+const midValue: React.CSSProperties = { color:'#fff', fontWeight:900, minWidth:36, textAlign:'center', textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', fontSize:48, lineHeight:1 }
+const midPlusOne: React.CSSProperties = { position:'absolute', bottom:24, color:'#22c55e', fontWeight:900, animation:'midpop 900ms ease forwards', textShadow:'0 1px 0 rgba(0,0,0,0.35)' }
+
+function PanelShell({ children }: { children: React.ReactNode }){
     return (
         <div style={{
             background: 'linear-gradient(180deg, #2b6fbe 0%, #1f57a0 100%)',
-            borderRadius: scale(10),
-            padding: scale(6),
-            boxShadow: `inset 0 0 0 ${scale(3)}px #0b2f68, 0 ${scale(2)}px 0 rgba(0,0,0,0.25)`,
+            borderRadius: 10,
+            padding: 6,
+            boxShadow: 'inset 0 0 0 3px #0b2f68, 0 2px 0 rgba(0,0,0,0.25)',
             width:'82%', margin:'0 auto', position:'relative'
         }}>
             {children}
