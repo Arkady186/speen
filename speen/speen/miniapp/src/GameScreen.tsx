@@ -1130,14 +1130,19 @@ export function GameScreen() {
         const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
         
         // Проверяем, выпал ли денежный бонус в секторе и начисляем деньги
+        // ВАЖНО: используем актуальные значения баланса после списания ставки
+        let currentBalanceW = balanceW
+        let currentBalanceB = balanceB
         if (sectorBonuses.length > index) {
             const bonus = sectorBonuses[index]
             if (bonus && bonus.type === 'money') {
                 // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
                 if (currency === 'W') {
-                    saveBalances(balanceW + bonus.amount, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
+                    currentBalanceW = balanceW + bonus.amount
+                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
                 } else {
-                    saveBalances(balanceW, balanceB + bonus.amount, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
+                    currentBalanceB = balanceB + bonus.amount
+                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
                 }
             }
         }
@@ -1229,21 +1234,22 @@ export function GameScreen() {
         }
         
         // Применяем бонус к выигрышу
+        // ВАЖНО: используем актуальные значения баланса (после начисления денежного бонуса, если был)
         if (delta > 0) {
             // Применяем множитель только один раз
             const finalDelta = bonusMultiplier > 1 ? delta * bonusMultiplier : delta
             
-            if (currency === 'W') saveBalances(balanceW + finalDelta, balanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
-            else saveBalances(balanceW, balanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
+            if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
+            else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
             setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
         } else {
             // Проигрыш
             if (shouldSaveBetOnLoss) {
                 // Сердце - возвращаем ставку при проигрыше
                 if (currency === 'W') {
-                    saveBalances(balanceW + b, balanceB, `Heart bonus: bet ${b} W saved on loss (result=${label})`)
+                    saveBalances(currentBalanceW + b, currentBalanceB, `Heart bonus: bet ${b} W saved on loss (result=${label})`)
                 } else {
-                    saveBalances(balanceW, balanceB + b, `Heart bonus: bet ${b} B saved on loss (result=${label})`)
+                    saveBalances(currentBalanceW, currentBalanceB + b, `Heart bonus: bet ${b} B saved on loss (result=${label})`)
                 }
                 setToast(`Сердце спасло! Ставка возвращена (${label})`)
             } else if (shouldAddExtraSpins) {
