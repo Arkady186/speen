@@ -292,33 +292,49 @@ export function GameScreen() {
     const leaderboardDragStartHeightVh = React.useRef<number>(64)
     const leaderboardLastY = React.useRef<number>(0)
     const leaderboardLastTs = React.useRef<number>(0)
-    // (reverted) responsive sizing for right menu cards
-    const BONUS_LABELS: string[] = ['x2','x3','+50%','+25%']
-    const BONUS_IMAGES: string[] = ['/battery.png', '/heardwh.png', '/moneywheel.png', '/spacewh.png']
+    // Бонусы: Сердце (сохраняет деньги при проигрыше), Батарейка (дополнительное вращение), Ракета (удваивает выигрыш)
+    const BONUS_LABELS: string[] = ['Heart','Battery','Rocket']
+    const BONUS_IMAGES: string[] = ['/heardwh.png', '/battery.png', '/spacewh.png']
     // Сопоставление сектора (цифры) к типу бонуса:
-    // heardwh.png -> 4,8 (индекс 1)
-    // moneywheel.png -> 1,3,5,7,9 (индекс 2)
-    // battery.png -> 2 (индекс 0)
-    // spacewh.png -> 0,6 (индекс 3) — 0 теперь это spacewh.png
+    // heardwh.png (Heart) -> 4,8 (индекс 0)
+    // battery.png (Battery) -> 2 (индекс 1)
+    // spacewh.png (Rocket) -> 0,6 (индекс 2)
+    // Остальные секторы (1,3,5,7,9) не дают бонусов (-1)
     const SECTOR_TO_BONUS: number[] = [
-        3, // 0 -> spacewh
-        2, // 1 -> moneywheel
-        0, // 2 -> battery
-        2, // 3 -> moneywheel
-        1, // 4 -> heardwh
-        2, // 5 -> moneywheel
-        3, // 6 -> spacewh
-        2, // 7 -> moneywheel
-        1, // 8 -> heardwh
-        2  // 9 -> moneywheel
+        2, // 0 -> spacewh (Rocket)
+        -1, // 1 -> нет бонуса
+        1, // 2 -> battery (Battery)
+        -1, // 3 -> нет бонуса
+        0, // 4 -> heardwh (Heart)
+        -1, // 5 -> нет бонуса
+        2, // 6 -> spacewh (Rocket)
+        -1, // 7 -> нет бонуса
+        0, // 8 -> heardwh (Heart)
+        -1  // 9 -> нет бонуса
     ]
     const getSectorBonusIndex = (i: number): number => {
         const idx = ((i % 10) + 10) % 10
         const val = SECTOR_TO_BONUS[idx]
-        return (typeof val === 'number' ? val : 0)
+        return (typeof val === 'number' && val >= 0 ? val : -1) // -1 означает отсутствие бонуса
     }
+    
+    // Состояние для дополнительных вращений (батарейка)
+    const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
+    const extraSpinsRemainingRef = React.useRef<number>(0)
+    
+    // Состояние для сохранения ставки при проигрыше (сердце)
+    const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
+    const heartBonusActiveRef = React.useRef<boolean>(false)
     const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
     const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
+    
+    // Состояние для дополнительных вращений (батарейка)
+    const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
+    const extraSpinsRemainingRef = React.useRef<number>(0)
+    
+    // Состояние для сохранения ставки при проигрыше (сердце)
+    const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
+    const heartBonusActiveRef = React.useRef<boolean>(false)
     
     // Случайные бонусы для последних 2 квадратиков (обновляются при каждом спине)
     type RandomBonus = { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }
@@ -1043,7 +1059,6 @@ export function GameScreen() {
                 
                 // Применяем активный бонус из инвентаря для режима pyramid
                 let bonusMultiplier = 1
-                let bonusAddPercent = 0
                 if (selectedBonusBucket != null && totalWin > 0) {
                     try {
                         const invRaw = localStorage.getItem('bonuses_inv') || '[]'
@@ -1053,15 +1068,11 @@ export function GameScreen() {
                         
                         if (bonusIndex !== -1) {
                             // Бонус найден в инвентаре, применяем его
-                            if (bonusName === 'x2') {
+                            if (bonusName === 'Rocket') {
+                                // Ракета - удваивает выигрыш
                                 bonusMultiplier = 2
-                            } else if (bonusName === 'x3') {
-                                bonusMultiplier = 3
-                            } else if (bonusName === '+50%') {
-                                bonusAddPercent = 50
-                            } else if (bonusName === '+25%') {
-                                bonusAddPercent = 25
                             }
+                            // Сердце и Батарейка не работают в режиме pyramid (только при проигрыше)
                             
                             // Удаляем бонус из инвентаря после использования
                             inv.splice(bonusIndex, 1)
@@ -1073,8 +1084,6 @@ export function GameScreen() {
                 // Применяем бонус к выигрышу
                 if (bonusMultiplier > 1) {
                     totalWin = totalWin * bonusMultiplier
-                } else if (bonusAddPercent > 0) {
-                    totalWin = totalWin + Math.floor(totalWin * bonusAddPercent / 100)
                 }
                 
                 console.log(`[onSpinResult] Total win: ${totalWin}, bet: ${pyramidBet}, currency: ${currency}`)
@@ -1130,7 +1139,7 @@ export function GameScreen() {
         }
 
         // Если неверная цифра, но бонус верный — выдаём бонус (инвентарь)
-        if (!numCorrect && bonusCorrect) {
+        if (!numCorrect && bonusCorrect && sectorBonusIdx >= 0) {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                 const inv: string[] = JSON.parse(invRaw)
@@ -1138,8 +1147,13 @@ export function GameScreen() {
                 const bonusName = BONUS_LABELS[idxSafe] || `Бонус ${idxSafe}`
                 inv.push(bonusName)
                 localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                const bonusNames: Record<string, string> = {
+                    'Heart': 'Сердце',
+                    'Battery': 'Батарейка',
+                    'Rocket': 'Ракета'
+                }
+                setToast(`Получен бонус: ${bonusNames[bonusName] || bonusName}`)
             } catch {}
-            setToast(t('bonus_gained'))
             return
         }
 
@@ -1160,9 +1174,10 @@ export function GameScreen() {
         }
         
         // Применяем активный бонус из инвентаря, если он выбран и есть в наличии
-        // Бонус уменьшается при любом спине, если он выбран (не только при выигрыше)
         let bonusMultiplier = 1
-        let bonusAddPercent = 0
+        let shouldSaveBetOnLoss = false // Сердце - сохраняет деньги при проигрыше
+        let shouldAddExtraSpins = false // Батарейка - дополнительное вращение
+        
         if (selectedBonusBucket != null) {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
@@ -1171,20 +1186,25 @@ export function GameScreen() {
                 const bonusIndex = inv.indexOf(bonusName)
                 
                 if (bonusIndex !== -1) {
-                    // Бонус найден в инвентаре, применяем его только при выигрыше
-                    if (numCorrect) {
-                        if (bonusName === 'x2') {
+                    // Бонус найден в инвентаре
+                    if (bonusName === 'Rocket') {
+                        // Ракета - удваивает выигрыш (только при выигрыше)
+                        if (numCorrect && delta > 0) {
                             bonusMultiplier = 2
-                        } else if (bonusName === 'x3') {
-                            bonusMultiplier = 3
-                        } else if (bonusName === '+50%') {
-                            bonusAddPercent = 50
-                        } else if (bonusName === '+25%') {
-                            bonusAddPercent = 25
+                        }
+                    } else if (bonusName === 'Heart') {
+                        // Сердце - сохраняет деньги при проигрыше
+                        if (!numCorrect) {
+                            shouldSaveBetOnLoss = true
+                        }
+                    } else if (bonusName === 'Battery') {
+                        // Батарейка - дополнительное вращение (два раза)
+                        if (!numCorrect) {
+                            shouldAddExtraSpins = true
                         }
                     }
                     
-                    // Удаляем бонус из инвентаря после использования (при любом спине, если выбран)
+                    // Удаляем бонус из инвентаря после использования
                     inv.splice(bonusIndex, 1)
                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
                 }
@@ -1195,15 +1215,31 @@ export function GameScreen() {
         if (delta > 0) {
             if (bonusMultiplier > 1) {
                 delta = delta * bonusMultiplier
-            } else if (bonusAddPercent > 0) {
-                delta = delta + Math.floor(delta * bonusAddPercent / 100)
             }
             
             if (currency === 'W') saveBalances(balanceW + delta, balanceB)
             else saveBalances(balanceW, balanceB + delta)
             setToast(`Победа! +${delta} ${currency}`)
         } else {
-            setToast(`Промах (${label})`)
+            // Проигрыш
+            if (shouldSaveBetOnLoss) {
+                // Сердце - возвращаем ставку при проигрыше
+                if (currency === 'W') {
+                    saveBalances(balanceW + b, balanceB)
+                } else {
+                    saveBalances(balanceW, balanceB + b)
+                }
+                setToast(`Сердце спасло! Ставка возвращена (${label})`)
+            } else if (shouldAddExtraSpins) {
+                // Батарейка - добавляем 2 дополнительных вращения
+                extraSpinsRemainingRef.current = 2
+                setExtraSpinsRemaining(2)
+                setToast(`Батарейка активирована! +2 дополнительных вращения (${label})`)
+                // Автоматически запускаем первое дополнительное вращение после завершения текущего спина
+                // (обработка в onSpinningChange)
+            } else {
+                setToast(`Промах (${label})`)
+            }
         }
 
         // Обновляем случайные бонусы при каждом спине
@@ -1680,7 +1716,23 @@ export function GameScreen() {
                                     onResult={onSpinResult}
                                     selectedIndex={pickedDigit}
                                     onSelectIndex={(idx)=> setPickedDigit(idx)}
-                                    onSpinningChange={(v) => { setSpinning(v); if (v) { setIsMenuOpen(false); setIsRightMenuOpen(false) } }}
+                                    onSpinningChange={(v) => { 
+                                        setSpinning(v); 
+                                        if (v) { 
+                                            setIsMenuOpen(false); 
+                                            setIsRightMenuOpen(false) 
+                                        } else {
+                                            // Когда спин завершился, проверяем дополнительные вращения от батарейки
+                                            if (extraSpinsRemainingRef.current > 0) {
+                                                setTimeout(() => {
+                                                    if (wheelRef.current && !spinning && extraSpinsRemainingRef.current > 0) {
+                                                        console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining)`)
+                                                        wheelRef.current.spin()
+                                                    }
+                                                }, 1500)
+                                            }
+                                        }
+                                    }}
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx); setSelectedBonusBucket(getSectorBonusIndex(idx)) }}
@@ -1738,10 +1790,18 @@ export function GameScreen() {
                             <div style={bonusOverlay} onClick={() => setBonusesOpen(false)}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>{t('choose_bonus')}</div>
-                                    <div style={{...bonusGrid, gridTemplateColumns:'repeat(2, 1fr)'}}>
-                                         {BONUS_LABELS.filter((b) => b !== '+50%').map((b, i) => {
-                                            // Пересчитываем индекс для правильного отображения изображений
-                                            const originalIndex = BONUS_LABELS.indexOf(b)
+                                    <div style={{...bonusGrid, gridTemplateColumns:'repeat(3, 1fr)'}}>
+                                         {BONUS_LABELS.map((b, i) => {
+                                            const bonusNames: Record<string, string> = {
+                                                'Heart': 'Сердце',
+                                                'Battery': 'Батарейка',
+                                                'Rocket': 'Ракета'
+                                            }
+                                            const bonusDescriptions: Record<string, string> = {
+                                                'Heart': 'Сохраняет деньги при проигрыше',
+                                                'Battery': 'Дополнительное вращение (2 раза)',
+                                                'Rocket': 'Удваивает выигрыш'
+                                            }
                                             return (
                                             <div
                                                 key={i}
@@ -1749,10 +1809,11 @@ export function GameScreen() {
                                                      ...bonusCard,
                                                      boxShadow: selectedBonusBucket===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
                                                 }}
-                                                 onClick={()=>{ setSelectedBonusBucket(originalIndex); setBonusesOpen(false); setToast(`Выбран бонус: ${b}`) }}
+                                                 onClick={()=>{ setSelectedBonusBucket(i); setBonusesOpen(false); setToast(`Выбран бонус: ${bonusNames[b] || b}`) }}
                                             >
-                                                <img src={BONUS_IMAGES[originalIndex]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
-                                                <div style={{fontWeight:800, color:'#fff'}}>{b}</div>
+                                                <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
+                                                <div style={{fontWeight:800, color:'#fff', fontSize:12}}>{bonusNames[b] || b}</div>
+                                                <div style={{fontSize:10, color:'#e8f1ff', fontWeight:700, opacity:.8, textAlign:'center', marginTop:2}}>{bonusDescriptions[b] || ''}</div>
                                                 {/* count placeholder: show current count from inventory */}
                                                 <div style={{marginTop:6, color:'#e8f1ff', fontWeight:800, opacity:.9}}>
                                                     {(() => {
@@ -3056,9 +3117,17 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                 </button>
             </div>
             <div style={bonusGrid}>
-                {bonusLabels.filter((b) => b !== '+50%').map((b) => {
-                    // Пересчитываем индекс для правильного отображения изображений
-                    const originalIndex = bonusLabels.indexOf(b)
+                {bonusLabels.map((b, originalIndex) => {
+                    const bonusNames: Record<string, string> = {
+                        'Heart': 'Сердце',
+                        'Battery': 'Батарейка',
+                        'Rocket': 'Ракета'
+                    }
+                    const bonusDescriptions: Record<string, string> = {
+                        'Heart': 'Сохраняет деньги при проигрыше',
+                        'Battery': 'Дополнительное вращение (2 раза)',
+                        'Rocket': 'Удваивает выигрыш'
+                    }
                     return (
                     <div 
                         key={`wb-${b}`} 
@@ -3073,7 +3142,8 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                         }}
                     >
                         <img src={bonusImages[originalIndex]} alt={b} style={bonusIcon} />
-                        <div style={bonusLabel}>{b}</div>
+                        <div style={bonusLabel}>{bonusNames[b] || b}</div>
+                        <div style={{fontSize:10, color:'#e8f1ff', fontWeight:700, opacity:.8, textAlign:'center', marginTop:2}}>{bonusDescriptions[b] || ''}</div>
                         <button 
                             style={bonusButton}
                             onClick={() => onPurchase(b)}
