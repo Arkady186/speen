@@ -1069,11 +1069,15 @@ export function GameScreen() {
                             // Удаляем бонус из инвентаря после использования
                             inv.splice(bonusIndex, 1)
                             localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                            
+                            // Сбрасываем выбранный бонус после использования
+                            setSelectedBonusBucket(null)
+                            setSelectedBonusSector(null)
                         }
                     } catch {}
                 }
                 
-                // Применяем бонус к выигрышу
+                // Применяем бонус к выигрышу (только один раз)
                 if (bonusMultiplier > 1) {
                     totalWin = totalWin * bonusMultiplier
                 }
@@ -1199,19 +1203,22 @@ export function GameScreen() {
                     // Удаляем бонус из инвентаря после использования
                     inv.splice(bonusIndex, 1)
                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                    
+                    // Сбрасываем выбранный бонус после использования
+                    setSelectedBonusBucket(null)
+                    setSelectedBonusSector(null)
                 }
             } catch {}
         }
         
         // Применяем бонус к выигрышу
         if (delta > 0) {
-            if (bonusMultiplier > 1) {
-                delta = delta * bonusMultiplier
-            }
+            // Применяем множитель только один раз
+            const finalDelta = bonusMultiplier > 1 ? delta * bonusMultiplier : delta
             
-            if (currency === 'W') saveBalances(balanceW + delta, balanceB)
-            else saveBalances(balanceW, balanceB + delta)
-            setToast(`Победа! +${delta} ${currency}`)
+            if (currency === 'W') saveBalances(balanceW + finalDelta, balanceB)
+            else saveBalances(balanceW, balanceB + finalDelta)
+            setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
         } else {
             // Проигрыш
             if (shouldSaveBetOnLoss) {
@@ -1802,7 +1809,23 @@ export function GameScreen() {
                                                      ...bonusCard,
                                                      boxShadow: selectedBonusBucket===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
                                                 }}
-                                                 onClick={()=>{ setSelectedBonusBucket(i); setBonusesOpen(false); setToast(`Выбран бонус: ${bonusNames[b] || b}`) }}
+                                                 onClick={()=>{
+                                                    // Проверяем наличие бонуса в инвентаре
+                                                    try {
+                                                        const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                                        const inv: string[] = JSON.parse(invRaw)
+                                                        const count = inv.filter(x => x === b).length
+                                                        if (count === 0) {
+                                                            setToast(`Бонус "${bonusNames[b] || b}" отсутствует в инвентаре`)
+                                                            return
+                                                        }
+                                                        setSelectedBonusBucket(i); 
+                                                        setBonusesOpen(false); 
+                                                        setToast(`Выбран бонус: ${bonusNames[b] || b}`)
+                                                    } catch {
+                                                        setToast('Ошибка при выборе бонуса')
+                                                    }
+                                                 }}
                                             >
                                                 <img src={BONUS_IMAGES[i]} alt={b} style={{width:36,height:36,objectFit:'contain'}} />
                                                 <div style={{fontWeight:800, color:'#fff', fontSize:12}}>{bonusNames[b] || b}</div>
