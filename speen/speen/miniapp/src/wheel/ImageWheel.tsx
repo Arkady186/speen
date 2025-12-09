@@ -599,6 +599,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             {(() => {
                 const { x, y } = getPlusCenter()
                 const btnSize = Math.round(size * 0.18)
+                const bonusBtnSize = Math.round(size * 0.14) // Меньший размер для бонуса
                 return onOpenBonuses ? (
                     <button
                         type="button"
@@ -609,9 +610,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                             left: x,
                             top: y,
                             transform:'translate(-50%, -50%)',
-                            width: btnSize,
-                            height: btnSize,
-                            border:'none',
+                            width: selectedBonusImage ? bonusBtnSize : btnSize,
+                            height: selectedBonusImage ? bonusBtnSize : btnSize,
+                            border: selectedBonusImage ? '3px solid #ff3b30' : 'none',
                             borderRadius: '50%',
                             background: selectedBonusImage 
                                 ? `url(${selectedBonusImage}) center/contain no-repeat`
