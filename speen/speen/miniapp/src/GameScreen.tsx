@@ -1590,7 +1590,7 @@ export function GameScreen() {
                     <div style={balanceRow}><img src="/coin-w.png" alt="W" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceW}</span></div>
                     <div style={balanceRow}><img src="/Bcoin.png" alt="B" style={coinImg} /> <span style={{marginLeft: 6}}>{balanceB}</span></div>
                 </div>
-                {/* Прозрачная кнопка для теста (добавляет 1000 W) */}
+                {/* Прозрачная кнопка для теста (добавляет 1000 W и 1000 B) */}
                 <div 
                     style={{
                         position:'absolute',
@@ -1602,8 +1602,8 @@ export function GameScreen() {
                         opacity:0
                     }}
                     onClick={() => {
-                        saveBalances(balanceW + 1000, balanceB)
-                        setToast('+1000 W (тест)')
+                        saveBalances(balanceW + 1000, balanceB + 1000)
+                        setToast('+1000 W и +1000 B (тест)')
                     }}
                 />
             </div>
