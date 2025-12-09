@@ -251,7 +251,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             setIsSpinning(false)
             try { onSpinningChange?.(false) } catch {}
             const idx = indexFromRotation(target)
-            onResult?.(idx, labels[idx])
+            onResult?.(idx, labels[idx] || '')
             // открыть бонусы (снять вопросительные знаки)
             setConcealInner(false)
             setHighlightVisible(true)
@@ -293,7 +293,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             return
         }
         if (r >= outerRMin && r <= outerRMax) {
-            onSelectIndex?.(logicalIdx, labels[logicalIdx])
+            onSelectIndex?.(logicalIdx, labels[logicalIdx] || '')
             return
         }
     }
@@ -319,7 +319,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     setIsSpinning(false)
                     try { onSpinningChange?.(false) } catch {}
                     const idx = indexFromRotation(rotation)
-                    onResult?.(idx, labels[idx])
+                    onResult?.(idx, labels[idx] || '')
                     // открыть бонусы (снять вопросительные знаки)
                     setConcealInner(false)
                     setHighlightVisible(true)
