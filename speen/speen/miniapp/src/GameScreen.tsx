@@ -328,14 +328,6 @@ export function GameScreen() {
     const [selectedBonusSector, setSelectedBonusSector] = React.useState<number | null>(null)
     const [selectedBonusBucket, setSelectedBonusBucket] = React.useState<number | null>(null)
     
-    // Состояние для дополнительных вращений (батарейка)
-    const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
-    const extraSpinsRemainingRef = React.useRef<number>(0)
-    
-    // Состояние для сохранения ставки при проигрыше (сердце)
-    const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
-    const heartBonusActiveRef = React.useRef<boolean>(false)
-    
     // Случайные бонусы для последних 2 квадратиков (обновляются при каждом спине)
     type RandomBonus = { type: 'bonus', image: string, label: string } | { type: 'money', amount: number }
     const [randomBonuses, setRandomBonuses] = React.useState<[RandomBonus, RandomBonus]>(() => {
