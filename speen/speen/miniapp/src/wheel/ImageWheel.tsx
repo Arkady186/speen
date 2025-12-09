@@ -18,13 +18,14 @@ type ImageWheelProps = {
     hideCenterButton?: boolean // Скрыть центральную кнопку (для режима 3/10)
     disableSelection?: boolean // Заблокировать выбор числа и бонусного сектора
     sectorBonuses?: RandomBonus[] // Бонусы для каждого сектора (10 элементов)
+    selectedBonusImage?: string | null // Изображение выбранного бонуса для отображения вместо плюса
 }
 
 export type ImageWheelRef = {
     spin: (toIndex?: number) => void
 }
 
-export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false, disableSelection = false, sectorBonuses = [] }, ref) => {
+export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ size = 260, imageSrc, labels, startOffsetDeg = 0, onResult, onBeforeSpin, onSpinningChange, selectedIndex, onSelectIndex, onOpenBonuses, selectedBonusIndex, onSelectBonusSector, hideCenterButton = false, disableSelection = false, sectorBonuses = [], selectedBonusImage = null }, ref) => {
     const seg = 360 / labels.length
     const SECTOR_OFFSET = 2 // визуальное смещение: фактически выпадает сектор на 2 больше
     // Положение указателя (пропорционально размеру колеса для адаптивности)
@@ -594,14 +595,14 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     </div>
                 )
             })()}
-            {/* плюс-иконка слева снизу, параллельно треугольнику */}
+            {/* плюс-иконка или иконка выбранного бонуса слева снизу, параллельно треугольнику */}
             {(() => {
                 const { x, y } = getPlusCenter()
                 const btnSize = Math.round(size * 0.18)
                 return onOpenBonuses ? (
                     <button
                         type="button"
-                        aria-label="Выбрать бонус"
+                        aria-label={selectedBonusImage ? "Выбранный бонус" : "Выбрать бонус"}
                         onClick={(e) => { e.stopPropagation(); if (!isSpinning) onOpenBonuses?.() }}
                         style={{
                             position:'absolute',
@@ -612,7 +613,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                             height: btnSize,
                             border:'none',
                             borderRadius: '50%',
-                            background: 'url(/plus.png) center/contain no-repeat',
+                            background: selectedBonusImage 
+                                ? `url(${selectedBonusImage}) center/contain no-repeat`
+                                : 'url(/plus.png) center/contain no-repeat',
                             boxShadow:'0 6px 12px rgba(0,0,0,0.35)',
                             cursor: isSpinning ? 'default' : 'pointer',
                             zIndex: 3
