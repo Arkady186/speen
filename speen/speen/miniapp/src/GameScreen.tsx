@@ -919,9 +919,9 @@ export function GameScreen() {
             
             // Списываем ставку только один раз в начале (при первом нажатии на старт)
             if (currency === 'W') {
-                saveBalances(balanceW - b, balanceB)
+                saveBalances(balanceW - b, balanceB, `Pyramid mode: bet ${b} W deducted`)
             } else {
-                saveBalances(balanceW, balanceB - b)
+                saveBalances(balanceW, balanceB - b, `Pyramid mode: bet ${b} B deducted`)
             }
             
             // Отмечаем, что ставка для этой серии уже списана
@@ -966,13 +966,13 @@ export function GameScreen() {
                 setToast(t('not_enough_W')); 
                 return false 
             }
-            saveBalances(balanceW - b, balanceB)
+            saveBalances(balanceW - b, balanceB, `${mode} mode: bet ${b} W deducted`)
         } else {
             if (balanceB < b) { 
                 setToast(t('not_enough_B')); 
                 return false 
             }
-            saveBalances(balanceW, balanceB - b)
+            saveBalances(balanceW, balanceB - b, `${mode} mode: bet ${b} B deducted`)
         }
         return true
     }
@@ -1142,10 +1142,11 @@ export function GameScreen() {
             }
         }
 
+        // Если верная цифра И верный бонус — начисляем выигрыш (продолжаем дальше)
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
-            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned`)
-            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned`)
+            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
+            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
             setToast(t('number_ok_refund'))
             return
         }
