@@ -581,10 +581,26 @@ export function GameScreen() {
 
     // Удалена функция syncPlayerToServer - больше не нужна
 
-    function saveBalances(nextW: number, nextB: number) {
+    function saveBalances(nextW: number, nextB: number, reason?: string) {
         // Округляем балансы до целых чисел, чтобы не было копеек
         const roundedW = Math.floor(nextW)
         const roundedB = Math.floor(nextB)
+        
+        // Логирование изменений баланса
+        const deltaW = roundedW - balanceW
+        const deltaB = roundedB - balanceB
+        if (deltaW !== 0 || deltaB !== 0) {
+            const stack = new Error().stack
+            const caller = stack?.split('\n')[2]?.trim() || 'unknown'
+            console.log(`[Balance Change] ${reason || 'Unknown reason'}`)
+            console.log(`  W: ${balanceW} → ${roundedW} (${deltaW > 0 ? '+' : ''}${deltaW})`)
+            console.log(`  B: ${balanceB} → ${roundedB} (${deltaB > 0 ? '+' : ''}${deltaB})`)
+            console.log(`  Called from: ${caller}`)
+            if (stack) {
+                console.log(`  Full stack:`, stack)
+            }
+        }
+        
         setBalanceW(roundedW)
         setBalanceB(roundedB)
         try {
@@ -1086,9 +1102,9 @@ export function GameScreen() {
                 
                 if (totalWin > 0) {
                     if (currency === 'W') {
-                        saveBalances(balanceW + totalWin, balanceB)
+                        saveBalances(balanceW + totalWin, balanceB, `Pyramid mode win: ${selectedNum} matches, totalWin=${totalWin}`)
                     } else {
-                        saveBalances(balanceW, balanceB + totalWin)
+                        saveBalances(balanceW, balanceB + totalWin, `Pyramid mode win: ${selectedNum} matches, totalWin=${totalWin}`)
                     }
                     setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
                 } else {
@@ -1119,17 +1135,17 @@ export function GameScreen() {
             if (bonus && bonus.type === 'money') {
                 // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
                 if (currency === 'W') {
-                    saveBalances(balanceW + bonus.amount, balanceB)
+                    saveBalances(balanceW + bonus.amount, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
                 } else {
-                    saveBalances(balanceW, balanceB + bonus.amount)
+                    saveBalances(balanceW, balanceB + bonus.amount, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
                 }
             }
         }
 
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
-            if (currency === 'W') saveBalances(balanceW + b, balanceB)
-            else saveBalances(balanceW, balanceB + b)
+            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned`)
+            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned`)
             setToast(t('number_ok_refund'))
             return
         }
@@ -1216,17 +1232,17 @@ export function GameScreen() {
             // Применяем множитель только один раз
             const finalDelta = bonusMultiplier > 1 ? delta * bonusMultiplier : delta
             
-            if (currency === 'W') saveBalances(balanceW + finalDelta, balanceB)
-            else saveBalances(balanceW, balanceB + finalDelta)
+            if (currency === 'W') saveBalances(balanceW + finalDelta, balanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
+            else saveBalances(balanceW, balanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
             setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
         } else {
             // Проигрыш
             if (shouldSaveBetOnLoss) {
                 // Сердце - возвращаем ставку при проигрыше
                 if (currency === 'W') {
-                    saveBalances(balanceW + b, balanceB)
+                    saveBalances(balanceW + b, balanceB, `Heart bonus: bet ${b} W saved on loss (result=${label})`)
                 } else {
-                    saveBalances(balanceW, balanceB + b)
+                    saveBalances(balanceW, balanceB + b, `Heart bonus: bet ${b} B saved on loss (result=${label})`)
                 }
                 setToast(`Сердце спасло! Ставка возвращена (${label})`)
             } else if (shouldAddExtraSpins) {
@@ -1251,12 +1267,12 @@ export function GameScreen() {
             localStorage.setItem('task_spins', String(spins))
             // 50 спинов -> +1000 W
             if (spins === 50) {
-                saveBalances(balanceW + 1000, balanceB)
+                saveBalances(balanceW + 1000, balanceB, `Task reward: 1000 W for 50 spins`)
                 setToast('+1000 W (за 50 спинов)')
             }
             // 100 спинов -> +1 B
             if (spins === 100) {
-                saveBalances(balanceW, balanceB + 1)
+                saveBalances(balanceW, balanceB + 1, `Task reward: 1 B for 100 spins`)
                 setToast('+1 B (за 100 спинов)')
             }
         } catch {}
@@ -1609,7 +1625,7 @@ export function GameScreen() {
                         opacity:0
                     }}
                     onClick={() => {
-                        saveBalances(balanceW + 1000, balanceB + 1000)
+                        saveBalances(balanceW + 1000, balanceB + 1000, 'Test button: +1000 W and +1000 B')
                         setToast('+1000 W и +1000 B (тест)')
                     }}
                 />
@@ -2196,7 +2212,7 @@ export function GameScreen() {
                             bonusImages={BONUS_IMAGES}
                             onPurchase={(b) => {
                                 if (balanceB < 1) { setToast('Недостаточно B'); return }
-                                saveBalances(balanceW, balanceB - 1)
+                                saveBalances(balanceW, balanceB - 1, `WheelShop purchase: bought bonus "${b}" for 1 B`)
                                 try {
                                     const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                                     const inv: string[] = JSON.parse(invRaw)
