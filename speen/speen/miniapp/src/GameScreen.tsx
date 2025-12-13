@@ -1135,14 +1135,14 @@ export function GameScreen() {
         let currentBalanceB = balanceB
         if (sectorBonuses.length > index) {
             const bonus = sectorBonuses[index]
-            if (bonus && bonus.type === 'money') {
+            if (bonus && bonus.type === 'money' && bonusCorrect && numCorrect) {
                 // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
                 if (currency === 'W') {
                     currentBalanceW = balanceW + bonus.amount
-                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
+                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index} (number & bonus guessed)`)
                 } else {
                     currentBalanceB = balanceB + bonus.amount
-                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
+                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index} (number & bonus guessed)`)
                 }
             }
         }
@@ -1150,8 +1150,8 @@ export function GameScreen() {
         // Если верная цифра И верный бонус — начисляем выигрыш (продолжаем дальше)
         // Если верная цифра, но бонус неверный — возвращаем ставку
         if (numCorrect && !bonusCorrect) {
-            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
-            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
+            if (currency === 'W') saveBalances(currentBalanceW + b, currentBalanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
+            else saveBalances(currentBalanceW, currentBalanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
             setToast(t('number_ok_refund'))
             return
         }
@@ -1610,9 +1610,7 @@ export function GameScreen() {
                     </div>
                     <div style={{display:'grid'}}>
                         <div style={usernameRow}>
-                            <div style={usernameStyle}>{username || 'Игрок'}</div>
-                            <div style={usernameCheck}>✓</div>
-                        </div>
+                            <div style={usernameStyle}>{username || 'Игрок'}</div>                        </div>
                         <div style={levelStyle}>1 lvl</div>
                     </div>
                 </div>
@@ -3268,7 +3266,6 @@ const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%'
 const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
 const usernameRow: React.CSSProperties = { display:'flex', alignItems:'center', gap:6 }
 const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 900, fontSize:22, letterSpacing:0.2, textShadow:'0 2px 0 rgba(255,255,255,0.7)', fontFamily:'"Rubik", Inter, system-ui' }
-const usernameCheck: React.CSSProperties = { width:18, height:18, borderRadius:'50%', background:'#22c55e', color:'#fff', display:'grid', placeItems:'center', fontSize:12, fontWeight:900, boxShadow:'0 1px 2px rgba(0,0,0,0.3)' }
 const levelStyle: React.CSSProperties = { color:'#083068', fontWeight:900, fontSize:16, lineHeight:1.2, padding:'2px 10px', background:'linear-gradient(90deg,#ffe27a 0%, #ffbe3d 100%)', borderRadius:999, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.75), 0 2px 8px rgba(0,0,0,0.25)', textShadow:'none', justifySelf:'start' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }

@@ -114,6 +114,7 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 			<div className="subtitle" style={styles.subtitle}>
 				🎄 Загрузка мини‑приложения… {userId ? `(ID: ${userId})` : ''} 🎄
 			</div>
+			<div style={styles.version}>ver. 0.1 (build {__BUILD_ID__})</div>
 		</div>
 	)
 }
@@ -212,6 +213,17 @@ const styles: Record<string, React.CSSProperties> = {
 		color: '#fbbf24',
 		textShadow: '0 0 10px rgba(251,191,36,0.5)',
 		fontWeight: 600,
+	},
+
+	version: {
+		position: 'absolute',
+		bottom: 10,
+		left: '50%',
+		transform: 'translateX(-50%)',
+		color: 'rgba(255,255,255,0.5)',
+		fontSize: 12,
+		fontWeight: 600,
+		zIndex: 2,
 	},
 }
 

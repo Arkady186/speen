@@ -4,6 +4,8 @@ import { WheelLoader } from './wheel/WheelLoader'
 import { GameScreen } from './GameScreen'
 import './styles.css'
 
+
+console.log('[Build]', typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'unknown')
 // Глобальная обработка ошибок для подавления ошибок расширений браузера
 window.addEventListener('error', (event) => {
 	// Подавляем ошибки расширений браузера
