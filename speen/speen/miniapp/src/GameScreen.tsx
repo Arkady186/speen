@@ -132,7 +132,6 @@ export function GameScreen() {
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
-const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
     const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
@@ -323,7 +322,6 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
     const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
     const extraSpinsRemainingRef = React.useRef<number>(0)
     
-const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
     // Состояние для сохранения ставки при проигрыше (сердце)
     const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
     const heartBonusActiveRef = React.useRef<boolean>(false)
@@ -365,19 +363,19 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
     // Функция для генерации 10 случайных бонусов для секторов колеса с взвешенной вероятностью
     const generateSectorBonuses = (): RandomBonus[] => {
         // Взвешенные вероятности:
-// 100: ~65% (очень часто)
-// 1000: ~25% (часто)
-// 10000: ~7% (редко)
-// 100000: ~1% (очень редко)
-// Бонусы (ракета/сердце/батарейка): всего ~2% (очень редкие)
+        // 100: 40% (очень часто)
+        // 1000: 30% (часто)
+        // 10000: 15% (редко)
+        // 100000: 5% (очень редко)
+        // Бонусы (ракета, сердце, батарейка): по 3.33% каждый (всего 10%)
         const weightedOptions: Array<{ bonus: RandomBonus, weight: number }> = [
-            { bonus: { type: 'money', amount: 100 }, weight: 65 },
-            { bonus: { type: 'money', amount: 1000 }, weight: 25 },
-            { bonus: { type: 'money', amount: 10000 }, weight: 7 },
-            { bonus: { type: 'money', amount: 100000 }, weight: 1 },
-            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 0.67 },
-            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 0.67 },
-            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 0.66 }
+            { bonus: { type: 'money', amount: 100 }, weight: 40 },
+            { bonus: { type: 'money', amount: 1000 }, weight: 30 },
+            { bonus: { type: 'money', amount: 10000 }, weight: 15 },
+            { bonus: { type: 'money', amount: 100000 }, weight: 5 },
+            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 3.33 },
+            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 3.33 },
+            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 3.34 }
         ]
         
         // Генерируем 10 случайных бонусов с учетом весов
@@ -532,17 +530,6 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
     }
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
-
-    React.useEffect(() => {
-        const calc = () => {
-            const h = window.innerHeight || 0
-            const w = window.innerWidth || 0
-            setIsCompactMenu(h > 0 && (h < 680 || w < 360))
-        }
-        calc()
-        window.addEventListener('resize', calc)
-        return () => window.removeEventListener('resize', calc)
-    }, [])
     // Catch-up accrual based on time away with 3h cap
     React.useEffect(() => {
         function accrueIfDue() {
@@ -870,13 +857,6 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
         // Текущее значение счётчика 3 из 10 (для авто-вращений)
         const currentCount = pyramidSpinCountRef.current
 
-
-        // Battery extra spin: allow spinning without any checks or bet deduction
-        if (batteryExtraSpinArmedRef.current) {
-            batteryExtraSpinArmedRef.current = false
-            console.log('[onBeforeSpin] Allowing Battery extra spin without checks')
-            return true
-        }
         // Если мы находимся внутри серии 3 из 10 (currentCount > 0),
         // но по какой-то причине mode уже не 'pyramid' (например, задержка таймера),
         // то всё равно разрешаем авто-вращение без дополнительных проверок.
@@ -1108,7 +1088,8 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
                             
                             // Сбрасываем выбранный бонус после использования
                             setSelectedBonusBucket(null)
-}
+                            setSelectedBonusSector(null)
+                        }
                     } catch {}
                 }
                 
@@ -1144,40 +1125,57 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
         }
 
         // Стандартная логика для обычных режимов
-        const numCorrect = String(pickedDigit) === label        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
+        const numCorrect = String(pickedDigit) === label
+        const sectorBonusIdx = getSectorBonusIndex(index)
+        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
         
         // Проверяем, выпал ли денежный бонус в секторе и начисляем деньги
         // ВАЖНО: используем актуальные значения баланса после списания ставки
         let currentBalanceW = balanceW
         let currentBalanceB = balanceB
-
-        // Бонусный сектор: если игрок угадал бонусный сектор (bonusCorrect) — выдаём награду из sectorBonuses[index].
-        // Деньги имеют приоритет; иначе добавляем Rocket/Heart/Battery в инвентарь.
-        if (bonusCorrect && sectorBonuses.length > index) {
-            const sectorReward = sectorBonuses[index]
-            if (sectorReward && sectorReward.type === 'money') {
+        if (sectorBonuses.length > index) {
+            const bonus = sectorBonuses[index]
+            if (bonus && bonus.type === 'money') {
+                // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
                 if (currency === 'W') {
-                    currentBalanceW = balanceW + sectorReward.amount
-                    saveBalances(currentBalanceW, balanceB, `Bonus sector money: +${sectorReward.amount} W (sector ${index})`)
+                    currentBalanceW = balanceW + bonus.amount
+                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
                 } else {
-                    currentBalanceB = balanceB + sectorReward.amount
-                    saveBalances(balanceW, currentBalanceB, `Bonus sector money: +${sectorReward.amount} B (sector ${index})`)
+                    currentBalanceB = balanceB + bonus.amount
+                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
                 }
-            } else if (sectorReward && sectorReward.type === 'bonus') {
-                try {
-                    const map: Record<string,string> = { 'Ракета': 'Rocket', 'Сердце': 'Heart', 'Батарейка': 'Battery' } as any
-                    const key = (map as any)[sectorReward.label] || sectorReward.label
-                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                    const inv: any[] = JSON.parse(invRaw)
-                    inv.push(key)
-                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                    setToast(`Получен бонус: ${sectorReward.label}`)
-                } catch {}
             }
         }
 
-        // Цифра: если цифра угадана  выдаём выигрыш по режиму (x2 / x5).
+        // Если верная цифра И верный бонус — начисляем выигрыш (продолжаем дальше)
+        // Если верная цифра, но бонус неверный — возвращаем ставку
+        if (numCorrect && !bonusCorrect) {
+            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
+            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
+            setToast(t('number_ok_refund'))
+            return
+        }
 
+        // Если неверная цифра, но бонус верный — выдаём бонус (инвентарь)
+        if (!numCorrect && bonusCorrect && sectorBonusIdx >= 0) {
+            try {
+                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                const inv: string[] = JSON.parse(invRaw)
+                const idxSafe = Math.max(0, Math.min(BONUS_LABELS.length - 1, Number(sectorBonusIdx) || 0))
+                const bonusName = BONUS_LABELS[idxSafe] || `Бонус ${idxSafe}`
+                inv.push(bonusName)
+                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                const bonusNames: Record<string, string> = {
+                    'Heart': 'Сердце',
+                    'Battery': 'Батарейка',
+                    'Rocket': 'Ракета'
+                }
+                setToast(`Получен бонус: ${bonusNames[bonusName] || bonusName}`)
+            } catch {}
+            return
+        }
+
+        // Иначе — стандартная логика выигрыша по цифре/режиму
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
             const won = numCorrect
@@ -1230,7 +1228,8 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
                     
                     // Сбрасываем выбранный бонус после использования
                     setSelectedBonusBucket(null)
-}
+                    setSelectedBonusSector(null)
+                }
             } catch {}
         }
         
@@ -1601,7 +1600,8 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
         <>
             {isLoading && <Preloader />}
             <div style={{...root, opacity: isLoading ? 0 : 1, transition: 'opacity 300ms ease', pointerEvents: isLoading ? 'none' : 'auto'}}>
-            <div style={topBar}><div style={leftUser}>
+            <div style={topBar}>
+                <div style={leftUser}>
                     <div style={avatar}>
                         {avatarUrl
                             ? <img src={avatarUrl} alt="avatar" style={avatarImg} onError={() => setAvatarUrl('')} />
@@ -1610,7 +1610,9 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
                     </div>
                     <div style={{display:'grid'}}>
                         <div style={usernameRow}>
-                            <div style={usernameStyle}>{username || 'Игрок'}</div>                        </div>
+                            <div style={usernameStyle}>{username || 'Игрок'}</div>
+                            <div style={usernameCheck}>✓</div>
+                        </div>
                         <div style={levelStyle}>1 lvl</div>
                     </div>
                 </div>
@@ -1736,23 +1738,20 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
                                     onResult={onSpinResult}
                                     selectedIndex={pickedDigit}
                                     onSelectIndex={(idx)=> setPickedDigit(idx)}
-                                    onSpinningChange={(v) => {
-                                        setSpinning(v);
-                                        if (v) {
-                                            setIsMenuOpen(false);
-                                            setIsRightMenuOpen(false)
+                                    onSpinningChange={(v) => { 
+                                        setSpinning(v); 
+                                        if (v) { 
+                                            setIsMenuOpen(false); 
+                                            setIsRightMenuOpen(false) 
                                         } else {
-                                            // Когда спин завершился, запускаем дополнительные вращения от батарейки
+                                            // Когда спин завершился, проверяем дополнительные вращения от батарейки
                                             if (extraSpinsRemainingRef.current > 0) {
-                                                const next = Math.max(0, extraSpinsRemainingRef.current - 1)
-                                                extraSpinsRemainingRef.current = next
-                                                setExtraSpinsRemaining(next)
                                                 setTimeout(() => {
-                                                    if (!wheelRef.current) return
-                                                    batteryExtraSpinArmedRef.current = true
-                                                    console.log('[onSpinningChange] Starting extra spin (' + next + ' remaining after this)')
-                                                    wheelRef.current.spin()
-                                                }, 700)
+                                                    if (wheelRef.current && !spinning && extraSpinsRemainingRef.current > 0) {
+                                                        console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining)`)
+                                                        wheelRef.current.spin()
+                                                    }
+                                                }, 1500)
                                             }
                                         }
                                     }}
@@ -1911,7 +1910,7 @@ const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>
-                                        {!isCompactMenu && item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                        {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
                                     <div style={arrowWrapRight}>
                                         <div style={arrowIconRight}>›</div>
@@ -3263,13 +3262,13 @@ const preloaderText: React.CSSProperties = {
 }
 
 const topBar: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }
-
 const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap:10 }
 
 const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }
 const avatarImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'cover' }
 const usernameRow: React.CSSProperties = { display:'flex', alignItems:'center', gap:6 }
 const usernameStyle: React.CSSProperties = { color:'#083068', fontWeight: 900, fontSize:22, letterSpacing:0.2, textShadow:'0 2px 0 rgba(255,255,255,0.7)', fontFamily:'"Rubik", Inter, system-ui' }
+const usernameCheck: React.CSSProperties = { width:18, height:18, borderRadius:'50%', background:'#22c55e', color:'#fff', display:'grid', placeItems:'center', fontSize:12, fontWeight:900, boxShadow:'0 1px 2px rgba(0,0,0,0.3)' }
 const levelStyle: React.CSSProperties = { color:'#083068', fontWeight:900, fontSize:16, lineHeight:1.2, padding:'2px 10px', background:'linear-gradient(90deg,#ffe27a 0%, #ffbe3d 100%)', borderRadius:999, boxShadow:'inset 0 0 0 2px rgba(255,255,255,0.75), 0 2px 8px rgba(0,0,0,0.25)', textShadow:'none', justifySelf:'start' }
 const avatarText: React.CSSProperties = { display:'grid', placeItems:'center', width:'100%', height:'100%', fontWeight:900, color:'#0b2f68' }
 const balances: React.CSSProperties = { display:'grid', gap:8 }
@@ -3420,7 +3419,7 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                             <div style={menuIconWrap}>{item.icon}</div>
                             <div style={menuTextWrap}>
                                 <div style={menuTitle}>{item.title}</div>
-                                {!isCompactMenu && item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                             </div>
                             <div style={arrowWrapRight}>
                                 <div style={arrowIconRight}>›</div>
@@ -3594,7 +3593,7 @@ const menuHeaderWrap: React.CSSProperties = { display:'grid', gridTemplateColumn
 const menuHeaderBackBtn: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const menuHeaderTitle: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, letterSpacing:1, fontFamily:'"Russo One", Inter, system-ui' }
 
-const menuList: React.CSSProperties = { display:'grid', gap:'clamp(4px, 0.9vh, 10px)', height:'100%', alignContent:'stretch', gridAutoRows:'1fr' }
+const menuList: React.CSSProperties = { display:'grid', gap:8, height:'100%', alignContent:'stretch' }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
@@ -3611,11 +3610,11 @@ const menuCard: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrap: React.CSSProperties = { width:'clamp(28px, 4.8vh, 40px)', height:'clamp(28px, 4.8vh, 40px)', display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:34, height:34, display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 // Right menu styles (increased by 20% for 5->6 card effect)
-const menuListRight: React.CSSProperties = { display:'grid', gap:'clamp(4px, 0.9vh, 12px)', height:'100%', alignContent:'stretch', gridAutoRows:'1fr' }
+const menuListRight: React.CSSProperties = { display:'grid', gap:10, height:'100%', alignContent:'stretch' }
 
 const menuCardRight: React.CSSProperties = {
     display:'grid',
@@ -3632,11 +3631,12 @@ const menuCardRight: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrapRight: React.CSSProperties = { width:'clamp(34px, 5.8vh, 52px)', height:'clamp(34px, 5.8vh, 52px)', display:'grid', placeItems:'center' }
+const menuIconWrapRight: React.CSSProperties = { width:46, height:46, display:'grid', placeItems:'center' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
-const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.6, textAlign:'center', fontSize:'clamp(11px, 1.7vh, 15px)', lineHeight: 1.05, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:'clamp(9px, 1.35vh, 12px)', fontFamily:'"Rubik", Inter, system-ui', textAlign:'center', lineHeight: 1.05, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.8, textAlign:'center', fontSize:14 }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:11, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
+
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
 const arrowWrapRight: React.CSSProperties = {
