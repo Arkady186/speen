@@ -3573,7 +3573,7 @@ const menuHeaderWrap: React.CSSProperties = { display:'grid', gridTemplateColumn
 const menuHeaderBackBtn: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const menuHeaderTitle: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, letterSpacing:1, fontFamily:'"Russo One", Inter, system-ui' }
 
-const menuList: React.CSSProperties = { display:'grid', gap:8, height:'100%', alignContent:'stretch' }
+const menuList: React.CSSProperties = { display:'grid', gap:'clamp(6px, 1.2vh, 10px)', height:'100%', alignContent:'stretch', gridAutoRows:'minmax(0, 1fr)', overflowY:'auto', overscrollBehavior:'contain' }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
@@ -3590,11 +3590,11 @@ const menuCard: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrap: React.CSSProperties = { width:34, height:34, display:'grid', placeItems:'center' }
+const menuIconWrap: React.CSSProperties = { width:'clamp(28px, 4.8vh, 40px)', height:'clamp(28px, 4.8vh, 40px)', display:'grid', placeItems:'center' }
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 // Right menu styles (increased by 20% for 5->6 card effect)
-const menuListRight: React.CSSProperties = { display:'grid', gap:10, height:'100%', alignContent:'stretch' }
+const menuListRight: React.CSSProperties = { display:'grid', gap:'clamp(6px, 1.2vh, 12px)', height:'100%', alignContent:'stretch', gridAutoRows:'minmax(0, 1fr)', overflowY:'auto', overscrollBehavior:'contain' }
 
 const menuCardRight: React.CSSProperties = {
     display:'grid',
@@ -3611,11 +3611,11 @@ const menuCardRight: React.CSSProperties = {
     transition:'transform 120ms ease'
 }
 
-const menuIconWrapRight: React.CSSProperties = { width:46, height:46, display:'grid', placeItems:'center' }
+const menuIconWrapRight: React.CSSProperties = { width:'clamp(34px, 5.8vh, 52px)', height:'clamp(34px, 5.8vh, 52px)', display:'grid', placeItems:'center' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
-const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.8, textAlign:'center', fontSize:14 }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:11, fontFamily:'"Rubik", Inter, system-ui', textAlign:'center' }
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.6, textAlign:'center', fontSize:'clamp(12px, 1.8vh, 15px)', lineHeight: 1.1 }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:'clamp(10px, 1.45vh, 12px)', fontFamily:'"Rubik", Inter, system-ui', textAlign:'center', lineHeight: 1.15 }
 
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
