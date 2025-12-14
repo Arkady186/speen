@@ -132,6 +132,7 @@ export function GameScreen() {
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
+const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
     const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
@@ -530,6 +531,17 @@ export function GameScreen() {
     }
 
     React.useEffect(() => { setPressedCardIdx(null) }, [isMenuOpen, isRightMenuOpen])
+
+    React.useEffect(() => {
+        const calc = () => {
+            const h = window.innerHeight || 0
+            const w = window.innerWidth || 0
+            setIsCompactMenu(h > 0 && (h < 680 || w < 360))
+        }
+        calc()
+        window.addEventListener('resize', calc)
+        return () => window.removeEventListener('resize', calc)
+    }, [])
     // Catch-up accrual based on time away with 3h cap
     React.useEffect(() => {
         function accrueIfDue() {
@@ -1890,7 +1902,7 @@ export function GameScreen() {
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>
-                                        {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                        {!isCompactMenu && item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
                                     <div style={arrowWrapRight}>
                                         <div style={arrowIconRight}>›</div>
@@ -3399,7 +3411,7 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                             <div style={menuIconWrap}>{item.icon}</div>
                             <div style={menuTextWrap}>
                                 <div style={menuTitle}>{item.title}</div>
-                                {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
+                                {!isCompactMenu && item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                             </div>
                             <div style={arrowWrapRight}>
                                 <div style={arrowIconRight}>›</div>
@@ -3573,7 +3585,7 @@ const menuHeaderWrap: React.CSSProperties = { display:'grid', gridTemplateColumn
 const menuHeaderBackBtn: React.CSSProperties = { width:36, height:36, borderRadius:10, border:'none', background:'#1e4b95', color:'#bfe0ff', fontSize:22, fontWeight:800, boxShadow:'inset 0 0 0 2px #0b2f68', cursor:'pointer' }
 const menuHeaderTitle: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, letterSpacing:1, fontFamily:'"Russo One", Inter, system-ui' }
 
-const menuList: React.CSSProperties = { display:'grid', gap:'clamp(6px, 1.2vh, 10px)', height:'100%', alignContent:'stretch', gridAutoRows:'minmax(0, 1fr)', overflowY:'auto', overscrollBehavior:'contain' }
+const menuList: React.CSSProperties = { display:'grid', gap:'clamp(4px, 0.9vh, 10px)', height:'100%', alignContent:'stretch', gridAutoRows:'1fr' }
 
 const menuCard: React.CSSProperties = {
     display:'grid',
@@ -3594,7 +3606,7 @@ const menuIconWrap: React.CSSProperties = { width:'clamp(28px, 4.8vh, 40px)', he
 const menuIconImg: React.CSSProperties = { width:'100%', height:'100%', objectFit:'contain' }
 
 // Right menu styles (increased by 20% for 5->6 card effect)
-const menuListRight: React.CSSProperties = { display:'grid', gap:'clamp(6px, 1.2vh, 12px)', height:'100%', alignContent:'stretch', gridAutoRows:'minmax(0, 1fr)', overflowY:'auto', overscrollBehavior:'contain' }
+const menuListRight: React.CSSProperties = { display:'grid', gap:'clamp(4px, 0.9vh, 12px)', height:'100%', alignContent:'stretch', gridAutoRows:'1fr' }
 
 const menuCardRight: React.CSSProperties = {
     display:'grid',
@@ -3614,9 +3626,8 @@ const menuCardRight: React.CSSProperties = {
 const menuIconWrapRight: React.CSSProperties = { width:'clamp(34px, 5.8vh, 52px)', height:'clamp(34px, 5.8vh, 52px)', display:'grid', placeItems:'center' }
 
 const menuTextWrap: React.CSSProperties = { display:'grid', gap:4 }
-const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.6, textAlign:'center', fontSize:'clamp(12px, 1.8vh, 15px)', lineHeight: 1.1 }
-const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:'clamp(10px, 1.45vh, 12px)', fontFamily:'"Rubik", Inter, system-ui', textAlign:'center', lineHeight: 1.15 }
-
+const menuTitle: React.CSSProperties = { color:'#fff', fontWeight:800, textShadow:'0 1px 0 rgba(0,0,0,0.35)', fontFamily:'"Russo One", Inter, system-ui', letterSpacing:0.6, textAlign:'center', fontSize:'clamp(11px, 1.7vh, 15px)', lineHeight: 1.05, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }
+const menuSubtitle: React.CSSProperties = { color:'#dbe8ff', opacity:.85, fontSize:'clamp(9px, 1.35vh, 12px)', fontFamily:'"Rubik", Inter, system-ui', textAlign:'center', lineHeight: 1.05, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }
 const menuBadge: React.CSSProperties = { marginLeft:6, padding:'4px 8px', background:'#ff6b57', color:'#fff', borderRadius:10, fontSize:12, fontWeight:800, boxShadow:'inset 0 0 0 2px #7a1d12' }
 
 const arrowWrapRight: React.CSSProperties = {
