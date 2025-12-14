@@ -323,6 +323,7 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
     const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
     const extraSpinsRemainingRef = React.useRef<number>(0)
     
+const batteryExtraSpinArmedRef = React.useRef<boolean>(false)
     // Состояние для сохранения ставки при проигрыше (сердце)
     const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
     const heartBonusActiveRef = React.useRef<boolean>(false)
@@ -869,6 +870,13 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
         // Текущее значение счётчика 3 из 10 (для авто-вращений)
         const currentCount = pyramidSpinCountRef.current
 
+
+        // Battery extra spin: allow spinning without any checks or bet deduction
+        if (batteryExtraSpinArmedRef.current) {
+            batteryExtraSpinArmedRef.current = false
+            console.log('[onBeforeSpin] Allowing Battery extra spin without checks')
+            return true
+        }
         // Если мы находимся внутри серии 3 из 10 (currentCount > 0),
         // но по какой-то причине mode уже не 'pyramid' (например, задержка таймера),
         // то всё равно разрешаем авто-вращение без дополнительных проверок.
@@ -1100,8 +1108,7 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
                             
                             // Сбрасываем выбранный бонус после использования
                             setSelectedBonusBucket(null)
-                            setSelectedBonusSector(null)
-                        }
+}
                     } catch {}
                 }
                 
@@ -1223,8 +1230,7 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
                     
                     // Сбрасываем выбранный бонус после использования
                     setSelectedBonusBucket(null)
-                    setSelectedBonusSector(null)
-                }
+}
             } catch {}
         }
         
@@ -1730,20 +1736,23 @@ const [isCompactMenu, setIsCompactMenu] = React.useState<boolean>(false)
                                     onResult={onSpinResult}
                                     selectedIndex={pickedDigit}
                                     onSelectIndex={(idx)=> setPickedDigit(idx)}
-                                    onSpinningChange={(v) => { 
-                                        setSpinning(v); 
-                                        if (v) { 
-                                            setIsMenuOpen(false); 
-                                            setIsRightMenuOpen(false) 
+                                    onSpinningChange={(v) => {
+                                        setSpinning(v);
+                                        if (v) {
+                                            setIsMenuOpen(false);
+                                            setIsRightMenuOpen(false)
                                         } else {
-                                            // Когда спин завершился, проверяем дополнительные вращения от батарейки
+                                            // Когда спин завершился, запускаем дополнительные вращения от батарейки
                                             if (extraSpinsRemainingRef.current > 0) {
+                                                const next = Math.max(0, extraSpinsRemainingRef.current - 1)
+                                                extraSpinsRemainingRef.current = next
+                                                setExtraSpinsRemaining(next)
                                                 setTimeout(() => {
-                                                    if (wheelRef.current && !spinning && extraSpinsRemainingRef.current > 0) {
-                                                        console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining)`)
-                                                        wheelRef.current.spin()
-                                                    }
-                                                }, 1500)
+                                                    if (!wheelRef.current) return
+                                                    batteryExtraSpinArmedRef.current = true
+                                                    console.log('[onSpinningChange] Starting extra spin (' + next + ' remaining after this)')
+                                                    wheelRef.current.spin()
+                                                }, 700)
                                             }
                                         }
                                     }}

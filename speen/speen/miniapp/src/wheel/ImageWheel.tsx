@@ -121,6 +121,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
     const timeoutRef = React.useRef<number | null>(null)
     const highlightTimeoutRef = React.useRef<number | null>(null)
     const innerResetTimeoutRef = React.useRef<number | null>(null)
+    const settledRef = React.useRef<boolean>(false)
 
     React.useEffect(() => () => {
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
@@ -217,6 +218,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
         // Используем currentRotation из ref для правильного вычисления target
         while (target < currentRotation + minSpins * 360) target += 360
 
+        settledRef.current = false
         setIsSpinning(true)
         // во время спина и до результатов — держим вопросительные знаки
         setConcealInner(true)
@@ -248,6 +250,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
 
         // безопасный коллбэк результата по окончанию анимации
         timeoutRef.current = window.setTimeout(() => {
+            if (settledRef.current) return
+            settledRef.current = true
+            timeoutRef.current = null
             setIsSpinning(false)
             try { onSpinningChange?.(false) } catch {}
             const idx = indexFromRotation(target)
@@ -315,7 +320,10 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     position: 'relative'
                 }}
                 onTransitionEnd={() => {
+                    if (settledRef.current) return
                     if (!isSpinning) return
+                    settledRef.current = true
+                    if (timeoutRef.current) { window.clearTimeout(timeoutRef.current); timeoutRef.current = null }
                     setIsSpinning(false)
                     try { onSpinningChange?.(false) } catch {}
                     const idx = indexFromRotation(rotation)
