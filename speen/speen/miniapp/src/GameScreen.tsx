@@ -1601,7 +1601,9 @@ export function GameScreen() {
             {isLoading && <Preloader />}
             <div style={{...root, opacity: isLoading ? 0 : 1, transition: 'opacity 300ms ease', pointerEvents: isLoading ? 'none' : 'auto'}}>
             <div style={topBar}>
-                <div style={leftUser}>
+                
+                <div style={buildBadge}>ver. 0.1.1 (build {typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'unknown'})</div>
+<div style={leftUser}>
                     <div style={avatar}>
                         {avatarUrl
                             ? <img src={avatarUrl} alt="avatar" style={avatarImg} onError={() => setAvatarUrl('')} />
@@ -3260,6 +3262,8 @@ const preloaderText: React.CSSProperties = {
 }
 
 const topBar: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }
+
+const buildBadge: React.CSSProperties = { position:'absolute', left:'50%', transform:'translateX(-50%)', top: 10, padding:'4px 10px', borderRadius:999, background:'rgba(0,0,0,0.35)', color:'#fff', fontSize:11, fontWeight:900, letterSpacing:0.2, pointerEvents:'none', zIndex: 50 }
 const leftUser: React.CSSProperties = { display:'flex', alignItems:'center', gap:10 }
 
 const avatar: React.CSSProperties = { width: 56, height: 56, borderRadius: '50%', background: '#fff', border: '3px solid #2a5b9f', boxShadow:'0 2px 0 #0b2f68', display:'grid', placeItems:'center', overflow:'hidden' }

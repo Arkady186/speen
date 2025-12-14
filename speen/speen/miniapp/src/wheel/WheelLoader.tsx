@@ -214,16 +214,21 @@ const styles: Record<string, React.CSSProperties> = {
 		textShadow: '0 0 10px rgba(251,191,36,0.5)',
 		fontWeight: 600,
 	},
-
 	version: {
-		position: 'absolute',
-		bottom: 10,
+		position: 'fixed',
+		bottom: 12,
 		left: '50%',
 		transform: 'translateX(-50%)',
-		color: 'rgba(255,255,255,0.5)',
-		fontSize: 12,
-		fontWeight: 600,
-		zIndex: 2,
+		color: '#ffffff',
+		fontSize: 13,
+		fontWeight: 800,
+		letterSpacing: 0.2,
+		padding: '6px 10px',
+		borderRadius: 999,
+		background: 'rgba(0,0,0,0.45)',
+		boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
+		zIndex: 9999,
+		pointerEvents: 'none',
 	},
 }
 
