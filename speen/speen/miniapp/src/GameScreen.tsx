@@ -1125,57 +1125,40 @@ export function GameScreen() {
         }
 
         // Стандартная логика для обычных режимов
-        const numCorrect = String(pickedDigit) === label
-        const sectorBonusIdx = getSectorBonusIndex(index)
-        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
+        const numCorrect = String(pickedDigit) === label        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
         
         // Проверяем, выпал ли денежный бонус в секторе и начисляем деньги
         // ВАЖНО: используем актуальные значения баланса после списания ставки
         let currentBalanceW = balanceW
         let currentBalanceB = balanceB
-        if (sectorBonuses.length > index) {
-            const bonus = sectorBonuses[index]
-            if (bonus && bonus.type === 'money' && bonusCorrect && numCorrect) {
-                // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
+
+        // Бонусный сектор: если игрок угадал бонусный сектор (bonusCorrect) — выдаём награду из sectorBonuses[index].
+        // Деньги имеют приоритет; иначе добавляем Rocket/Heart/Battery в инвентарь.
+        if (bonusCorrect && sectorBonuses.length > index) {
+            const sectorReward = sectorBonuses[index]
+            if (sectorReward && sectorReward.type === 'money') {
                 if (currency === 'W') {
-                    currentBalanceW = balanceW + bonus.amount
-                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index} (number & bonus guessed)`)
+                    currentBalanceW = balanceW + sectorReward.amount
+                    saveBalances(currentBalanceW, balanceB, `Bonus sector money: +${sectorReward.amount} W (sector ${index})`)
                 } else {
-                    currentBalanceB = balanceB + bonus.amount
-                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index} (number & bonus guessed)`)
+                    currentBalanceB = balanceB + sectorReward.amount
+                    saveBalances(balanceW, currentBalanceB, `Bonus sector money: +${sectorReward.amount} B (sector ${index})`)
                 }
+            } else if (sectorReward && sectorReward.type === 'bonus') {
+                try {
+                    const map: Record<string,string> = { 'Ракета': 'Rocket', 'Сердце': 'Heart', 'Батарейка': 'Battery' } as any
+                    const key = (map as any)[sectorReward.label] || sectorReward.label
+                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                    const inv: any[] = JSON.parse(invRaw)
+                    inv.push(key)
+                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                    setToast(`Получен бонус: ${sectorReward.label}`)
+                } catch {}
             }
         }
 
-        // Если верная цифра И верный бонус — начисляем выигрыш (продолжаем дальше)
-        // Если верная цифра, но бонус неверный — возвращаем ставку
-        if (numCorrect && !bonusCorrect) {
-            if (currency === 'W') saveBalances(currentBalanceW + b, currentBalanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
-            else saveBalances(currentBalanceW, currentBalanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
-            setToast(t('number_ok_refund'))
-            return
-        }
+        // Цифра: если цифра угадана  выдаём выигрыш по режиму (x2 / x5).
 
-        // Если неверная цифра, но бонус верный — выдаём бонус (инвентарь)
-        if (!numCorrect && bonusCorrect && sectorBonusIdx >= 0) {
-            try {
-                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                const inv: string[] = JSON.parse(invRaw)
-                const idxSafe = Math.max(0, Math.min(BONUS_LABELS.length - 1, Number(sectorBonusIdx) || 0))
-                const bonusName = BONUS_LABELS[idxSafe] || `Бонус ${idxSafe}`
-                inv.push(bonusName)
-                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                const bonusNames: Record<string, string> = {
-                    'Heart': 'Сердце',
-                    'Battery': 'Батарейка',
-                    'Rocket': 'Ракета'
-                }
-                setToast(`Получен бонус: ${bonusNames[bonusName] || bonusName}`)
-            } catch {}
-            return
-        }
-
-        // Иначе — стандартная логика выигрыша по цифре/режиму
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
             const won = numCorrect
