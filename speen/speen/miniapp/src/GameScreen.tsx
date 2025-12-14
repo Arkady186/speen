@@ -363,19 +363,19 @@ export function GameScreen() {
     // Функция для генерации 10 случайных бонусов для секторов колеса с взвешенной вероятностью
     const generateSectorBonuses = (): RandomBonus[] => {
         // Взвешенные вероятности:
-        // 100: 40% (очень часто)
-        // 1000: 30% (часто)
-        // 10000: 15% (редко)
-        // 100000: 5% (очень редко)
-        // Бонусы (ракета, сердце, батарейка): по 3.33% каждый (всего 10%)
+// 100: ~65% (очень часто)
+// 1000: ~25% (часто)
+// 10000: ~7% (редко)
+// 100000: ~1% (очень редко)
+// Бонусы (ракета/сердце/батарейка): всего ~2% (очень редкие)
         const weightedOptions: Array<{ bonus: RandomBonus, weight: number }> = [
-            { bonus: { type: 'money', amount: 100 }, weight: 40 },
-            { bonus: { type: 'money', amount: 1000 }, weight: 30 },
-            { bonus: { type: 'money', amount: 10000 }, weight: 15 },
-            { bonus: { type: 'money', amount: 100000 }, weight: 5 },
-            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 3.33 },
-            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 3.33 },
-            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 3.34 }
+            { bonus: { type: 'money', amount: 100 }, weight: 65 },
+            { bonus: { type: 'money', amount: 1000 }, weight: 25 },
+            { bonus: { type: 'money', amount: 10000 }, weight: 7 },
+            { bonus: { type: 'money', amount: 100000 }, weight: 1 },
+            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 0.67 },
+            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 0.67 },
+            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 0.66 }
         ]
         
         // Генерируем 10 случайных бонусов с учетом весов
