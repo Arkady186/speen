@@ -1129,36 +1129,27 @@ export function GameScreen() {
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
         const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
-        
-        // Проверяем, выпал ли денежный бонус в секторе и начисляем деньги
-        // ВАЖНО: используем актуальные значения баланса после списания ставки
+
+        // ВАЖНО: базовые балансы здесь уже должны быть "после списания ставки" (onBeforeSpin).
+        // Денежный бонус сектора выдаём ТОЛЬКО если игрок угадал бонусный сектор.
         let currentBalanceW = balanceW
         let currentBalanceB = balanceB
-        if (sectorBonuses.length > index) {
-            const bonus = sectorBonuses[index]
-            if (bonus && bonus.type === 'money') {
-                // Начисляем деньги на баланс (всегда, когда выпадает денежный бонус)
-                if (currency === 'W') {
-                    currentBalanceW = balanceW + bonus.amount
-                    saveBalances(currentBalanceW, balanceB, `Sector money bonus: ${bonus.amount} W from sector ${index}`)
-                } else {
-                    currentBalanceB = balanceB + bonus.amount
-                    saveBalances(balanceW, currentBalanceB, `Sector money bonus: ${bonus.amount} B from sector ${index}`)
-                }
-            }
+        const sectorBonus = sectorBonuses.length > index ? sectorBonuses[index] : null
+        const sectorMoneyAmount =
+            bonusCorrect && sectorBonus && sectorBonus.type === 'money'
+                ? sectorBonus.amount
+                : 0
+        const hasSectorMoney = sectorMoneyAmount > 0
+
+        if (hasSectorMoney) {
+            if (currency === 'W') currentBalanceW = balanceW + sectorMoneyAmount
+            else currentBalanceB = balanceB + sectorMoneyAmount
+            console.log(`[onSpinResult] bonusCorrect=true -> sector money bonus applied: ${sectorMoneyAmount} ${currency} (sector ${index})`)
         }
 
-        // Если верная цифра И верный бонус — начисляем выигрыш (продолжаем дальше)
-        // Если верная цифра, но бонус неверный — возвращаем ставку
-        if (numCorrect && !bonusCorrect) {
-            if (currency === 'W') saveBalances(balanceW + b, balanceB, `Number correct refund: bet ${b} W returned (bonus wrong)`)
-            else saveBalances(balanceW, balanceB + b, `Number correct refund: bet ${b} B returned (bonus wrong)`)
-            setToast(t('number_ok_refund'))
-            return
-        }
-
-        // Если неверная цифра, но бонус верный — выдаём бонус (инвентарь)
-        if (!numCorrect && bonusCorrect && sectorBonusIdx >= 0) {
+        // Если угадан бонусный сектор и там НЕ денежный приз — выдаём предмет (Rocket/Heart/Battery)
+        // (без return: игрок может одновременно выиграть по цифре и получить бонус сектора)
+        if (bonusCorrect && !hasSectorMoney && sectorBonusIdx >= 0) {
             try {
                 const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                 const inv: string[] = JSON.parse(invRaw)
@@ -1169,11 +1160,10 @@ export function GameScreen() {
                 const bonusNames: Record<string, string> = {
                     'Heart': 'Сердце',
                     'Battery': 'Батарейка',
-                    'Rocket': 'Ракета'
+                    'Rocket': 'Ракета',
                 }
                 setToast(`Получен бонус: ${bonusNames[bonusName] || bonusName}`)
             } catch {}
-            return
         }
 
         // Иначе — стандартная логика выигрыша по цифре/режиму
@@ -1245,6 +1235,16 @@ export function GameScreen() {
             setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
         } else {
             // Проигрыш
+            // Если игрок угадал бонусный сектор и там был денежный приз — начисляем его даже при промахе по цифре.
+            // (при Heart-сценарии начисление произойдёт в saveBalances ниже вместе с возвратом ставки)
+            if (hasSectorMoney && !shouldSaveBetOnLoss) {
+                saveBalances(
+                    currentBalanceW,
+                    currentBalanceB,
+                    `Sector money bonus: ${sectorMoneyAmount} ${currency} from sector ${index} (bonusCorrect)`,
+                )
+            }
+
             if (shouldSaveBetOnLoss) {
                 // Сердце - возвращаем ставку при проигрыше
                 if (currency === 'W') {
@@ -1257,11 +1257,11 @@ export function GameScreen() {
                 // Батарейка - добавляем 2 дополнительных вращения
                 extraSpinsRemainingRef.current = 2
                 setExtraSpinsRemaining(2)
-                setToast(`Батарейка активирована! +2 дополнительных вращения (${label})`)
+                setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Батарейка активирована! +2 дополнительных вращения (${label})`)
                 // Автоматически запускаем первое дополнительное вращение после завершения текущего спина
                 // (обработка в onSpinningChange)
             } else {
-                setToast(`Промах (${label})`)
+                setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Промах (${label})`)
             }
         }
 
