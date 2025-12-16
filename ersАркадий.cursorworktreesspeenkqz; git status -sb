@@ -1,0 +1,28 @@
+[1mdiff --git a/speen/miniapp/src/GameScreen.tsx b/speen/miniapp/src/GameScreen.tsx[m
+[1mindex 9849e83..ae5de9b 100644[m
+[1m--- a/speen/miniapp/src/GameScreen.tsx[m
+[1m+++ b/speen/miniapp/src/GameScreen.tsx[m
+[36m@@ -800,7 +800,8 @@[m [mexport function GameScreen() {[m
+     }[m
+ [m
+     function scheduleNextPyramidSpin(nextSpinCount: number) {[m
+[31m-        console.log(`[scheduleNextPyramidSpin] Scheduling spin ${nextSpinCount}`)[m
+[32m+[m[32m        const maxPyramidSpins = pyramidBatteryExtraSpinRef.current ? 4 : 3[m
+[32m+[m[32m        console.log([scheduleNextPyramidSpin] Scheduling spin  (max ))[m
+         // Очищаем предыдущие таймеры перед созданием нового[m
+         clearPyramidTimers(true)[m
+         let countdown = 4[m
+[36m@@ -833,7 +834,7 @@[m [mexport function GameScreen() {[m
+                 return[m
+             }[m
+             // Проверяем, что мы не превысили лимит спинов[m
+[31m-            if (pyramidResultsRef.current.length >= 3) {[m
+[32m+[m[32m            if (pyramidResultsRef.current.length >= maxPyramidSpins) {[m
+                 console.log(`[scheduleNextPyramidSpin] Already have ${pyramidResultsRef.current.length} results, aborting`)[m
+                 return[m
+             }[m
+[36m@@ -4046,4 +4047,3 @@[m [mfunction createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, su[m
+ [m
+ [m
+ [m
+[31m-[m

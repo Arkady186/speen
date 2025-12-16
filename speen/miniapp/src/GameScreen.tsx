@@ -800,7 +800,8 @@ export function GameScreen() {
     }
 
     function scheduleNextPyramidSpin(nextSpinCount: number) {
-        console.log(`[scheduleNextPyramidSpin] Scheduling spin ${nextSpinCount}`)
+        const maxPyramidSpins = pyramidBatteryExtraSpinRef.current ? 4 : 3
+        console.log([scheduleNextPyramidSpin] Scheduling spin  (max ))
         // Очищаем предыдущие таймеры перед созданием нового
         clearPyramidTimers(true)
         let countdown = 4
@@ -833,7 +834,7 @@ export function GameScreen() {
                 return
             }
             // Проверяем, что мы не превысили лимит спинов
-            if (pyramidResultsRef.current.length >= 3) {
+            if (pyramidResultsRef.current.length >= maxPyramidSpins) {
                 console.log(`[scheduleNextPyramidSpin] Already have ${pyramidResultsRef.current.length} results, aborting`)
                 return
             }
@@ -4042,7 +4043,6 @@ function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, su
         { title: tr('press11_title'), subtitle: tr('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
     ]
 }
-
 
 
 
