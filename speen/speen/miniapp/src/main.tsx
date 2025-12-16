@@ -5,7 +5,7 @@ import { GameScreen } from './GameScreen'
 import './styles.css'
 
 
-console.log('[Build]', typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'unknown')
+console.log('[Build]', (typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'unknown') + ' (app=speen/speen/miniapp)')
 // Глобальная обработка ошибок для подавления ошибок расширений браузера
 window.addEventListener('error', (event) => {
 	// Подавляем ошибки расширений браузера

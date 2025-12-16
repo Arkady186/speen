@@ -1,0 +1,3 @@
+head-check.txt
+ers*.cursorworktrees*
+tash show -p stash@{0}*
