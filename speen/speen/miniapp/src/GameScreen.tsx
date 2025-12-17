@@ -1322,6 +1322,8 @@ export function GameScreen() {
                 // Батарейка - добавляем 1 дополнительное вращение
                 extraSpinsRemainingRef.current = 1
                 setExtraSpinsRemaining(1)
+                extraSpinInFlightRef.current = false // Сбрасываем флаг, чтобы следующий спин мог запуститься
+                console.log('[onSpinResult] Battery activated: extraSpinsRemainingRef.current = 1')
                 setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Батарейка активирована! +1 дополнительное вращение (${label})`)
                 // Автоматически запускаем дополнительное вращение после завершения текущего спина
                 // (обработка в onSpinningChange)
@@ -1809,38 +1811,41 @@ export function GameScreen() {
                                             setIsMenuOpen(false); 
                                             setIsRightMenuOpen(false) 
                                         } else {
-                                            // Сбрасываем флаг полета после завершения спина
-                                            extraSpinInFlightRef.current = false
+                                            // Спин завершился
+                                            console.log(`[onSpinningChange] Spin finished. extraSpinsRemaining: ${extraSpinsRemainingRef.current}, extraSpinInFlight: ${extraSpinInFlightRef.current}`)
+                                            
+                                            // Если спин завершился и батарейка была использована, удаляем её из инвентаря
+                                            if (batteryUsedRef.current && extraSpinsRemainingRef.current === 0) {
+                                                try {
+                                                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                                    const inv: string[] = JSON.parse(invRaw)
+                                                    const batteryIndex = inv.indexOf('Battery')
+                                                    if (batteryIndex !== -1) {
+                                                        inv.splice(batteryIndex, 1)
+                                                        localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                                        console.log('[onSpinningChange] Battery removed from inventory after extra spin completed')
+                                                    }
+                                                    batteryUsedRef.current = false
+                                                    setSelectedBonusBucket(null)
+                                                } catch (e) {
+                                                    console.error('[onSpinningChange] Failed to remove battery from inventory', e)
+                                                }
+                                            }
                                             
                                             // Когда спин завершился, проверяем дополнительные вращения от батарейки
                                             if (wheelRef.current && extraSpinsRemainingRef.current > 0 && !extraSpinInFlightRef.current) {
                                                 extraSpinInFlightRef.current = true
+                                                console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining)`)
+                                                
+                                                // Уменьшаем счетчик ПЕРЕД запуском спина
                                                 extraSpinsRemainingRef.current = Math.max(0, extraSpinsRemainingRef.current - 1)
                                                 setExtraSpinsRemaining(extraSpinsRemainingRef.current)
-                                                console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining after decrement)`)
-                                                
-                                                // Если это был последний дополнительный спин от батарейки - удаляем батарейку из инвентаря
-                                                if (batteryUsedRef.current && extraSpinsRemainingRef.current === 0) {
-                                                    try {
-                                                        const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                                                        const inv: string[] = JSON.parse(invRaw)
-                                                        const batteryIndex = inv.indexOf('Battery')
-                                                        if (batteryIndex !== -1) {
-                                                            inv.splice(batteryIndex, 1)
-                                                            localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                                                            console.log('[onSpinningChange] Battery removed from inventory after extra spin')
-                                                        }
-                                                        batteryUsedRef.current = false
-                                                        setSelectedBonusBucket(null)
-                                                    } catch (e) {
-                                                        console.error('[onSpinningChange] Failed to remove battery from inventory', e)
-                                                    }
-                                                }
                                                 
                                                 setTimeout(() => {
                                                     try {
                                                         isExtraSpinRef.current = true
                                                         wheelRef.current?.spin()
+                                                        console.log('[onSpinningChange] Extra spin triggered')
                                                     } catch (e) {
                                                         console.error('[onSpinningChange] extra spin failed, stopping', e)
                                                         extraSpinsRemainingRef.current = 0
@@ -1849,6 +1854,9 @@ export function GameScreen() {
                                                         batteryUsedRef.current = false
                                                     }
                                                 }, 600)
+                                            } else {
+                                                // Сбрасываем флаг полета после завершения спина (если не запускаем новый)
+                                                extraSpinInFlightRef.current = false
                                             }
                                         }
                                     }}
