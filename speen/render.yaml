@@ -3,14 +3,12 @@ services:
     name: speen-server
     env: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm ci --omit=dev
     startCommand: node src/index.js
     plan: free
     autoDeploy: true
     envVars:
-      - key: SQLITE_PATH
-        value: /var/data/data.sqlite
-    disk:
-      name: sqlite
-      mountPath: /var/data
-      sizeGB: 1
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false

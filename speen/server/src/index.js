@@ -1,92 +1,76 @@
 import express from 'express'
 import cors from 'cors'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-import fs from 'node:fs'
-import path from 'node:path'
+import pg from 'pg'
 
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
-let db
-
-function pickSqlitePath() {
-  const envPath = (process.env.SQLITE_PATH || '').trim()
-  const candidates = [
-    envPath || null,
-    process.env.RENDER ? '/var/data/data.sqlite' : null,
-    process.env.RENDER ? '/app/data/data.sqlite' : null,
-    process.env.RENDER ? '/opt/render/project/src/server/data.sqlite' : null,
-    path.resolve(process.cwd(), 'data.sqlite'),
-  ].filter(Boolean)
-
-  for (const p of candidates) {
-    try {
-      const dir = path.dirname(p)
-      fs.mkdirSync(dir, { recursive: true })
-      return p
-    } catch {
-      // try next candidate
-    }
-  }
-  // last resort (should never happen)
-  return path.resolve(process.cwd(), 'data.sqlite')
+const { Pool } = pg
+const DATABASE_URL = (process.env.DATABASE_URL || '').trim()
+if (!DATABASE_URL) {
+  console.error('[DB] DATABASE_URL is required. Create a Postgres DB (Neon/Supabase/Render) and set DATABASE_URL env var.')
+  process.exit(1)
 }
 
-const DATA_PATH = pickSqlitePath()
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  // Most hosted Postgres require TLS; pg accepts boolean or object
+  ssl: (process.env.RENDER || DATABASE_URL.includes('sslmode=require')) ? { rejectUnauthorized: false } : undefined,
+})
+
+async function q(text, params) {
+  const res = await pool.query(text, params)
+  return res.rows
+}
 
 async function init(){
-  console.log('[DB] Using sqlite file:', DATA_PATH)
-  db = await open({ filename: DATA_PATH, driver: sqlite3.Database })
-  // Pragmas for durability & stability across restarts
-  try {
-    await db.exec('PRAGMA journal_mode=WAL;')
-    await db.exec('PRAGMA synchronous=NORMAL;')
-    await db.exec('PRAGMA foreign_keys=ON;')
-  } catch (e) {
-    console.warn('[DB] Failed to apply pragmas:', e)
-  }
+  console.log('[DB] Connecting to Postgres…')
+  await pool.query('SELECT 1')
 
   // Новости
-  await db.exec(`CREATE TABLE IF NOT EXISTS news(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    text TEXT,
-    images TEXT,
-    ts INTEGER
+  await pool.query(`CREATE TABLE IF NOT EXISTS news(
+    id BIGSERIAL PRIMARY KEY,
+    title TEXT NOT NULL DEFAULT '',
+    text TEXT NOT NULL DEFAULT '',
+    images JSONB NOT NULL DEFAULT '[]'::jsonb,
+    ts BIGINT NOT NULL
   )`)
 
   // Рейтинг (старая таблица)
-  await db.exec(`CREATE TABLE IF NOT EXISTS leaderboard(
-    id INTEGER PRIMARY KEY,
+  await pool.query(`CREATE TABLE IF NOT EXISTS leaderboard(
+    id BIGINT PRIMARY KEY,
     name TEXT,
     photo TEXT,
     level INTEGER DEFAULT 1,
-    coins INTEGER DEFAULT 0,
-    updated_at INTEGER
+    coins BIGINT DEFAULT 0,
+    updated_at BIGINT
   )`)
 
   // Профили игроков (для рефералок и будущей синхронизации)
-  await db.exec(`CREATE TABLE IF NOT EXISTS players(
-    id INTEGER PRIMARY KEY,
+  await pool.query(`CREATE TABLE IF NOT EXISTS players(
+    id BIGINT PRIMARY KEY,
     username TEXT,
     photo TEXT,
     level INTEGER DEFAULT 1,
-    coins INTEGER DEFAULT 0,
-    created_at INTEGER,
-    updated_at INTEGER
+    coins BIGINT DEFAULT 0,
+    created_at BIGINT,
+    updated_at BIGINT
   )`)
 
   // Рефералы: кто кого пригласил
-  await db.exec(`CREATE TABLE IF NOT EXISTS referrals(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    inviter_id INTEGER NOT NULL,
-    friend_id INTEGER NOT NULL,
-    reward_w INTEGER DEFAULT 0,
-    created_at INTEGER,
+  await pool.query(`CREATE TABLE IF NOT EXISTS referrals(
+    id BIGSERIAL PRIMARY KEY,
+    inviter_id BIGINT NOT NULL,
+    friend_id BIGINT NOT NULL,
+    reward_w BIGINT DEFAULT 0,
+    created_at BIGINT,
     UNIQUE(inviter_id, friend_id)
   )`)
+
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_leaderboard_sort ON leaderboard(level DESC, coins DESC)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_inviter ON referrals(inviter_id)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_friend ON referrals(friend_id)')
 }
 
 app.get('/health', (_req,res)=>res.send('ok'))
@@ -95,8 +79,8 @@ app.get('/health', (_req,res)=>res.send('ok'))
 
 app.get('/api/news', async (_req,res)=>{
   try{
-    const rows = await db.all('SELECT * FROM news ORDER BY ts DESC LIMIT 200')
-    const items = rows.map(r => ({ id:r.id, title:r.title, text:r.text, images: JSON.parse(r.images||'[]'), ts:r.ts }))
+    const rows = await q('SELECT id,title,text,images,ts FROM news ORDER BY ts DESC LIMIT 200')
+    const items = rows.map(r => ({ id:r.id, title:r.title, text:r.text, images: r.images || [], ts:r.ts }))
     res.json({ items })
   }catch(e){ 
     console.error('News error:', e)
@@ -110,7 +94,7 @@ app.post('/api/news', async (req,res)=>{
     if (Number(adminId) !== 1408757717) return res.status(403).json({ error:'forbidden' })
     const imgs = Array.isArray(images) ? images : []
     const ts = Date.now()
-    await db.run('INSERT INTO news(title,text,images,ts) VALUES(?,?,?,?)', title||'', text||'', JSON.stringify(imgs), ts)
+    await pool.query('INSERT INTO news(title,text,images,ts) VALUES($1,$2,$3,$4)', [title||'', text||'', JSON.stringify(imgs), ts])
     res.json({ ok:true })
   }catch(e){ 
     console.error('News post error:', e)
@@ -128,19 +112,17 @@ app.post('/api/leaderboard/upsert', async (req,res)=>{
     
     const now = Date.now()
     const playerLevel = typeof level === 'number' ? level : 1
-    const row = await db.get('SELECT id FROM leaderboard WHERE id = ?', id)
-    
-    if(row){
-      await db.run(
-        'UPDATE leaderboard SET name=?, photo=?, level=?, coins=?, updated_at=? WHERE id=?',
-        name||null, photo||null, playerLevel, coins, now, id
-      )
-    }else{
-      await db.run(
-        'INSERT INTO leaderboard(id,name,photo,level,coins,updated_at) VALUES(?,?,?,?,?,?)',
-        id, name||null, photo||null, playerLevel, coins, now
-      )
-    }
+    await pool.query(
+      `INSERT INTO leaderboard(id,name,photo,level,coins,updated_at)
+       VALUES($1,$2,$3,$4,$5,$6)
+       ON CONFLICT (id) DO UPDATE SET
+         name=EXCLUDED.name,
+         photo=EXCLUDED.photo,
+         level=EXCLUDED.level,
+         coins=EXCLUDED.coins,
+         updated_at=EXCLUDED.updated_at`,
+      [Number(id), name||null, photo||null, playerLevel, Math.floor(coins), now]
+    )
     console.log('[Leaderboard upsert] Success')
     res.json({ ok:true })
   }catch(e){ 
@@ -152,7 +134,7 @@ app.post('/api/leaderboard/upsert', async (req,res)=>{
 app.get('/api/leaderboard/top', async (req,res)=>{
   try{
     const limit = Math.max(1, Math.min(100, Number(req.query.limit||'50')))
-    const rows = await db.all('SELECT * FROM leaderboard ORDER BY level DESC, coins DESC LIMIT ?', limit)
+    const rows = await q('SELECT id,name,photo,level,coins,updated_at FROM leaderboard ORDER BY level DESC, coins DESC LIMIT $1', [limit])
     console.log('[Leaderboard top] Found', rows.length, 'players')
     res.json({ items: rows })
   }catch(e){ 
@@ -164,18 +146,21 @@ app.get('/api/leaderboard/top', async (req,res)=>{
 app.get('/api/leaderboard/rank/:id', async (req,res)=>{
   try{
     const id = Number(req.params.id)
-    const player = await db.get('SELECT * FROM leaderboard WHERE id = ?', id)
+    const playerRows = await q('SELECT id,name,photo,level,coins,updated_at FROM leaderboard WHERE id = $1', [id])
+    const player = playerRows[0]
     if(!player) return res.json({ rank: null, total: 0, player: null })
     
-    const betterCount = await db.get(
-      'SELECT COUNT(*) as cnt FROM leaderboard WHERE level > ? OR (level = ? AND coins > ?)',
-      player.level, player.level, player.coins
+    const betterRows = await q(
+      'SELECT COUNT(*)::bigint as cnt FROM leaderboard WHERE level > $1 OR (level = $1 AND coins > $2)',
+      [player.level, player.coins]
     )
-    const rank = (betterCount?.cnt || 0) + 1
-    const total = await db.get('SELECT COUNT(*) as cnt FROM leaderboard')
+    const betterCount = Number(betterRows?.[0]?.cnt || 0)
+    const rank = betterCount + 1
+    const totalRows = await q('SELECT COUNT(*)::bigint as cnt FROM leaderboard')
     
-    console.log('[Leaderboard rank]', { id, rank, total: total?.cnt })
-    res.json({ rank, total: total?.cnt || 0, player })
+    const total = Number(totalRows?.[0]?.cnt || 0)
+    console.log('[Leaderboard rank]', { id, rank, total })
+    res.json({ rank, total, player })
   }catch(e){ 
     console.error('Leaderboard rank error:', e)
     res.status(500).json({ error:'server_error' }) 
@@ -189,21 +174,20 @@ app.post('/api/player/upsert', async (req,res)=>{
     const { id, username, name, photo, level, coins } = req.body || {}
     if (!id) return res.status(400).json({ error:'bad_input' })
     const now = Date.now()
-    const row = await db.get('SELECT id FROM players WHERE id = ?', id)
     const uname = (username || name) || null
     const lvl = typeof level === 'number' ? level : 1
     const c = typeof coins === 'number' ? coins : 0
-    if (row) {
-      await db.run(
-        'UPDATE players SET username=?, photo=?, level=?, coins=?, updated_at=? WHERE id=?',
-        uname, photo || null, lvl, c, now, id
-      )
-    } else {
-      await db.run(
-        'INSERT INTO players(id,username,photo,level,coins,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',
-        id, uname, photo || null, lvl, c, now, now
-      )
-    }
+    await pool.query(
+      `INSERT INTO players(id,username,photo,level,coins,created_at,updated_at)
+       VALUES($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT (id) DO UPDATE SET
+         username=COALESCE(EXCLUDED.username, players.username),
+         photo=COALESCE(EXCLUDED.photo, players.photo),
+         level=EXCLUDED.level,
+         coins=EXCLUDED.coins,
+         updated_at=EXCLUDED.updated_at`,
+      [Number(id), uname, photo || null, lvl, Math.floor(c), now, now]
+    )
     res.json({ ok:true })
   } catch(e){
     console.error('Player upsert error:', e)
@@ -223,43 +207,48 @@ app.post('/api/referrals/register', async (req,res)=>{
     if (inviterId === friendId) return res.json({ ok:true, shouldReward:false, already:true })
 
     const now = Date.now()
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
 
-    // Обновляем/создаём профиль друга
-    const existingPlayer = await db.get('SELECT id FROM players WHERE id = ?', friendId)
-    if (existingPlayer) {
-      await db.run(
-        'UPDATE players SET username=COALESCE(?, username), photo=COALESCE(?, photo), updated_at=? WHERE id=?',
-        name || null, photo || null, now, friendId
+      // upsert friend profile
+      await client.query(
+        `INSERT INTO players(id,username,photo,level,coins,created_at,updated_at)
+         VALUES($1,$2,$3,1,0,$4,$4)
+         ON CONFLICT (id) DO UPDATE SET
+           username=COALESCE(EXCLUDED.username, players.username),
+           photo=COALESCE(EXCLUDED.photo, players.photo),
+           updated_at=EXCLUDED.updated_at`,
+        [friendId, name || null, photo || null, now]
       )
-    } else {
-      await db.run(
-        'INSERT INTO players(id,username,photo,level,coins,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',
-        friendId, name || null, photo || null, 1, 0, now, now
+
+      // existing pair?
+      const pairRes = await client.query(
+        'SELECT reward_w FROM referrals WHERE inviter_id = $1 AND friend_id = $2',
+        [inviterId, friendId]
       )
+      if (pairRes.rows[0]) {
+        await client.query('COMMIT')
+        return res.json({ ok:true, already:true, shouldReward:false, rewardW: Number(pairRes.rows[0].reward_w || 0) })
+      }
+
+      // friend already referred by anyone?
+      const anyRefRes = await client.query('SELECT 1 FROM referrals WHERE friend_id = $1 LIMIT 1', [friendId])
+      const rewardW = anyRefRes.rows[0] ? 0 : 5000
+
+      await client.query(
+        'INSERT INTO referrals(inviter_id, friend_id, reward_w, created_at) VALUES($1,$2,$3,$4)',
+        [inviterId, friendId, rewardW, now]
+      )
+
+      await client.query('COMMIT')
+      res.json({ ok:true, already:false, shouldReward: rewardW > 0, rewardW })
+    } catch (e) {
+      try { await client.query('ROLLBACK') } catch {}
+      throw e
+    } finally {
+      client.release()
     }
-
-    // Уже есть пара inviter-friend?
-    const existingPair = await db.get(
-      'SELECT * FROM referrals WHERE inviter_id = ? AND friend_id = ?',
-      inviterId, friendId
-    )
-    if (existingPair) {
-      return res.json({ ok:true, already:true, shouldReward:false, rewardW: existingPair.reward_w || 0 })
-    }
-
-    // Друг уже был рефералом у кого-то ещё?
-    const anyRef = await db.get('SELECT * FROM referrals WHERE friend_id = ?', friendId)
-    let rewardW = 0
-    if (!anyRef) {
-      rewardW = 5000 // Бонус только за "первое приглашение" этого друга
-    }
-
-    await db.run(
-      'INSERT INTO referrals(inviter_id, friend_id, reward_w, created_at) VALUES(?,?,?,?)',
-      inviterId, friendId, rewardW, now
-    )
-
-    res.json({ ok:true, already:false, shouldReward: rewardW > 0, rewardW })
   } catch(e){
     console.error('Referrals register error:', e)
     res.status(500).json({ error:'server_error' })
@@ -272,7 +261,7 @@ app.get('/api/referrals/my/:inviterId', async (req,res)=>{
     const inviterId = Number(req.params.inviterId)
     if (!inviterId) return res.status(400).json({ error:'bad_input' })
 
-    const rows = await db.all(`
+    const rows = await q(`
       SELECT 
         r.friend_id as id,
         COALESCE(p.username, lb.name) as name,
@@ -284,9 +273,9 @@ app.get('/api/referrals/my/:inviterId', async (req,res)=>{
       FROM referrals r
       LEFT JOIN players p ON p.id = r.friend_id
       LEFT JOIN leaderboard lb ON lb.id = r.friend_id
-      WHERE r.inviter_id = ?
+      WHERE r.inviter_id = $1
       ORDER BY r.created_at DESC
-    `, inviterId)
+    `, [inviterId])
 
     res.json({ items: rows })
   } catch(e){
