@@ -114,7 +114,7 @@ export function WheelLoader({ onDone }: { onDone?: () => void }) {
 			<div className="subtitle" style={styles.subtitle}>
 				🎄 Загрузка мини‑приложения… {userId ? `(ID: ${userId})` : ''} 🎄
 			</div>
-			<div style={styles.version}>ver. 0.1.3</div>
+			<div style={styles.version}>ver. 0.1.4</div>
 		</div>
 	)
 }

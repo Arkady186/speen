@@ -321,6 +321,9 @@ export function GameScreen() {
     // Состояние для дополнительных вращений (батарейка)
     const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
     const extraSpinsRemainingRef = React.useRef<number>(0)
+    const extraSpinInFlightRef = React.useRef<boolean>(false)
+    const isExtraSpinRef = React.useRef<boolean>(false) // следующий spin — авто от батарейки (без списания ставки/проверок)
+    const pyramidMaxSpinsRef = React.useRef<number>(3) // 3/10, с батарейкой — 4
     
     // Состояние для сохранения ставки при проигрыше (сердце)
     const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
@@ -833,7 +836,8 @@ export function GameScreen() {
                 return
             }
             // Проверяем, что мы не превысили лимит спинов
-            if (pyramidResultsRef.current.length >= 3) {
+            const maxPyramidSpins = pyramidMaxSpinsRef.current
+            if (pyramidResultsRef.current.length >= maxPyramidSpins) {
                 console.log(`[scheduleNextPyramidSpin] Already have ${pyramidResultsRef.current.length} results, aborting`)
                 return
             }
@@ -854,6 +858,13 @@ export function GameScreen() {
     }
 
     function onBeforeSpin() {
+        // Авто‑спин от батарейки: не списываем ставку и не требуем выбор бонусного сектора
+        if (isExtraSpinRef.current) {
+            isExtraSpinRef.current = false
+            console.log('[onBeforeSpin] Allowing extra spin (Battery) without checks/deduction')
+            return true
+        }
+
         // Текущее значение счётчика 3 из 10 (для авто-вращений)
         const currentCount = pyramidSpinCountRef.current
 
@@ -873,7 +884,7 @@ export function GameScreen() {
             console.log(`[onBeforeSpin] Pyramid mode, currentCount: ${currentCount}, spinning: ${spinning}, betTaken: ${pyramidBetTakenRef.current}`)
             
             // Уже сделали три вращения — больше не крутим
-            if (currentCount >= 3) {
+            if (currentCount >= pyramidMaxSpinsRef.current) {
                 console.log('[onBeforeSpin] All 3 spins done, blocking')
                 return false
             }
@@ -882,7 +893,7 @@ export function GameScreen() {
             if (pyramidBetTakenRef.current) {
                 // Проверяем, сколько результатов уже есть
                 const resultsCount = pyramidResultsRef.current.length
-                if (resultsCount < 3) {
+                if (resultsCount < pyramidMaxSpinsRef.current) {
                     console.log(`[onBeforeSpin] Auto-spin allowed (${resultsCount} results so far)`)
                     return true
                 }
@@ -899,6 +910,24 @@ export function GameScreen() {
             if (selectedBonusSector == null) {
                 setToast('Выберите бонусный сектор перед началом');
                 return false
+            }
+
+            // Батарейка как бустер в 3/10: даёт 4-е вращение (итог — 4 цифры). Используем её сразу при старте серии.
+            pyramidMaxSpinsRef.current = 3
+            if (selectedBonusBucket != null) {
+                try {
+                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                    const inv: string[] = JSON.parse(invRaw)
+                    const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
+                    const bonusIndex = inv.indexOf(bonusName)
+                    if (bonusIndex !== -1 && bonusName === 'Battery') {
+                        inv.splice(bonusIndex, 1)
+                        localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        pyramidMaxSpinsRef.current = 4
+                        setSelectedBonusBucket(null)
+                        setToast('Батарейка активирована: 4-е вращение в режиме 3/10')
+                    }
+                } catch {}
             }
             const { min, max } = getLimits(mode, currency)
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
@@ -988,7 +1017,7 @@ export function GameScreen() {
         // Если у нас идёт активная серия 3 из 10 (ставка уже списана),
         // обрабатываем результат по специальным правилам, даже если пользователь
         // успел переключить режим в интерфейсе.
-        if (pyramidBetTakenRef.current && currentPyramidCount <= 3) {
+        if (pyramidBetTakenRef.current && currentPyramidCount <= pyramidMaxSpinsRef.current) {
             const currentSpinId = pyramidSpinIdRef.current
             console.log(`[onSpinResult] Processing pyramid spin ${currentPyramidCount}, spinId: ${currentSpinId}`)
             const resultNumber = Number(label)
@@ -1008,15 +1037,6 @@ export function GameScreen() {
             let finalResultNumber = resultNumber
             
             // Если число уже выпало, находим следующее уникальное число
-            if (currentResults.includes(resultNumber)) {
-                console.log(`[onSpinResult] Duplicate number ${resultNumber} detected, finding next unique number`)
-                // Находим следующее уникальное число (начиная с resultNumber + 1, по кругу)
-                const findNextUniqueNumber = (startNum: number): number => {
-                    for (let i = 1; i < 10; i++) {
-                        const nextNum = (startNum + i) % 10
-                        if (!currentResults.includes(nextNum)) {
-                            return nextNum
-                        }
                     }
                     // Если все числа уже выпали (невозможно для 3 спинов, но на всякий случай)
                     return (startNum + 1) % 10
@@ -1038,7 +1058,7 @@ export function GameScreen() {
             setToast(`Вращение ${currentPyramidCount}: ${finalResultNumber}`)
             
             // Если это не последнее вращение, запускаем следующее автоматически
-            if (currentPyramidCount < 3) {
+            if (currentPyramidCount < pyramidMaxSpinsRef.current) {
                 const nextSpinCount = currentPyramidCount + 1
                 console.log(`[onSpinResult] Scheduling next spin: ${nextSpinCount}`)
                 scheduleNextPyramidSpin(nextSpinCount)
@@ -1064,6 +1084,7 @@ export function GameScreen() {
                 if (matches >= 1) totalWin += Math.floor(pyramidBet * 2.0)  // +200%
                 if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
                 if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
+                if (matches >= 4) totalWin += Math.floor(pyramidBet * 1.0)   // +100% (4-е совпадение с батарейкой)
                 
                 // Применяем активный бонус из инвентаря для режима pyramid
                 let bonusMultiplier = 1
@@ -1088,8 +1109,7 @@ export function GameScreen() {
                             
                             // Сбрасываем выбранный бонус после использования
                             setSelectedBonusBucket(null)
-                            setSelectedBonusSector(null)
-                        }
+                                                    }
                     } catch {}
                 }
                 
@@ -1218,8 +1238,7 @@ export function GameScreen() {
                     
                     // Сбрасываем выбранный бонус после использования
                     setSelectedBonusBucket(null)
-                    setSelectedBonusSector(null)
-                }
+                                    }
             } catch {}
         }
         
@@ -1744,16 +1763,24 @@ export function GameScreen() {
                                             setIsRightMenuOpen(false) 
                                         } else {
                                             // Когда спин завершился, проверяем дополнительные вращения от батарейки
-                                            if (extraSpinsRemainingRef.current > 0) {
+                                            if (wheelRef.current && extraSpinsRemainingRef.current > 0 && !extraSpinInFlightRef.current) {
+                                                extraSpinInFlightRef.current = true
+                                                extraSpinsRemainingRef.current = Math.max(0, extraSpinsRemainingRef.current - 1)
+                                                setExtraSpinsRemaining(extraSpinsRemainingRef.current)
+                                                console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining after decrement)`)
                                                 setTimeout(() => {
-                                                    if (wheelRef.current && !spinning && extraSpinsRemainingRef.current > 0) {
-                                                        console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining)`)
-                                                        wheelRef.current.spin()
+                                                    try {
+                                                        isExtraSpinRef.current = true
+                                                        wheelRef.current?.spin()
+                                                    } catch (e) {
+                                                        console.error('[onSpinningChange] extra spin failed, stopping', e)
+                                                        extraSpinsRemainingRef.current = 0
+                                                        setExtraSpinsRemaining(0)
                                                     }
-                                                }, 1500)
+                                                }, 600)
                                             }
                                         }
-                                    }}
+                                    }}}
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx) }}
@@ -1763,7 +1790,7 @@ export function GameScreen() {
                                      selectedBonusImage={selectedBonusBucket !== null && selectedBonusBucket >= 0 ? BONUS_IMAGES[selectedBonusBucket] : null} />
                              </div>
                         </div>
-                        {pyramidShowResults && pyramidResults.length === 3 && (
+                        {pyramidShowResults && pyramidResults.length === pyramidMaxSpinsRef.current && (
                             <div style={bonusOverlay} onClick={() => { setPyramidShowResults(false); setPyramidSpinCount(0); setPyramidResults([]) }}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>Результаты 3/10</div>
