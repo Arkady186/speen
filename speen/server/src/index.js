@@ -2,16 +2,51 @@ import express from 'express'
 import cors from 'cors'
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
+import fs from 'node:fs'
+import path from 'node:path'
 
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
 let db
-const DATA_PATH = process.env.SQLITE_PATH || (process.env.RENDER ? '/app/data/data.sqlite' : './data.sqlite')
+
+function pickSqlitePath() {
+  const envPath = (process.env.SQLITE_PATH || '').trim()
+  const candidates = [
+    envPath || null,
+    process.env.RENDER ? '/var/data/data.sqlite' : null,
+    process.env.RENDER ? '/app/data/data.sqlite' : null,
+    process.env.RENDER ? '/opt/render/project/src/server/data.sqlite' : null,
+    path.resolve(process.cwd(), 'data.sqlite'),
+  ].filter(Boolean)
+
+  for (const p of candidates) {
+    try {
+      const dir = path.dirname(p)
+      fs.mkdirSync(dir, { recursive: true })
+      return p
+    } catch {
+      // try next candidate
+    }
+  }
+  // last resort (should never happen)
+  return path.resolve(process.cwd(), 'data.sqlite')
+}
+
+const DATA_PATH = pickSqlitePath()
 
 async function init(){
+  console.log('[DB] Using sqlite file:', DATA_PATH)
   db = await open({ filename: DATA_PATH, driver: sqlite3.Database })
+  // Pragmas for durability & stability across restarts
+  try {
+    await db.exec('PRAGMA journal_mode=WAL;')
+    await db.exec('PRAGMA synchronous=NORMAL;')
+    await db.exec('PRAGMA foreign_keys=ON;')
+  } catch (e) {
+    console.warn('[DB] Failed to apply pragmas:', e)
+  }
 
   // Новости
   await db.exec(`CREATE TABLE IF NOT EXISTS news(
