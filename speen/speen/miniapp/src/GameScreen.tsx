@@ -1037,6 +1037,14 @@ export function GameScreen() {
             let finalResultNumber = resultNumber
             
             // Если число уже выпало, находим следующее уникальное число
+            if (currentResults.includes(resultNumber)) {
+                // Функция для поиска следующего уникального числа
+                const findNextUniqueNumber = (startNum: number): number => {
+                    for (let i = 1; i < 10; i++) {
+                        const nextNum = (startNum + i) % 10
+                        if (!currentResults.includes(nextNum)) {
+                            return nextNum
+                        }
                     }
                     // Если все числа уже выпали (невозможно для 3 спинов, но на всякий случай)
                     return (startNum + 1) % 10
