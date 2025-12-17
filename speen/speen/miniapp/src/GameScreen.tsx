@@ -1788,7 +1788,7 @@ export function GameScreen() {
                                                 }, 600)
                                             }
                                         }
-                                    }}}
+                                    }}
                                      onOpenBonuses={() => setBonusesOpen(true)}
                                      selectedBonusIndex={selectedBonusSector}
                                      onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx) }}
