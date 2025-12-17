@@ -323,6 +323,7 @@ export function GameScreen() {
     const extraSpinsRemainingRef = React.useRef<number>(0)
     const extraSpinInFlightRef = React.useRef<boolean>(false)
     const isExtraSpinRef = React.useRef<boolean>(false) // следующий spin — авто от батарейки (без списания ставки/проверок)
+    const batteryUsedRef = React.useRef<boolean>(false) // Флаг использования батарейки (для удаления из инвентаря после спина)
     const pyramidMaxSpinsRef = React.useRef<number>(3) // 3/10, с батарейкой — 4
     const pyramidBatteryExtraSpinRef = React.useRef<boolean>(false) // Флаг батарейки для режима 3/10
     
@@ -864,6 +865,10 @@ export function GameScreen() {
         if (isExtraSpinRef.current) {
             isExtraSpinRef.current = false
             console.log('[onBeforeSpin] Allowing extra spin (Battery) without checks/deduction')
+            // Сбрасываем флаг использования батарейки, если это был последний спин
+            if (extraSpinsRemainingRef.current === 0) {
+                batteryUsedRef.current = false
+            }
             return true
         }
 
@@ -1262,18 +1267,24 @@ export function GameScreen() {
                             shouldSaveBetOnLoss = true
                         }
                     } else if (bonusName === 'Battery') {
-                        // Батарейка - дополнительное вращение (два раза)
+                        // Батарейка - дополнительное вращение (1 раз при проигрыше)
                         if (!numCorrect) {
                             shouldAddExtraSpins = true
+                            batteryUsedRef.current = true // Помечаем, что батарейка использована (удалим после спина)
+                            // НЕ удаляем батарейку здесь - удалим после завершения дополнительного спина
                         }
                     }
                     
-                    // Удаляем бонус из инвентаря после использования
-                    inv.splice(bonusIndex, 1)
-                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                    // Удаляем бонус из инвентаря после использования (кроме батарейки - её удалим после спина)
+                    if (bonusName !== 'Battery' || numCorrect) {
+                        inv.splice(bonusIndex, 1)
+                        localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                    }
                     
-                    // Сбрасываем выбранный бонус после использования
-                    setSelectedBonusBucket(null)
+                    // Сбрасываем выбранный бонус после использования (кроме батарейки при проигрыше)
+                    if (bonusName !== 'Battery' || numCorrect) {
+                        setSelectedBonusBucket(null)
+                    }
                                     }
             } catch {}
         }
@@ -1308,11 +1319,11 @@ export function GameScreen() {
                 }
                 setToast(`Сердце спасло! Ставка возвращена (${label})`)
             } else if (shouldAddExtraSpins) {
-                // Батарейка - добавляем 2 дополнительных вращения
-                extraSpinsRemainingRef.current = 2
-                setExtraSpinsRemaining(2)
-                setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Батарейка активирована! +2 дополнительных вращения (${label})`)
-                // Автоматически запускаем первое дополнительное вращение после завершения текущего спина
+                // Батарейка - добавляем 1 дополнительное вращение
+                extraSpinsRemainingRef.current = 1
+                setExtraSpinsRemaining(1)
+                setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Батарейка активирована! +1 дополнительное вращение (${label})`)
+                // Автоматически запускаем дополнительное вращение после завершения текущего спина
                 // (обработка в onSpinningChange)
             } else {
                 setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Промах (${label})`)
@@ -1807,6 +1818,25 @@ export function GameScreen() {
                                                 extraSpinsRemainingRef.current = Math.max(0, extraSpinsRemainingRef.current - 1)
                                                 setExtraSpinsRemaining(extraSpinsRemainingRef.current)
                                                 console.log(`[onSpinningChange] Starting extra spin (${extraSpinsRemainingRef.current} remaining after decrement)`)
+                                                
+                                                // Если это был последний дополнительный спин от батарейки - удаляем батарейку из инвентаря
+                                                if (batteryUsedRef.current && extraSpinsRemainingRef.current === 0) {
+                                                    try {
+                                                        const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                                        const inv: string[] = JSON.parse(invRaw)
+                                                        const batteryIndex = inv.indexOf('Battery')
+                                                        if (batteryIndex !== -1) {
+                                                            inv.splice(batteryIndex, 1)
+                                                            localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                                            console.log('[onSpinningChange] Battery removed from inventory after extra spin')
+                                                        }
+                                                        batteryUsedRef.current = false
+                                                        setSelectedBonusBucket(null)
+                                                    } catch (e) {
+                                                        console.error('[onSpinningChange] Failed to remove battery from inventory', e)
+                                                    }
+                                                }
+                                                
                                                 setTimeout(() => {
                                                     try {
                                                         isExtraSpinRef.current = true
@@ -1816,6 +1846,7 @@ export function GameScreen() {
                                                         extraSpinsRemainingRef.current = 0
                                                         setExtraSpinsRemaining(0)
                                                         extraSpinInFlightRef.current = false
+                                                        batteryUsedRef.current = false
                                                     }
                                                 }, 600)
                                             }
