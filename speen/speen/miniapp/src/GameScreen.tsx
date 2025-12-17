@@ -1325,8 +1325,30 @@ export function GameScreen() {
                 extraSpinInFlightRef.current = false // Сбрасываем флаг, чтобы следующий спин мог запуститься
                 console.log('[onSpinResult] Battery activated: extraSpinsRemainingRef.current = 1')
                 setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Батарейка активирована! +1 дополнительное вращение (${label})`)
-                // Автоматически запускаем дополнительное вращение после завершения текущего спина
-                // (обработка в onSpinningChange)
+                
+                // Автоматически запускаем дополнительное вращение сразу после установки флага
+                setTimeout(() => {
+                    if (wheelRef.current && extraSpinsRemainingRef.current > 0 && !extraSpinInFlightRef.current) {
+                        extraSpinInFlightRef.current = true
+                        console.log(`[onSpinResult] Starting extra spin immediately (${extraSpinsRemainingRef.current} remaining)`)
+                        
+                        // Уменьшаем счетчик ПЕРЕД запуском спина
+                        extraSpinsRemainingRef.current = Math.max(0, extraSpinsRemainingRef.current - 1)
+                        setExtraSpinsRemaining(extraSpinsRemainingRef.current)
+                        
+                        try {
+                            isExtraSpinRef.current = true
+                            wheelRef.current?.spin()
+                            console.log('[onSpinResult] Extra spin triggered')
+                        } catch (e) {
+                            console.error('[onSpinResult] extra spin failed, stopping', e)
+                            extraSpinsRemainingRef.current = 0
+                            setExtraSpinsRemaining(0)
+                            extraSpinInFlightRef.current = false
+                            batteryUsedRef.current = false
+                        }
+                    }
+                }, 800) // Небольшая задержка для завершения анимации остановки колеса
             } else {
                 setToast(`${hasSectorMoney ? `Бонус сектора +${sectorMoneyAmount} ${currency}. ` : ''}Промах (${label})`)
             }
