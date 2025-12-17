@@ -324,6 +324,7 @@ export function GameScreen() {
     const extraSpinInFlightRef = React.useRef<boolean>(false)
     const isExtraSpinRef = React.useRef<boolean>(false) // следующий spin — авто от батарейки (без списания ставки/проверок)
     const pyramidMaxSpinsRef = React.useRef<number>(3) // 3/10, с батарейкой — 4
+    const pyramidBatteryExtraSpinRef = React.useRef<boolean>(false) // Флаг батарейки для режима 3/10
     
     // Состояние для сохранения ставки при проигрыше (сердце)
     const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
@@ -915,6 +916,7 @@ export function GameScreen() {
 
             // Батарейка как бустер в 3/10: даёт 4-е вращение (итог — 4 цифры). Используем её сразу при старте серии.
             pyramidMaxSpinsRef.current = 3
+            pyramidBatteryExtraSpinRef.current = false
             if (selectedBonusBucket != null) {
                 try {
                     const invRaw = localStorage.getItem('bonuses_inv') || '[]'
@@ -925,6 +927,7 @@ export function GameScreen() {
                         inv.splice(bonusIndex, 1)
                         localStorage.setItem('bonuses_inv', JSON.stringify(inv))
                         pyramidMaxSpinsRef.current = 4
+                        pyramidBatteryExtraSpinRef.current = true
                         setSelectedBonusBucket(null)
                         setToast('Батарейка активирована: 4-е вращение в режиме 3/10')
                     }
@@ -1088,12 +1091,20 @@ export function GameScreen() {
                 //  - за первое совпадение: +200% от ставки (x2)
                 //  - за второе: +50% от ставки
                 //  - за третье: +25% от ставки
+                //  - за четвёртое (с батарейкой): +100% от ставки (если угадана на 4-м вращении)
                 const pyramidBet = pyramidBetRef.current
                 let totalWin = 0
-                if (matches >= 1) totalWin += Math.floor(pyramidBet * 2.0)  // +200%
-                if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
-                if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
-                if (matches >= 4) totalWin += Math.floor(pyramidBet * 1.0)   // +100% (4-е совпадение с батарейкой)
+                const fourthDigitMatches = pyramidBatteryExtraSpinRef.current && newResults.length === 4 && newResults[3] === selectedNum
+                
+                // Если угадана цифра на 4-м вращении с батарейкой - награда 100% (даже если были угаданы до этого)
+                if (fourthDigitMatches) {
+                    totalWin = Math.floor(pyramidBet * 1.0)  // +100% за угаданную на 4-м вращении
+                } else {
+                    // Обычная логика для первых 3-х вращений
+                    if (matches >= 1) totalWin += Math.floor(pyramidBet * 2.0)  // +200%
+                    if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
+                    if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
+                }
                 
                 // Применяем активный бонус из инвентаря для режима pyramid
                 let bonusMultiplier = 1
@@ -1107,8 +1118,8 @@ export function GameScreen() {
                         if (bonusIndex !== -1) {
                             // Бонус найден в инвентаре, применяем его
                             if (bonusName === 'Rocket') {
-                                // Ракета - удваивает выигрыш
-                                bonusMultiplier = 2
+                                // Ракета - умножает выигрыш на 4 (x4)
+                                bonusMultiplier = 4
                             }
                             // Сердце и Батарейка не работают в режиме pyramid (только при проигрыше)
                             
@@ -1149,6 +1160,7 @@ export function GameScreen() {
                 
                 // Сбрасываем ref результатов для следующей серии
                 pyramidResultsRef.current = []
+                pyramidBatteryExtraSpinRef.current = false
             }
             return
         }
@@ -1163,16 +1175,30 @@ export function GameScreen() {
         let currentBalanceW = balanceW
         let currentBalanceB = balanceB
         const sectorBonus = sectorBonuses.length > index ? sectorBonuses[index] : null
-        const sectorMoneyAmount =
+        let sectorMoneyAmount =
             bonusCorrect && sectorBonus && sectorBonus.type === 'money'
                 ? sectorBonus.amount
                 : 0
         const hasSectorMoney = sectorMoneyAmount > 0
+        
+        // Проверяем, есть ли Rocket для удвоения бонусного сектора
+        let rocketMultiplier = 1
+        if (selectedBonusBucket != null && hasSectorMoney) {
+            try {
+                const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                const inv: string[] = JSON.parse(invRaw)
+                const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
+                if (inv.indexOf(bonusName) !== -1 && bonusName === 'Rocket') {
+                    rocketMultiplier = 2 // Удваиваем бонус сектора (100 -> 200)
+                    sectorMoneyAmount = sectorMoneyAmount * rocketMultiplier
+                }
+            } catch {}
+        }
 
         if (hasSectorMoney) {
             if (currency === 'W') currentBalanceW = balanceW + sectorMoneyAmount
             else currentBalanceB = balanceB + sectorMoneyAmount
-            console.log(`[onSpinResult] bonusCorrect=true -> sector money bonus applied: ${sectorMoneyAmount} ${currency} (sector ${index})`)
+            console.log(`[onSpinResult] bonusCorrect=true -> sector money bonus applied: ${sectorMoneyAmount} ${currency} (sector ${index}${rocketMultiplier > 1 ? ', Rocket x2' : ''})`)
         }
 
         // Если угадан бонусный сектор и там НЕ денежный приз — выдаём предмет (Rocket/Heart/Battery)
@@ -1225,10 +1251,11 @@ export function GameScreen() {
                 if (bonusIndex !== -1) {
                     // Бонус найден в инвентаре
                     if (bonusName === 'Rocket') {
-                        // Ракета - удваивает выигрыш (только при выигрыше)
+                        // Ракета - умножает выигрыш на 4 (x4) (только при выигрыше)
                         if (numCorrect && delta > 0) {
-                            bonusMultiplier = 2
+                            bonusMultiplier = 4
                         }
+                        // Бонусный сектор уже обработан выше (удвоен, если был Rocket)
                     } else if (bonusName === 'Heart') {
                         // Сердце - сохраняет деньги при проигрыше
                         if (!numCorrect) {
@@ -1257,9 +1284,9 @@ export function GameScreen() {
             // Применяем множитель только один раз
             const finalDelta = bonusMultiplier > 1 ? delta * bonusMultiplier : delta
             
-            if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
-            else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
-            setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
+            if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
+            else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
+            setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x4 Ракета)' : ''}`)
         } else {
             // Проигрыш
             // Если игрок угадал бонусный сектор и там был денежный приз — начисляем его даже при промахе по цифре.
@@ -1771,6 +1798,9 @@ export function GameScreen() {
                                             setIsMenuOpen(false); 
                                             setIsRightMenuOpen(false) 
                                         } else {
+                                            // Сбрасываем флаг полета после завершения спина
+                                            extraSpinInFlightRef.current = false
+                                            
                                             // Когда спин завершился, проверяем дополнительные вращения от батарейки
                                             if (wheelRef.current && extraSpinsRemainingRef.current > 0 && !extraSpinInFlightRef.current) {
                                                 extraSpinInFlightRef.current = true
@@ -1785,6 +1815,7 @@ export function GameScreen() {
                                                         console.error('[onSpinningChange] extra spin failed, stopping', e)
                                                         extraSpinsRemainingRef.current = 0
                                                         setExtraSpinsRemaining(0)
+                                                        extraSpinInFlightRef.current = false
                                                     }
                                                 }, 600)
                                             }
@@ -1799,7 +1830,7 @@ export function GameScreen() {
                                      selectedBonusImage={selectedBonusBucket !== null && selectedBonusBucket >= 0 ? BONUS_IMAGES[selectedBonusBucket] : null} />
                              </div>
                         </div>
-                        {pyramidShowResults && pyramidResults.length === pyramidMaxSpinsRef.current && (
+                        {pyramidShowResults && pyramidResults.length >= 3 && (
                             <div style={bonusOverlay} onClick={() => { setPyramidShowResults(false); setPyramidSpinCount(0); setPyramidResults([]) }}>
                                 <div style={bonusSheet} onClick={(e)=>e.stopPropagation()}>
                                     <div style={bonusHeader}>Результаты 3/10</div>
