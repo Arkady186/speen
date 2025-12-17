@@ -365,20 +365,21 @@ export function GameScreen() {
     
     // Функция для генерации 10 случайных бонусов для секторов колеса с взвешенной вероятностью
     const generateSectorBonuses = (): RandomBonus[] => {
-        // Взвешенные вероятности:
-        // 100: 40% (очень часто)
-        // 1000: 30% (часто)
-        // 10000: 15% (редко)
-        // 100000: 5% (очень редко)
-        // Бонусы (ракета, сердце, батарейка): по 3.33% каждый (всего 10%)
+        // Взвешенные вероятности (сумма = 100):
+        // - Деньги <= 1000: чаще (85%)
+        // - Деньги > 1000: реже (12%)
+        // - Бустеры: намного реже (3%)
         const weightedOptions: Array<{ bonus: RandomBonus, weight: number }> = [
-            { bonus: { type: 'money', amount: 100 }, weight: 40 },
+            // small money
+            { bonus: { type: 'money', amount: 100 }, weight: 55 },
             { bonus: { type: 'money', amount: 1000 }, weight: 30 },
-            { bonus: { type: 'money', amount: 10000 }, weight: 15 },
-            { bonus: { type: 'money', amount: 100000 }, weight: 5 },
-            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 3.33 },
-            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 3.33 },
-            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 3.34 }
+            // big money (rarer than small)
+            { bonus: { type: 'money', amount: 10000 }, weight: 10 },
+            { bonus: { type: 'money', amount: 100000 }, weight: 2 },
+            // boosters (very rare)
+            { bonus: { type: 'bonus', image: '/spacewh.png', label: 'Ракета' }, weight: 1 },
+            { bonus: { type: 'bonus', image: '/heardwh.png', label: 'Сердце' }, weight: 1 },
+            { bonus: { type: 'bonus', image: '/battery.png', label: 'Батарейка' }, weight: 1 }
         ]
         
         // Генерируем 10 случайных бонусов с учетом весов
@@ -1867,18 +1868,26 @@ export function GameScreen() {
                                                      boxShadow: selectedBonusBucket===i ? 'inset 0 0 0 3px #22c55e' : bonusCard.boxShadow as string
                                                 }}
                                                  onClick={()=>{
+                                                    const label = bonusNames[b] || b
+                                                    // Повторный клик по уже выбранному бонусу — снимает выбор
+                                                    if (selectedBonusBucket === i) {
+                                                        setSelectedBonusBucket(null)
+                                                        setBonusesOpen(false)
+                                                        setToast(`Бонус снят: ${label}`)
+                                                        return
+                                                    }
                                                     // Проверяем наличие бонуса в инвентаре
                                                     try {
                                                         const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                                                         const inv: string[] = JSON.parse(invRaw)
                                                         const count = inv.filter(x => x === b).length
                                                         if (count === 0) {
-                                                            setToast(`Бонус "${bonusNames[b] || b}" отсутствует в инвентаре`)
+                                                            setToast(`Бонус "${label}" отсутствует в инвентаре`)
                                                             return
                                                         }
                                                         setSelectedBonusBucket(i); 
                                                         setBonusesOpen(false); 
-                                                        setToast(`Выбран бонус: ${bonusNames[b] || b}`)
+                                                        setToast(`Выбран бонус: ${label}`)
                                                     } catch {
                                                         setToast('Ошибка при выборе бонуса')
                                                     }
@@ -2018,7 +2027,7 @@ export function GameScreen() {
             )}
             {inviteOpen && (
                 <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setInviteAnimatingOut(true); setTimeout(()=>{ setInviteOpen(false); setInviteAnimatingOut(false); setInviteInfoOpen(false) }, 320) }}>
-                    <div style={{...inviteSheet, height:`${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{...inviteSheetInvite, height:`${inviteHeightVh}vh`, animation: inviteAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards' }} onClick={(e) => e.stopPropagation()}>
                         <div
                             style={inviteGrabWrap}
                             onPointerDown={(e)=>{ inviteDragStartY.current = e.clientY; inviteDragStartTs.current=Date.now(); inviteDragStartHeightVh.current = inviteHeightVh; inviteLastY.current=e.clientY; inviteLastTs.current=Date.now() }}
@@ -2028,7 +2037,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'12px', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center'}}>
+                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'10px', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center'}}>
                         {(() => {
                             const tg = (window as any).Telegram?.WebApp
                             const bot = (import.meta as any)?.env?.VITE_TG_BOT || 'TestCodeTg_bot'
@@ -2048,10 +2057,10 @@ export function GameScreen() {
                                 navigator.clipboard?.writeText(url).then(()=> setToast(t('copied')))
                             }
                             const wrap: React.CSSProperties = { 
-                                background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', 
-                                borderRadius:20, 
-                                padding:16, 
-                                boxShadow:'inset 0 0 0 3px #0b2f68', 
+                                background:'linear-gradient(180deg,#163b78 0%, #0b2f68 100%)', 
+                                borderRadius:22, 
+                                padding:18, 
+                                boxShadow:'inset 0 0 0 4px rgba(140,188,255,0.6), 0 12px 30px rgba(0,0,0,0.35)', 
                                 width:'100%', 
                                 maxWidth:'100%',
                                 margin:'0 auto', 
@@ -3512,6 +3521,17 @@ const inviteSheet: React.CSSProperties = {
     overflowY:'auto' as const,
     overflowX:'hidden' as const,
     boxSizing:'border-box' as const
+}
+
+// Invite friends: more dark-blue body (closer to the light-blue border color)
+const inviteSheetInvite: React.CSSProperties = {
+    ...inviteSheet,
+    width:'86%',
+    maxWidth: 460,
+    padding: 14,
+    paddingBottom: 46,
+    background:'linear-gradient(180deg, #1f4d8f 0%, #0b2f68 100%)',
+    boxShadow:'inset 0 0 0 3px rgba(140,188,255,0.6), 0 -10px 26px rgba(0,0,0,0.45)',
 }
 
 const shopSheet: React.CSSProperties = {
