@@ -2543,7 +2543,7 @@ export function GameScreen() {
 
 function Coin(){
     return (
-        <div style={{width:20,height:20,borderRadius:'50%',background:'radial-gradient(circle,#ffd86b,#f2a93b)',border:'2px solid #7a4e06'}} />
+        <img src="/Bcoin.png" alt="B" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'contain' }} />
     )
 }
 
