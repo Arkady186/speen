@@ -884,7 +884,18 @@ export function GameScreen() {
         }
 
         // Для обычных режимов блокируем повторный старт во время спина
-        if (spinning && mode !== 'pyramid') return false
+        // НО: если это не дополнительный спин и нет активных дополнительных спинов, разрешаем
+        if (spinning && mode !== 'pyramid') {
+            // Если есть активные дополнительные спины, блокируем (они запускаются автоматически)
+            if (extraSpinsRemainingRef.current > 0 || extraSpinInFlightRef.current) {
+                console.log('[onBeforeSpin] Blocking: extra spins in progress')
+                return false
+            }
+            // Если spinning все еще true, но нет активных дополнительных спинов - это ошибка состояния
+            // Сбрасываем spinning и разрешаем спин
+            console.log('[onBeforeSpin] Warning: spinning is true but no extra spins, resetting and allowing spin')
+            setSpinning(false)
+        }
         
         // Для режима pyramid (3/10) обрабатываем отдельно
         if (mode === 'pyramid') {
@@ -1868,26 +1879,36 @@ export function GameScreen() {
                                             setIsRightMenuOpen(false) 
                                         } else {
                                             // Спин завершился
-                                            console.log(`[onSpinningChange] Spin finished. extraSpinsRemaining: ${extraSpinsRemainingRef.current}, extraSpinInFlight: ${extraSpinInFlightRef.current}`)
+                                            console.log(`[onSpinningChange] Spin finished. extraSpinsRemaining: ${extraSpinsRemainingRef.current}, extraSpinInFlight: ${extraSpinInFlightRef.current}, isExtraSpin: ${isExtraSpinRef.current}`)
                                             
-                                            // Если есть активные дополнительные спины, не сбрасываем spinning
-                                            if (extraSpinsRemainingRef.current > 0 || extraSpinInFlightRef.current) {
-                                                console.log('[onSpinningChange] Extra spins pending, keeping spinning state')
+                                            // Проверяем, был ли это дополнительный спин от батарейки
+                                            const wasExtraSpin = isExtraSpinRef.current
+                                            
+                                            // Если это был дополнительный спин, сбрасываем флаг
+                                            if (wasExtraSpin) {
+                                                isExtraSpinRef.current = false
+                                                // После завершения дополнительного спина сбрасываем флаг полета
+                                                extraSpinInFlightRef.current = false
+                                                console.log('[onSpinningChange] Extra spin completed, resetting extraSpinInFlightRef')
+                                            }
+                                            
+                                            // Проверяем, есть ли еще активные дополнительные спины
+                                            // После сброса extraSpinInFlightRef проверяем только extraSpinsRemainingRef
+                                            if (extraSpinsRemainingRef.current > 0) {
+                                                console.log('[onSpinningChange] Extra spins still pending, keeping spinning state')
                                                 // Не сбрасываем spinning - оно будет сброшено после завершения последнего дополнительного спина
                                             } else {
-                                                // Все спины завершены
+                                                // Все спины завершены - сбрасываем все флаги
+                                                console.log('[onSpinningChange] All spins completed, resetting flags and spinning state')
                                                 setSpinning(false)
                                                 
-                                                // Если спин завершился и батарейка была использована, сбрасываем флаги
-                                                if (batteryUsedRef.current) {
-                                                    console.log('[onSpinningChange] Battery extra spin completed, resetting flags')
-                                                    batteryUsedRef.current = false
-                                                    extraSpinInFlightRef.current = false
-                                                    // Батарейка уже была удалена из инвентаря в onSpinResult перед запуском дополнительного спина
-                                                }
-                                                
-                                                // Сбрасываем флаг полета после завершения спина
+                                                // Сбрасываем все флаги батарейки
+                                                batteryUsedRef.current = false
                                                 extraSpinInFlightRef.current = false
+                                                extraSpinsRemainingRef.current = 0
+                                                setExtraSpinsRemaining(0)
+                                                
+                                                // Батарейка уже была удалена из инвентаря в onSpinResult перед запуском дополнительного спина
                                             }
                                         }
                                     }}
