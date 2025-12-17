@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: speen-news
+    env: node
+    rootDir: speen/server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    plan: free
+    autoDeploy: true
+    disk:
+      name: sqlite
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1
+  - type: web
+    name: speen-leaderboard
+    env: node
+    rootDir: speen/server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    plan: free
+    autoDeploy: true
+    disk:
+      name: sqlite
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1
+
