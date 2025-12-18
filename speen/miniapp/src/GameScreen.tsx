@@ -83,6 +83,141 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 }
 
 export function GameScreen() {
+    // -------- Levels 0..50 (local progression) --------
+    type LevelStats = {
+        spinsTotal: number
+        spinsX2: number
+        spinsX5: number
+        spins3of10: number
+        spinsW: number
+        spinsB: number
+        dailyClaims: number
+        tasksClaimed: number
+        invites: number
+        boostersBought: Record<string, number>
+        boostersUsed: Record<string, number>
+    }
+
+    const LEVEL_KEY = 'player_level_v1'
+    const STATS_KEY = 'level_stats_v1'
+
+    const [playerLevel, setPlayerLevel] = React.useState<number>(() => {
+        const v = Number(localStorage.getItem(LEVEL_KEY) || '0')
+        return Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
+    })
+    const playerLevelRef = React.useRef<number>(playerLevel)
+    React.useEffect(() => { playerLevelRef.current = playerLevel }, [playerLevel])
+
+    const [levelStats, setLevelStats] = React.useState<LevelStats>(() => {
+        try {
+            const raw = localStorage.getItem(STATS_KEY)
+            const d = raw ? JSON.parse(raw) : null
+            if (d && typeof d === 'object') {
+                return {
+                    spinsTotal: Number(d.spinsTotal || 0),
+                    spinsX2: Number(d.spinsX2 || 0),
+                    spinsX5: Number(d.spinsX5 || 0),
+                    spins3of10: Number(d.spins3of10 || 0),
+                    spinsW: Number(d.spinsW || 0),
+                    spinsB: Number(d.spinsB || 0),
+                    dailyClaims: Number(d.dailyClaims || 0),
+                    tasksClaimed: Number(d.tasksClaimed || 0),
+                    invites: Number(d.invites || 0),
+                    boostersBought: (d.boostersBought && typeof d.boostersBought === 'object') ? d.boostersBought : {},
+                    boostersUsed: (d.boostersUsed && typeof d.boostersUsed === 'object') ? d.boostersUsed : {},
+                }
+            }
+        } catch {}
+        return {
+            spinsTotal: 0,
+            spinsX2: 0,
+            spinsX5: 0,
+            spins3of10: 0,
+            spinsW: 0,
+            spinsB: 0,
+            dailyClaims: 0,
+            tasksClaimed: 0,
+            invites: 0,
+            boostersBought: {},
+            boostersUsed: {},
+        }
+    })
+    const levelStatsRef = React.useRef<LevelStats>(levelStats)
+    React.useEffect(() => { levelStatsRef.current = levelStats }, [levelStats])
+
+    function persistLevel(next: number) {
+        const v = Math.max(0, Math.min(50, Math.floor(next)))
+        try { localStorage.setItem(LEVEL_KEY, String(v)) } catch {}
+        setPlayerLevel(v)
+    }
+
+    function bumpStats(patch: Partial<LevelStats>) {
+        setLevelStats(prev => {
+            const next: LevelStats = {
+                ...prev,
+                ...patch,
+                boostersBought: patch.boostersBought ? { ...prev.boostersBought, ...patch.boostersBought } : prev.boostersBought,
+                boostersUsed: patch.boostersUsed ? { ...prev.boostersUsed, ...patch.boostersUsed } : prev.boostersUsed,
+            }
+            try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
+            return next
+        })
+    }
+
+    type LevelConfig = {
+        level: number
+        action: string
+        how: string
+        unlocks: string[]
+        rewardW: number
+        minInvites?: number
+        // optional: show as locked feature requirement
+    }
+
+    const LEVELS: LevelConfig[] = React.useMemo(() => ([
+        { level: 0, action: 'Регистрация', how: 'Открой игру в Telegram. Это стартовый уровень для всех игроков.', unlocks: ['Доступ к игре'], rewardW: 10000 },
+        { level: 1, action: 'Сыграть 1 игру в любом режиме', how: 'Нажми “Старт” и дождись результата.', unlocks: ['Доступ к ежедневным заданиям'], rewardW: 1000 },
+        { level: 2, action: 'Выполнить ежедневное задание (забрать бонус)', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['Доступ к бонусным заданиям'], rewardW: 1000 },
+        { level: 3, action: 'Выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['Доступ к рефералке'], rewardW: 1000 },
+        { level: 4, action: 'Пригласить 1 друга', how: 'В “Пригласи друзей” отправь ссылку. Друг должен открыть игру.', unlocks: ['Включение “актив. счёта”'], rewardW: 1000, minInvites: 1 },
+        { level: 5, action: 'Сыграть режим 3/10', how: 'Переключи режим на “3 из 10” и сыграй одну серию.', unlocks: ['Открывается накопитель по центру'], rewardW: 5000, minInvites: 1 },
+        { level: 6, action: 'Сыграть 10 игр в режиме x2', how: 'Сыграй 10 игр в режиме x2.', unlocks: ['Открывается WHEEL SHOP'], rewardW: 1000, minInvites: 1 },
+        { level: 7, action: 'Купить бустер “Сердце”', how: 'Открой WHEEL SHOP и купи “Сердце” за 1 B.', unlocks: ['Бустер “Сердце” доступен'], rewardW: 1000, minInvites: 1 },
+        { level: 8, action: 'Сыграть игру с “Сердцем”', how: 'Выбери “Сердце” в “плюсе” и сыграй одну игру.', unlocks: ['Доступ к “Батарейке”'], rewardW: 1000, minInvites: 1 },
+        { level: 9, action: 'Сыграть 3 игры в режиме x5', how: 'Переключи режим на x5 и сыграй 3 игры.', unlocks: ['Доступ к “Ракете”'], rewardW: 1000, minInvites: 1 },
+        { level: 10, action: 'Пригласить ещё 1 друга (всего 2)', how: 'Нужно минимум 2 приглашённых друга.', unlocks: ['Рейтинг игроков'], rewardW: 5000, minInvites: 2 },
+        // 11..50: базовая шкала (можно уточнить по Excel и расширить условия)
+        ...Array.from({ length: 40 }).map((_, i) => {
+            const lvl = 11 + i
+            const rewardW = (lvl % 5 === 0) ? 5000 : 1000
+            const minInvites = lvl >= 18 ? Math.min(7, 2 + Math.floor((lvl - 18) / 6)) : undefined
+            const action = lvl === 25 ? 'Открыть WHEEL конвертер' : `Достичь уровня ${lvl}`
+            const how = lvl === 25 ? 'Конвертер находится в правом меню.' : 'Играй и выполняй задания — уровень растёт от активности.'
+            const unlocks = lvl === 25 ? ['Доступ к конвертеру валют'] : [`Подъём “актив. счёта” (уровень ${lvl})`]
+            return { level: lvl, action, how, unlocks, rewardW, minInvites }
+        }),
+    ]), [])
+
+    function isLevelRequirementMet(targetLevel: number): boolean {
+        const s = levelStatsRef.current
+        const conf = LEVELS.find(x => x.level === targetLevel)
+        if (!conf) return false
+        if (conf.minInvites != null && s.invites < conf.minInvites) return false
+        if (targetLevel === 0) return true
+        if (targetLevel === 1) return s.spinsTotal >= 1
+        if (targetLevel === 2) return s.dailyClaims >= 1
+        if (targetLevel === 3) return s.tasksClaimed >= 1
+        if (targetLevel === 4) return s.invites >= 1
+        if (targetLevel === 5) return s.spins3of10 >= 1
+        if (targetLevel === 6) return s.spinsX2 >= 10
+        if (targetLevel === 7) return (s.boostersBought['Heart'] || 0) >= 1
+        if (targetLevel === 8) return (s.boostersUsed['Heart'] || 0) >= 1
+        if (targetLevel === 9) return s.spinsX5 >= 3
+        if (targetLevel === 10) return s.invites >= 2
+        // generic: activity based
+        return s.spinsTotal >= Math.max(10, targetLevel * 5)
+    }
+
     const [username, setUsername] = React.useState<string>('')
     const [wheelSize, setWheelSize] = React.useState<number>(260)
     const [isLoading, setIsLoading] = React.useState<boolean>(true)
@@ -134,6 +269,14 @@ export function GameScreen() {
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
+    const [levelsOpen, setLevelsOpen] = React.useState<boolean>(false)
+    const [levelsAnimatingOut, setLevelsAnimatingOut] = React.useState<boolean>(false)
+    const [levelsSheetHeightVh, setLevelsSheetHeightVh] = React.useState<number>(80)
+    const levelsDragStartY = React.useRef<number | null>(null)
+    const levelsDragStartTs = React.useRef<number>(0)
+    const levelsDragStartHeightVh = React.useRef<number>(64)
+    const levelsLastY = React.useRef<number>(0)
+    const levelsLastTs = React.useRef<number>(0)
     const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
     // Генерируем уникальный ID устройства при первом запуске
     const getDeviceId = () => {
@@ -543,6 +686,14 @@ export function GameScreen() {
             const ticks = Math.floor(accrualMs / 1000)
             if (ticks > 0) {
                 setMidW(prev => {
+                    // Накопитель открывается с 5 уровня
+                    if (playerLevelRef.current < 5) {
+                        try {
+                            localStorage.setItem('mid_w', '0')
+                            localStorage.setItem('mid_w_last_ts', String(now))
+                        } catch {}
+                        return 0
+                    }
                     const add = ticks * MID_RATE_PER_SEC
                     const next = Number(((prev || 0) + add).toFixed(2))
                     try {
@@ -564,6 +715,14 @@ export function GameScreen() {
         const t = setInterval(() => {
             // regular tick while app is open
             setMidW(prev => {
+                // Накопитель открывается с 5 уровня
+                if (playerLevelRef.current < 5) {
+                    try {
+                        localStorage.setItem('mid_w', '0')
+                        localStorage.setItem('mid_w_last_ts', String(Date.now()))
+                    } catch {}
+                    return 0
+                }
                 const nextRaw = (prev || 0) + MID_RATE_PER_SEC
                 const next = Number(nextRaw.toFixed(2))
                 try {
@@ -621,6 +780,26 @@ export function GameScreen() {
         } catch {}
         // Отправляем данные в рейтинг (debounced через setTimeout)
         updateLeaderboard(roundedW, roundedB)
+    }
+
+    function claimNextLevel() {
+        const next = Math.min(50, playerLevel + 1)
+        if (next <= playerLevel) return
+        if (!isLevelRequirementMet(next)) {
+            const conf = LEVELS.find(x => x.level === next)
+            if (conf?.minInvites != null && (levelStatsRef.current.invites || 0) < conf.minInvites) {
+                setToast(`Нужно друзей: ${conf.minInvites}. Сейчас: ${levelStatsRef.current.invites || 0}`)
+            } else {
+                setToast(`Не выполнены условия для уровня ${next}`)
+            }
+            return
+        }
+        const conf = LEVELS.find(x => x.level === next)
+        const reward = conf?.rewardW || 0
+        saveBalances(balanceW + reward, balanceB, `Level reward: lvl=${next}, +${reward} W`)
+        persistLevel(next)
+        setToast(`Уровень ${next}! +${reward} W`)
+        triggerHaptic('success')
     }
     
     const leaderboardUpdateTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -857,6 +1036,20 @@ export function GameScreen() {
         }, 4000)
     }
 
+    function recordSpinStart(m: GameMode, cur: 'W'|'B') {
+        try {
+            const s = levelStatsRef.current
+            bumpStats({
+                spinsTotal: (s.spinsTotal || 0) + 1,
+                spinsW: (s.spinsW || 0) + (cur === 'W' ? 1 : 0),
+                spinsB: (s.spinsB || 0) + (cur === 'B' ? 1 : 0),
+                spinsX2: (s.spinsX2 || 0) + (m === 'normal' ? 1 : 0),
+                spinsX5: (s.spinsX5 || 0) + (m === 'allin' ? 1 : 0),
+                spins3of10: (s.spins3of10 || 0) + (m === 'pyramid' ? 1 : 0),
+            })
+        } catch {}
+    }
+
     function onBeforeSpin() {
         // Авто‑спин от батарейки: не списываем ставку и не требуем выбор бонусного сектора
         if (isExtraSpinRef.current) {
@@ -895,6 +1088,7 @@ export function GameScreen() {
                 const resultsCount = pyramidResultsRef.current.length
                 if (resultsCount < pyramidMaxSpinsRef.current) {
                     console.log(`[onBeforeSpin] Auto-spin allowed (${resultsCount} results so far)`)
+                    recordSpinStart('pyramid', currency)
                     return true
                 }
                 console.log(`[onBeforeSpin] Already have ${resultsCount} results, blocking`)
@@ -970,6 +1164,7 @@ export function GameScreen() {
             // Генерируем уникальный ID для первого спина
             pyramidSpinIdRef.current += 1
             console.log(`[onBeforeSpin] First pyramid spin allowed, generated spin ID: ${pyramidSpinIdRef.current}`)
+            recordSpinStart('pyramid', currency)
             return true
         }
         
@@ -1003,6 +1198,7 @@ export function GameScreen() {
             }
             saveBalances(balanceW, balanceB - b, `${mode} mode: bet ${b} B deducted`)
         }
+        recordSpinStart(mode, currency)
         return true
     }
 
@@ -1102,6 +1298,12 @@ export function GameScreen() {
                                 bonusMultiplier = 2
                             }
                             // Сердце и Батарейка не работают в режиме pyramid (только при проигрыше)
+                            // level stats: booster used
+                            try {
+                                const s = levelStatsRef.current
+                                const prev = Number(s.boostersUsed?.[bonusName] || 0)
+                                bumpStats({ boostersUsed: { [bonusName]: prev + 1 } })
+                            } catch {}
                             
                             // Удаляем бонус из инвентаря после использования
                             inv.splice(bonusIndex, 1)
@@ -1232,6 +1434,18 @@ export function GameScreen() {
                         }
                     }
                     
+                    // level stats: booster used (фиксируем факт использования при списании из инвентаря)
+                    // Для батарейки — учитываем, только если она реально активировалась (при проигрыше)
+                    try {
+                        const shouldCount =
+                            bonusName === 'Battery' ? shouldAddExtraSpins : true
+                        if (shouldCount) {
+                            const s = levelStatsRef.current
+                            const prev = Number(s.boostersUsed?.[bonusName] || 0)
+                            bumpStats({ boostersUsed: { [bonusName]: prev + 1 } })
+                        }
+                    } catch {}
+                    
                     // Удаляем бонус из инвентаря после использования
                     inv.splice(bonusIndex, 1)
                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
@@ -1338,6 +1552,11 @@ export function GameScreen() {
                                 const data = await res.json()
                                 if (Array.isArray(data?.items)) {
                                     setFriends(data.items)
+                                    // level stats: cached invites count
+                                    try {
+                                        const s = levelStatsRef.current
+                                        bumpStats({ invites: Math.max(Number(s.invites || 0), data.items.length) })
+                                    } catch {}
                                 }
                             }
                         } catch {
@@ -1712,6 +1931,10 @@ export function GameScreen() {
                                         style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}}
                                         onClick={() => {
                                             if (mode === 'pyramid' && pyramidSpinCount > 0) return;
+                                            if (playerLevelRef.current < 5) {
+                                                setToast('Накопитель откроется на 5 уровне')
+                                                return
+                                            }
                                             if (midW > 0) {
                                                 const toAdd = Math.floor(midW)
                                                 saveBalances(balanceW + toAdd, balanceB)
@@ -1727,7 +1950,7 @@ export function GameScreen() {
                                         <img src="/coin-w.png" alt="W" style={{width:44,height:44, transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
-                                    <div style={midValue}>{midW.toFixed(2)}</div>
+                                    <div style={midValue}>{playerLevel < 5 ? '0' : midW.toFixed(2)}</div>
                                     
                                 </div>
                             </div>
@@ -1905,44 +2128,62 @@ export function GameScreen() {
                 ) : (
                         <div style={{padding:12}}>
                     <div style={isMenuOpen ? menuList : menuListRight}>
-                        {(isMenuOpen ? createMenuItemsLeft(t) : createMenuItemsRight(t)).map((item, idx) => (
+                        {(isMenuOpen ? createMenuItemsLeft(t) : createMenuItemsRight(t)).map((item, idx) => {
+                            const req = (item as any).requiredLevel
+                            const locked = typeof req === 'number' && playerLevel < req
+                            return (
                                 <div
                                     key={`${isMenuOpen ? 'L' : 'R'}:${idx}`}
-                                    style={{...(isMenuOpen ? menuCard : menuCardRight), transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none'}}
+                                    style={{
+                                        ...(isMenuOpen ? menuCard : menuCardRight),
+                                        transform: pressedCardIdx===idx ? 'translateY(2px) scale(0.98)' : 'none',
+                                        opacity: locked ? 0.55 : 1,
+                                        filter: locked ? 'grayscale(0.35)' : 'none',
+                                    }}
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
-                                onClick={() => {
-                                    const left = isMenuOpen
-                                    const act = (item as any).action
-                                    if (left) {
-                                        if (act === 'invite') setInviteOpen(true)
-                                        if (act === 'daily') setDailyOpen(true)
-                                        if (act === 'shop') setShopOpen(true)
-                                        if (act === 'leaderboard') {
-                                            // Перед открытием рейтинга отправляем текущие данные игрока
-                                            updateLeaderboard(balanceW, balanceB)
-                                            setLeaderboardOpen(true)
+                                    onClick={() => {
+                                        const left = isMenuOpen
+                                        const act = (item as any).action
+                                        if (locked) {
+                                            setToast(`Откроется на уровне ${req}`)
+                                            return
                                         }
-                                        if (act === 'ton') { openTonConnect(); return }
-                                    } else {
-                                        if (act === 'wheelshop') setWheelShopOpen(true)
-                                        if (act === 'tasks') setTasksOpen(true)
-                                        if (act === 'news') setNewsOpen(true)
-                                    }
-                                }}
+                                        if (left) {
+                                            if (act === 'invite') setInviteOpen(true)
+                                            if (act === 'daily') setDailyOpen(true)
+                                            if (act === 'shop') setShopOpen(true)
+                                            if (act === 'levels') setLevelsOpen(true)
+                                            if (act === 'leaderboard') {
+                                                // Перед открытием рейтинга отправляем текущие данные игрока
+                                                updateLeaderboard(balanceW, balanceB)
+                                                setLeaderboardOpen(true)
+                                            }
+                                            if (act === 'ton') { openTonConnect(); return }
+                                        } else {
+                                            if (act === 'wheelshop') setWheelShopOpen(true)
+                                            if (act === 'tasks') setTasksOpen(true)
+                                            if (act === 'news') setNewsOpen(true)
+                                            if (act === 'levels') setLevelsOpen(true)
+                                        }
+                                    }}
                                 >
                                     {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
-                                        <div style={menuTitle}>{item.title}</div>
+                                        <div style={menuTitle}>
+                                            {item.title}
+                                            {locked && <span style={menuBadge}>{`lvl ${req}`}</span>}
+                                        </div>
                                         {item.subtitle && <div style={menuSubtitle}>{item.subtitle}</div>}
                                     </div>
                                     <div style={arrowWrapRight}>
                                         <div style={arrowIconRight}>›</div>
                                     </div>
                                 </div>
-                            ))}
+                            )
+                        })}
                         </div>
                     </div>
                 )}
@@ -2252,6 +2493,12 @@ export function GameScreen() {
                                     inv.push(b)
                                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
                                 } catch {}
+                                // level stats
+                                try {
+                                    const s = levelStatsRef.current
+                                    const prev = Number(s.boostersBought?.[b] || 0)
+                                    bumpStats({ boostersBought: { [b]: prev + 1 } })
+                                } catch {}
                                 setToast(`Куплено: ${b} за 1 B`)
                             }}
                         />
@@ -2285,7 +2532,39 @@ export function GameScreen() {
                             saveBalances(w, b)
                             if (rw.W) setToast(`+${rw.W} W`) 
                             if (rw.B) setToast(`+${rw.B} B`)
+                            // level stats
+                            try {
+                                const s = levelStatsRef.current
+                                bumpStats({
+                                    tasksClaimed: (s.tasksClaimed || 0) + 1,
+                                })
+                            } catch {}
                         }} />
+                    </div>
+                </div>
+            )}
+            {levelsOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${levelsSheetHeightVh}vh`, animation: levelsAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ levelsDragStartY.current = e.clientY; levelsDragStartTs.current=Date.now(); levelsDragStartHeightVh.current = levelsSheetHeightVh; levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (levelsDragStartY.current==null) return; const dy = levelsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, levelsDragStartHeightVh.current + dy/(window.innerHeight/100))); setLevelsSheetHeightVh(vh); levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (levelsDragStartY.current==null) return; const totalDy = levelsDragStartY.current - (levelsLastY.current || levelsDragStartY.current); const dt = Math.max(1, Date.now() - (levelsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-levelsSheetHeightVh)<Math.abs(a-levelsSheetHeightVh)?b:a,snaps[0]); setLevelsSheetHeightVh(next); triggerHaptic('impact') } levelsDragStartY.current=null }}
+                            onPointerCancel={()=>{ levelsDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <LevelsPanel
+                            t={t}
+                            lang={lang}
+                            onClose={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
+                            playerLevel={playerLevel}
+                            stats={levelStats}
+                            levels={LEVELS}
+                            isReady={(lvl) => isLevelRequirementMet(lvl)}
+                            onClaimNext={() => claimNextLevel()}
+                        />
                     </div>
                 </div>
             )}
@@ -2344,6 +2623,11 @@ export function GameScreen() {
                             onClaim={(amount) => {
                                 saveBalances(balanceW + amount, balanceB)
                                 setToast(`+${amount} W за ежедневный вход`)
+                                // level stats
+                                try {
+                                    const s = levelStatsRef.current
+                                    bumpStats({ dailyClaims: (s.dailyClaims || 0) + 1 })
+                                } catch {}
                                 // Окно больше не закрывается автоматически - пользователь сам закроет крестиком
                             }}
                         />
@@ -2818,6 +3102,136 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
                 </div>
             </div>
         </div>
+        </>
+    )
+}
+
+function LevelsPanel({
+    onClose,
+    onClaimNext,
+    playerLevel,
+    stats,
+    levels,
+    isReady,
+    t,
+    lang,
+}: {
+    onClose: () => void
+    onClaimNext: () => void
+    playerLevel: number
+    stats: any
+    levels: Array<{ level: number, action: string, how: string, unlocks: string[], rewardW: number, minInvites?: number }>
+    isReady: (lvl: number) => boolean
+    t: (k:string, vars?: Record<string, any>) => string
+    lang: 'ru'|'en'
+}) {
+    const [infoOpen, setInfoOpen] = React.useState(false)
+    const [infoLevel, setInfoLevel] = React.useState<number | null>(null)
+
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { width:24, height:24, borderRadius:'50%', background:'rgba(255,255,255,0.2)', border:'2px solid rgba(255,255,255,0.4)', color:'#fff', fontWeight:900, fontSize:14, display:'grid', placeItems:'center', cursor:'pointer', boxShadow:'0 2px 4px rgba(0,0,0,0.2)' }
+    const card: React.CSSProperties = { background:'rgba(255,255,255,0.08)', borderRadius:16, padding:12, boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.55)', display:'grid', gap:8 }
+    const row: React.CSSProperties = { display:'grid', gridTemplateColumns:'64px 1fr auto', gap:10, alignItems:'center' }
+    const lvlPill: React.CSSProperties = { justifySelf:'start', background:'#ffd23a', color:'#0b2f68', fontWeight:900, borderRadius:999, padding:'6px 10px', boxShadow:'inset 0 0 0 3px #7a4e06', textAlign:'center' }
+    const actionTxt: React.CSSProperties = { color:'#fff', fontWeight:900, lineHeight:1.2 }
+    const subTxt: React.CSSProperties = { color:'#dbe8ff', fontWeight:700, fontSize:12, opacity:.9 }
+    const claimBtn: React.CSSProperties = { padding:'10px 14px', borderRadius:12, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
+    const doneBadge: React.CSSProperties = { padding:'6px 10px', borderRadius:999, background:'rgba(34,197,94,0.2)', color:'#22c55e', fontWeight:900, boxShadow:'inset 0 0 0 2px rgba(34,197,94,0.45)' }
+
+    const nextLevel = Math.min(50, playerLevel + 1)
+    const nextCfg = levels.find(x => x.level === nextLevel)
+    const nextReady = nextLevel > playerLevel && isReady(nextLevel)
+
+    const visible = levels.filter(l => l.level <= playerLevel + 1)
+
+    const infoModal: React.CSSProperties = { position:'fixed', left:0,right:0,top:0,bottom:0, background:'rgba(0,0,0,0.7)', display:'grid', placeItems:'center', zIndex:10000 }
+    const infoModalContent: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:18, maxWidth:'88%', boxShadow:'inset 0 0 0 3px #0b2f68, 0 10px 26px rgba(0,0,0,0.45)' }
+
+    const currentInfo = infoLevel != null ? levels.find(x => x.level === infoLevel) : null
+
+    return (
+        <>
+        <div style={wrap}>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/press10.png" alt="levels" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={titleWrap}>
+                <div style={title}>{lang==='ru' ? 'Уровни и награды' : 'Levels & rewards'}</div>
+                <button style={infoBtn} onClick={() => { setInfoLevel(nextLevel); setInfoOpen(true) }}>i</button>
+            </div>
+
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>
+                {lang==='ru' ? `Твой уровень: ${playerLevel}` : `Your level: ${playerLevel}`}
+            </div>
+
+            {nextCfg && (
+                <div style={card}>
+                    <div style={row}>
+                        <div style={lvlPill}>{`LVL ${nextCfg.level}`}</div>
+                        <div style={{display:'grid', gap:4}}>
+                            <div style={actionTxt}>{nextCfg.action}</div>
+                            <div style={subTxt}>
+                                {nextCfg.minInvites != null ? (lang==='ru' ? `Друзей: ${stats?.invites || 0}/${nextCfg.minInvites}` : `Invites: ${stats?.invites || 0}/${nextCfg.minInvites}`) : (lang==='ru' ? 'Сделай действие, чтобы открыть следующий уровень' : 'Complete the action to unlock next level')}
+                            </div>
+                        </div>
+                        {nextReady ? (
+                            <button style={claimBtn} onClick={onClaimNext}>{lang==='ru' ? `Забрать +${nextCfg.rewardW} W` : `Claim +${nextCfg.rewardW} W`}</button>
+                        ) : (
+                            <button style={{...infoBtn, justifySelf:'end'}} onClick={() => { setInfoLevel(nextCfg.level); setInfoOpen(true) }}>i</button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <div style={{display:'grid', gap:10}}>
+                {visible.map((lv) => {
+                    const done = lv.level <= playerLevel
+                    return (
+                        <div key={`lvl-${lv.level}`} style={{...card, opacity: done ? 0.95 : 1}}>
+                            <div style={row}>
+                                <div style={lvlPill}>{`LVL ${lv.level}`}</div>
+                                <div style={{display:'grid', gap:4}}>
+                                    <div style={actionTxt}>{lv.action}</div>
+                                    {!!lv.unlocks?.length && (
+                                        <div style={subTxt}>{(lang==='ru' ? 'Открывает: ' : 'Unlocks: ') + lv.unlocks.join(', ')}</div>
+                                    )}
+                                </div>
+                                <div style={{display:'grid', gap:6, justifyItems:'end'}}>
+                                    {done ? <div style={doneBadge}>✓</div> : <div style={{color:'#ffe27a', fontWeight:900}}>{`+${lv.rewardW} W`}</div>}
+                                    <button style={infoBtn} onClick={() => { setInfoLevel(lv.level); setInfoOpen(true) }}>i</button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+
+            <div style={{display:'grid', placeItems:'center', marginTop:6}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
+            </div>
+        </div>
+
+        {infoOpen && (
+            <div style={infoModal} onClick={() => setInfoOpen(false)}>
+                <div style={infoModalContent} onClick={(e)=>e.stopPropagation()}>
+                    <div style={{color:'#fff', fontWeight:900, fontSize:18, textAlign:'center'}}>{currentInfo ? `LVL ${currentInfo.level}` : ''}</div>
+                    <div style={{color:'#e8f1ff', fontWeight:900, textAlign:'center', marginTop:8}}>{currentInfo?.action || ''}</div>
+                    <div style={{color:'#dbe8ff', marginTop:10, lineHeight:1.4, fontWeight:700}}>
+                        {currentInfo?.how || ''}
+                    </div>
+                    {!!currentInfo?.unlocks?.length && (
+                        <div style={{color:'#ffe27a', marginTop:10, fontWeight:900}}>
+                            {(lang==='ru' ? 'Возможности: ' : 'Unlocks: ') + currentInfo.unlocks.join(', ')}
+                        </div>
+                    )}
+                    <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                        <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                    </div>
+                </div>
+            </div>
+        )}
         </>
     )
 }
@@ -4047,23 +4461,24 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     )
 }
 
-function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' }> {
+function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, requiredLevel?: number, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' | 'levels' }> {
     return [
         { title: tr('press1_title'), badgeImg:'/coming1.png', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-        { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-        { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+        { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', requiredLevel: 3, icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+        { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', requiredLevel: 1, icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
         { title: tr('press4_title'), action: 'leaderboard', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-        { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+        { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', requiredLevel: 6, icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+        { title: tr('press10_title'), subtitle: tr('press10_sub'), action: 'levels', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
         { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
     ]
 }
 
-function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> {
+function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, requiredLevel?: number, action?: 'wheelshop' | 'tasks' | 'news' | 'levels' }> {
     return [
-        { title: tr('press7_title'), subtitle: tr('press7_sub'), action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
-        { title: tr('press8_title'), subtitle: tr('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
-        { title: tr('press9_title'), subtitle: tr('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
-        { title: tr('press10_title'), subtitle: tr('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+        { title: tr('press7_title'), subtitle: tr('press7_sub'), action: 'wheelshop', requiredLevel: 6, icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
+        { title: tr('press8_title'), subtitle: tr('press8_sub'), badgeImg:'/coming1.png', requiredLevel: 25, icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
+        { title: tr('press9_title'), subtitle: tr('press9_sub'), action: 'tasks', requiredLevel: 1, icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
+        { title: tr('press10_title'), subtitle: tr('press10_sub'), action: 'levels', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
         { title: tr('press11_title'), subtitle: tr('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
     ]
 }

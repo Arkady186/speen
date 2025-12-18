@@ -83,6 +83,355 @@ function PressIcon({ src, alt, fallbackEmoji }: { src: string, alt: string, fall
 }
 
 export function GameScreen() {
+    type LevelStats = {
+        spinsTotal: number
+        spinsX2: number
+        spinsX5: number
+        spins3of10: number
+        spinsW: number
+        spinsB: number
+        // mode+currency breakdown
+        spinsX2B: number
+        spinsX5B: number
+        spins3of10B: number
+        // streaks (for "подряд")
+        streakX2: number
+        streakX5: number
+        // wins
+        winsX2: number
+        winsX5: number
+        wins3of10: number
+        winsX2B: number
+        winsX5B: number
+        wins3of10B: number
+        // task types
+        dailyClaims: number
+        tasksClaimed: number
+        bonusTasksClaimed: number
+        tasksClaimedB: number
+        daily7Cycles: number
+        invites: number
+        boostersBought: Record<string, number>
+        boostersUsed: Record<string, number>
+        spinsBetAtLeast10000B: number
+        spinsX5WithBooster: number
+        exchangedBtoW_times: number
+        exchangedBtoW_totalW: number
+        exchangedWtoB_times: number
+        purchasedBTotal: number
+    }
+
+    const LEVEL_KEY = 'player_level_v1'
+    const STATS_KEY = 'level_stats_v1'
+    const API_BASE = (((import.meta as any)?.env?.VITE_API_BASE || 'https://speen-server.onrender.com') as string).trim()
+
+    const [playerLevel, setPlayerLevel] = React.useState<number>(() => {
+        const v = Number(localStorage.getItem(LEVEL_KEY) || '0')
+        return Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
+    })
+    const playerLevelRef = React.useRef<number>(playerLevel)
+    React.useEffect(() => { playerLevelRef.current = playerLevel }, [playerLevel])
+
+    const [levelStats, setLevelStats] = React.useState<LevelStats>(() => {
+        try {
+            const raw = localStorage.getItem(STATS_KEY)
+            const d = raw ? JSON.parse(raw) : null
+            if (d && typeof d === 'object') {
+                return {
+                    spinsTotal: Number(d.spinsTotal || 0),
+                    spinsX2: Number(d.spinsX2 || 0),
+                    spinsX5: Number(d.spinsX5 || 0),
+                    spins3of10: Number(d.spins3of10 || 0),
+                    spinsW: Number(d.spinsW || 0),
+                    spinsB: Number(d.spinsB || 0),
+                    spinsX2B: Number(d.spinsX2B || 0),
+                    spinsX5B: Number(d.spinsX5B || 0),
+                    spins3of10B: Number(d.spins3of10B || 0),
+                    streakX2: Number(d.streakX2 || 0),
+                    streakX5: Number(d.streakX5 || 0),
+                    winsX2: Number(d.winsX2 || 0),
+                    winsX5: Number(d.winsX5 || 0),
+                    wins3of10: Number(d.wins3of10 || 0),
+                    winsX2B: Number(d.winsX2B || 0),
+                    winsX5B: Number(d.winsX5B || 0),
+                    wins3of10B: Number(d.wins3of10B || 0),
+                    dailyClaims: Number(d.dailyClaims || 0),
+                    tasksClaimed: Number(d.tasksClaimed || 0),
+                    bonusTasksClaimed: Number(d.bonusTasksClaimed || 0),
+                    tasksClaimedB: Number(d.tasksClaimedB || 0),
+                    daily7Cycles: Number(d.daily7Cycles || 0),
+                    invites: Number(d.invites || 0),
+                    boostersBought: (d.boostersBought && typeof d.boostersBought === 'object') ? d.boostersBought : {},
+                    boostersUsed: (d.boostersUsed && typeof d.boostersUsed === 'object') ? d.boostersUsed : {},
+                    spinsBetAtLeast10000B: Number(d.spinsBetAtLeast10000B || 0),
+                    spinsX5WithBooster: Number(d.spinsX5WithBooster || 0),
+                    exchangedBtoW_times: Number(d.exchangedBtoW_times || 0),
+                    exchangedBtoW_totalW: Number(d.exchangedBtoW_totalW || 0),
+                    exchangedWtoB_times: Number(d.exchangedWtoB_times || 0),
+                    purchasedBTotal: Number(d.purchasedBTotal || 0),
+                }
+            }
+        } catch {}
+        return {
+            spinsTotal: 0,
+            spinsX2: 0,
+            spinsX5: 0,
+            spins3of10: 0,
+            spinsW: 0,
+            spinsB: 0,
+            spinsX2B: 0,
+            spinsX5B: 0,
+            spins3of10B: 0,
+            streakX2: 0,
+            streakX5: 0,
+            winsX2: 0,
+            winsX5: 0,
+            wins3of10: 0,
+            winsX2B: 0,
+            winsX5B: 0,
+            wins3of10B: 0,
+            dailyClaims: 0,
+            tasksClaimed: 0,
+            bonusTasksClaimed: 0,
+            tasksClaimedB: 0,
+            daily7Cycles: 0,
+            invites: 0,
+            boostersBought: {},
+            boostersUsed: {},
+            spinsBetAtLeast10000B: 0,
+            spinsX5WithBooster: 0,
+            exchangedBtoW_times: 0,
+            exchangedBtoW_totalW: 0,
+            exchangedWtoB_times: 0,
+            purchasedBTotal: 0,
+        }
+    })
+
+    const levelStatsRef = React.useRef<LevelStats>(levelStats)
+    React.useEffect(() => { levelStatsRef.current = levelStats }, [levelStats])
+
+    const progressLoadedRef = React.useRef<boolean>(false)
+    const progressSyncTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    function setStatsFromRemote(nextStats: any) {
+        try {
+            const safe = (nextStats && typeof nextStats === 'object') ? nextStats : {}
+            // merge by max so server/clients don't lose progress
+            setLevelStats(prev => {
+                const out: any = { ...prev }
+                for (const k of Object.keys(safe)) {
+                    const bv = (safe as any)[k]
+                    const av = (out as any)[k]
+                    if (typeof bv === 'number') (out as any)[k] = Math.max(typeof av === 'number' ? av : 0, bv)
+                    else if (bv && typeof bv === 'object' && !Array.isArray(bv)) {
+                        const base = (av && typeof av === 'object' && !Array.isArray(av)) ? av : {}
+                        ;(out as any)[k] = { ...base, ...bv }
+                    } else if (typeof bv === 'boolean') (out as any)[k] = !!av || bv
+                    else if (bv != null) (out as any)[k] = bv
+                }
+                try { localStorage.setItem(STATS_KEY, JSON.stringify(out)) } catch {}
+                return out
+            })
+        } catch {}
+    }
+
+    async function loadProgressFromServer(uid: number) {
+        try {
+            const res = await fetch(`${API_BASE}/api/progress/${uid}`)
+            if (!res.ok) return
+            const data = await res.json()
+            if (!data?.ok) return
+            const lvl = typeof data.game_level === 'number' ? data.game_level : 0
+            persistLevel(lvl)
+            setStatsFromRemote(data.level_stats || {})
+            // onboarding sync
+            if (data.onboarding_done) {
+                try { localStorage.setItem(ONBOARDING_KEY, '1') } catch {}
+                setOnboardingOpen(false)
+            }
+            progressLoadedRef.current = true
+        } catch {}
+    }
+
+    function scheduleProgressSync() {
+        const uid = progressUserIdRef.current
+        if (!uid) return
+        if (progressSyncTimerRef.current) clearTimeout(progressSyncTimerRef.current)
+        progressSyncTimerRef.current = setTimeout(async () => {
+            try {
+                const onboardingDone = (() => { try { return localStorage.getItem(ONBOARDING_KEY) === '1' } catch { return false } })()
+                await fetch(`${API_BASE}/api/progress/upsert`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: uid,
+                        game_level: playerLevelRef.current,
+                        level_stats: levelStatsRef.current,
+                        onboarding_done: onboardingDone,
+                    })
+                })
+            } catch {}
+        }, 1200)
+    }
+
+    function persistLevel(next: number) {
+        const v = Math.max(0, Math.min(50, Math.floor(next)))
+        localStorage.setItem(LEVEL_KEY, String(v))
+        setPlayerLevel(v)
+        // sync to server (debounced)
+        scheduleProgressSync()
+    }
+
+    function bumpStats(patch: Partial<LevelStats>) {
+        setLevelStats(prev => {
+            const next: LevelStats = {
+                ...prev,
+                ...patch,
+                boostersBought: patch.boostersBought ? { ...prev.boostersBought, ...patch.boostersBought } : prev.boostersBought,
+                boostersUsed: patch.boostersUsed ? { ...prev.boostersUsed, ...patch.boostersUsed } : prev.boostersUsed,
+            }
+            try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
+            // sync to server (debounced)
+            scheduleProgressSync()
+            return next
+        })
+    }
+
+    type LevelConfig = {
+        level: number
+        action: string
+        how: string
+        unlocks: string[]
+        rewardW: number
+        minInvites?: number
+    }
+
+    const [levelsConfig, setLevelsConfig] = React.useState<LevelConfig[]>(() => ([
+        { level: 0, action: 'регистрация', how: 'Сделай: регистрация', unlocks: ['доступ к игре (без бонусного барабана)'], rewardW: 10000 },
+    ]))
+
+    React.useEffect(() => {
+        // load from public/levels_from_excel.json (generated from Excel)
+        fetch('/levels_from_excel.json')
+            .then(r => r.ok ? r.json() : null)
+            .then((data: any) => {
+                const items = Array.isArray(data?.levels) ? data.levels : null
+                if (!items) return
+                const mapped: LevelConfig[] = items
+                    .filter((x: any) => x && typeof x.level === 'number')
+                    .map((x: any) => {
+                        const action = String(x.action || '').trim()
+                        const unlocks = String(x.unlocks || '')
+                            .split(/\r?\n/g)
+                            .map((s: string) => s.trim())
+                            .filter(Boolean)
+                        const rewardW = typeof x.rewardW === 'number' ? Math.floor(x.rewardW) : 0
+                        const minInvites = (typeof x.referrals === 'number' && Number.isFinite(x.referrals)) ? Math.floor(x.referrals) : undefined
+                        return {
+                            level: Math.max(0, Math.min(50, Math.floor(x.level))),
+                            action,
+                            how: `Сделай: ${action}`,
+                            unlocks,
+                            rewardW,
+                            minInvites,
+                        }
+                    })
+                    .sort((a, b) => a.level - b.level)
+                if (mapped.length) setLevelsConfig(mapped)
+            })
+            .catch(() => {})
+    }, [])
+
+    function isLevelRequirementMet(targetLevel: number): boolean {
+        const s = levelStatsRef.current
+        const need = levelsConfig.find(x => x.level === targetLevel)
+        if (!need) return false
+
+        // invite gate if defined
+        if (need.minInvites != null && s.invites < need.minInvites) return false
+
+        // explicit early levels
+        if (targetLevel === 0) return true
+        if (targetLevel === 1) return s.spinsTotal >= 1
+        if (targetLevel === 2) return s.dailyClaims >= 1
+        if (targetLevel === 3) return s.tasksClaimed >= 1
+        if (targetLevel === 4) return s.invites >= 1
+        if (targetLevel === 5) return s.spins3of10 >= 1
+        if (targetLevel === 6) return s.spinsX2 >= 10
+        if (targetLevel === 7) return (s.boostersBought['Heart'] || 0) >= 1
+        if (targetLevel === 8) return (s.boostersUsed['Heart'] || 0) >= 1
+        if (targetLevel === 9) return s.spinsX5 >= 3
+        if (targetLevel === 10) return s.invites >= 2
+
+        // ---- Excel-based levels 11..50 ----
+        switch (targetLevel) {
+            case 11: return (s.boostersBought['Battery'] || 0) >= 1
+            case 12: return (s.boostersUsed['Battery'] || 0) >= 1
+            case 13: return s.daily7Cycles >= 1
+            case 14: return s.tasksClaimedB >= 1
+            case 15: return s.spinsX2B >= 10
+            case 16: return (s.boostersBought['Rocket'] || 0) >= 1
+            case 17: return (s.boostersUsed['Rocket'] || 0) >= 1
+            case 18: return s.invites >= 3
+            case 19: return s.tasksClaimedB >= 5
+            case 20: return s.spinsX5WithBooster >= 1
+            case 21: return s.spinsX5B >= 10
+            case 22: return s.winsX2 >= 3
+            case 23: return (s.boostersUsed['Heart'] || 0) >= 1 && s.spins3of10 >= 1
+            case 24: return s.invites >= 4
+            case 25: return s.spins3of10B >= 1
+            case 26: return s.exchangedBtoW_times >= 1 || s.exchangedBtoW_totalW >= 10000
+            case 27: return s.winsX5 >= 3
+            case 28: return (s.boostersUsed['Battery'] || 0) >= 1 && s.spins3of10 >= 1
+            case 29: return s.daily7Cycles >= 2
+            case 30: return s.invites >= 5
+            case 31: return s.spinsBetAtLeast10000B >= 1
+            case 32: return s.wins3of10 >= 3
+            case 33: return (s.boostersUsed['Rocket'] || 0) >= 1 && s.spins3of10 >= 1
+            case 34: return s.tasksClaimedB >= 10
+            case 35: return s.spins3of10B >= 3
+            case 36: return s.exchangedWtoB_times >= 1
+            case 37: return s.spinsX2B >= 3
+            case 38: return s.invites >= 6
+            case 39: return s.tasksClaimedB >= 10
+            case 40: return s.exchangedBtoW_times >= 2 || s.exchangedBtoW_totalW >= 20000
+            case 41: return s.daily7Cycles >= 3
+            case 42: return s.spinsX5B >= 3
+            case 43: return s.purchasedBTotal >= 10000
+            case 44: return s.invites >= 7
+            case 45: return s.spins3of10B >= 3
+            case 46: return s.tasksClaimedB >= 15
+            case 47: return s.winsX2B >= 3
+            case 48: return s.winsX5B >= 3
+            case 49: return s.wins3of10B >= 3
+            case 50: return s.purchasedBTotal >= 100000
+            default:
+                // fallback: simple activity
+                return s.spinsTotal >= Math.max(10, targetLevel * 5)
+        }
+    }
+
+    function tryClaimNextLevel() {
+        const next = Math.min(50, playerLevel + 1)
+        if (next <= playerLevel) return
+        if (!isLevelRequirementMet(next)) {
+            const need = levelsConfig.find(x => x.level === next)
+            if (need?.minInvites != null && levelStatsRef.current.invites < need.minInvites) {
+                setToast(`Нужно друзей: ${need.minInvites}. Сейчас: ${levelStatsRef.current.invites}`)
+            } else {
+                setToast(`Пока не выполнены условия для уровня ${next}`)
+            }
+            return
+        }
+        const conf = levelsConfig.find(x => x.level === next)
+        const reward = conf?.rewardW || 0
+        saveBalances(balanceW + reward, balanceB, `Level up reward: lvl=${next}, +${reward} W`)
+        persistLevel(next)
+        scheduleProgressSync()
+        setToast(`Уровень повышен до ${next}! +${reward} W`)
+        triggerHaptic('success')
+    }
+
     const [username, setUsername] = React.useState<string>('')
     const [wheelSize, setWheelSize] = React.useState<number>(260)
     const [isLoading, setIsLoading] = React.useState<boolean>(true)
@@ -134,7 +483,22 @@ export function GameScreen() {
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
     const [isRightMenuOpen, setIsRightMenuOpen] = React.useState<boolean>(false)
     const [toast, setToast] = React.useState<string | null>(null)
+    // One-time onboarding / registration tutorial
+    const ONBOARDING_KEY = 'onboarding_done_v1'
+    const [onboardingOpen, setOnboardingOpen] = React.useState<boolean>(() => {
+        try { return localStorage.getItem(ONBOARDING_KEY) !== '1' } catch { return true }
+    })
+    const [onboardingAnimatingOut, setOnboardingAnimatingOut] = React.useState<boolean>(false)
+    const progressUserIdRef = React.useRef<number | null>(null)
     const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
+    React.useEffect(() => {
+        progressUserIdRef.current = userId
+        if (userId) {
+            // pull progress for multi-device sync
+            loadProgressFromServer(userId)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId])
     // Генерируем уникальный ID устройства при первом запуске
     const getDeviceId = () => {
         let id = localStorage.getItem('device_id')
@@ -281,6 +645,14 @@ export function GameScreen() {
     const [dailyOpen, setDailyOpen] = React.useState<boolean>(false)
     const [shopOpen, setShopOpen] = React.useState<boolean>(false)
     const [wheelShopOpen, setWheelShopOpen] = React.useState<boolean>(false)
+    const [levelsOpen, setLevelsOpen] = React.useState<boolean>(false)
+    const [levelsAnimatingOut, setLevelsAnimatingOut] = React.useState<boolean>(false)
+    const [levelsSheetHeightVh, setLevelsSheetHeightVh] = React.useState<number>(80)
+    const levelsDragStartY = React.useRef<number | null>(null)
+    const levelsDragStartTs = React.useRef<number>(0)
+    const levelsDragStartHeightVh = React.useRef<number>(64)
+    const levelsLastY = React.useRef<number>(0)
+    const levelsLastTs = React.useRef<number>(0)
     const [starsOpen, setStarsOpen] = React.useState<boolean>(false)
     const [tasksOpen, setTasksOpen] = React.useState<boolean>(false)
     const [newsOpen, setNewsOpen] = React.useState<boolean>(false)
@@ -546,6 +918,14 @@ export function GameScreen() {
             const ticks = Math.floor(accrualMs / 1000)
             if (ticks > 0) {
                 setMidW(prev => {
+                    // Накопитель открывается с 5 уровня: до этого всегда 0
+                    if (playerLevelRef.current < 5) {
+                        try {
+                            localStorage.setItem('mid_w', '0')
+                            localStorage.setItem('mid_w_last_ts', String(now))
+                        } catch {}
+                        return 0
+                    }
                     const add = ticks * MID_RATE_PER_SEC
                     const next = Number(((prev || 0) + add).toFixed(2))
                     try {
@@ -567,6 +947,14 @@ export function GameScreen() {
         const t = setInterval(() => {
             // regular tick while app is open
             setMidW(prev => {
+                // Накопитель открывается с 5 уровня: до этого всегда 0
+                if (playerLevelRef.current < 5) {
+                    try {
+                        localStorage.setItem('mid_w', '0')
+                        localStorage.setItem('mid_w_last_ts', String(Date.now()))
+                    } catch {}
+                    return 0
+                }
                 const nextRaw = (prev || 0) + MID_RATE_PER_SEC
                 const next = Number(nextRaw.toFixed(2))
                 try {
@@ -728,6 +1116,11 @@ export function GameScreen() {
             const onPaid = () => {
                 saveBalances(balanceW, balanceB + toB)
                 setToast(`+${toB} B за ${stars}⭐`)
+                // level stats: B purchase total
+                try {
+                    const s = levelStatsRef.current
+                    bumpStats({ purchasedBTotal: (s.purchasedBTotal || 0) + Math.floor(toB) })
+                } catch {}
             }
             if (tg?.openInvoice) {
                 tg.openInvoice(invoiceLink, (status: string) => {
@@ -860,6 +1253,33 @@ export function GameScreen() {
         }, 4000)
     }
 
+    function recordSpinStart(m: GameMode, cur: 'W'|'B', betAmount: number) {
+        // Учитываем только "реальные" (ручные) старты: авто-спины батарейки и авто-спины 3/10 сюда не вызываются.
+        try {
+            setLevelStats(prev => {
+                const isB = cur === 'B'
+                const next: LevelStats = {
+                    ...prev,
+                    spinsTotal: (prev.spinsTotal || 0) + 1,
+                    spinsW: (prev.spinsW || 0) + (cur === 'W' ? 1 : 0),
+                    spinsB: (prev.spinsB || 0) + (cur === 'B' ? 1 : 0),
+                    spinsX2: (prev.spinsX2 || 0) + (m === 'normal' ? 1 : 0),
+                    spinsX5: (prev.spinsX5 || 0) + (m === 'allin' ? 1 : 0),
+                    spins3of10: (prev.spins3of10 || 0) + (m === 'pyramid' ? 1 : 0),
+                    spinsX2B: (prev.spinsX2B || 0) + (m === 'normal' && isB ? 1 : 0),
+                    spinsX5B: (prev.spinsX5B || 0) + (m === 'allin' && isB ? 1 : 0),
+                    spins3of10B: (prev.spins3of10B || 0) + (m === 'pyramid' && isB ? 1 : 0),
+                    spinsBetAtLeast10000B: (prev.spinsBetAtLeast10000B || 0) + (isB && Number(betAmount) >= 10000 ? 1 : 0),
+                    // streaks for "подряд"
+                    streakX2: m === 'normal' ? ((prev.streakX2 || 0) + 1) : 0,
+                    streakX5: m === 'allin' ? ((prev.streakX5 || 0) + 1) : 0,
+                }
+                try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
+                return next
+            })
+        } catch {}
+    }
+
     function onBeforeSpin() {
         // Авто‑спин от батарейки: не списываем ставку и не требуем выбор бонусного сектора
         if (isExtraSpinRef.current) {
@@ -990,6 +1410,7 @@ export function GameScreen() {
             // Генерируем уникальный ID для первого спина
             pyramidSpinIdRef.current += 1
             console.log(`[onBeforeSpin] First pyramid spin allowed, generated spin ID: ${pyramidSpinIdRef.current}`)
+            recordSpinStart('pyramid', currency, b)
             return true
         }
         
@@ -1023,6 +1444,7 @@ export function GameScreen() {
             }
             saveBalances(balanceW, balanceB - b, `${mode} mode: bet ${b} B deducted`)
         }
+        recordSpinStart(mode, currency, b)
         return true
     }
 
@@ -1733,6 +2155,34 @@ export function GameScreen() {
     return (
         <>
             {isLoading && <Preloader />}
+            {onboardingOpen && (
+                <div style={overlayDimModal} onClick={() => { /* блокируем закрытие кликом по оверлею */ }}>
+                    <div
+                        style={{
+                            ...inviteSheet,
+                            width:'92%',
+                            maxWidth: 520,
+                            height: '88vh',
+                            animation: onboardingAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards',
+                        }}
+                        onClick={(e)=>e.stopPropagation()}
+                    >
+                        <OnboardingPanel
+                            lang={lang}
+                            onFinish={() => {
+                                try { localStorage.setItem(ONBOARDING_KEY, '1') } catch {}
+                                scheduleProgressSync()
+                                triggerHaptic('success')
+                                setOnboardingAnimatingOut(true)
+                                setTimeout(() => {
+                                    setOnboardingOpen(false)
+                                    setOnboardingAnimatingOut(false)
+                                }, 320)
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
             <div style={{...root, opacity: isLoading ? 0 : 1, transition: 'opacity 300ms ease', pointerEvents: isLoading ? 'none' : 'auto'}}>
             <div style={topBar}>
                 <div style={leftUser}>
@@ -2424,7 +2874,40 @@ export function GameScreen() {
                             saveBalances(w, b)
                             if (rw.W) setToast(`+${rw.W} W`) 
                             if (rw.B) setToast(`+${rw.B} B`)
+                            // level stats: tasks claimed (+B tasks separately)
+                            try {
+                                const s = levelStatsRef.current
+                                bumpStats({
+                                    tasksClaimed: (s.tasksClaimed || 0) + 1,
+                                    tasksClaimedB: (s.tasksClaimedB || 0) + ((rw.B || 0) > 0 ? 1 : 0),
+                                })
+                            } catch {}
                         }} />
+                    </div>
+                </div>
+            )}
+            {levelsOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${levelsSheetHeightVh}vh`, animation: levelsAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ levelsDragStartY.current = e.clientY; levelsDragStartTs.current=Date.now(); levelsDragStartHeightVh.current = levelsSheetHeightVh; levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (levelsDragStartY.current==null) return; const dy = levelsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, levelsDragStartHeightVh.current + dy/(window.innerHeight/100))); setLevelsSheetHeightVh(vh); levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (levelsDragStartY.current==null) return; const totalDy = levelsDragStartY.current - (levelsLastY.current || levelsDragStartY.current); const dt = Math.max(1, Date.now() - (levelsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-levelsSheetHeightVh)<Math.abs(a-levelsSheetHeightVh)?b:a,snaps[0]); setLevelsSheetHeightVh(next); triggerHaptic('impact') } levelsDragStartY.current=null }}
+                            onPointerCancel={()=>{ levelsDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <LevelsPanel
+                            t={t}
+                            lang={lang}
+                            onClose={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
+                            playerLevel={playerLevel}
+                            stats={levelStats}
+                            levels={levelsConfig}
+                            isReady={(lvl) => isLevelRequirementMet(lvl)}
+                            onClaimNext={() => tryClaimNextLevel()}
+                        />
                     </div>
                 </div>
             )}
@@ -2483,6 +2966,20 @@ export function GameScreen() {
                             onClaim={(amount) => {
                                 saveBalances(balanceW + amount, balanceB)
                                 setToast(`+${amount} W за ежедневный вход`)
+                                // level stats: daily claims + 7-day cycles
+                                try {
+                                    const s = levelStatsRef.current
+                                    let addCycle = 0
+                                    try {
+                                        const streak = Number(localStorage.getItem('daily_streak') || '0') || 0
+                                        const last = localStorage.getItem('daily_last') || ''
+                                        if (streak >= 7 && last) addCycle = 1
+                                    } catch {}
+                                    bumpStats({
+                                        dailyClaims: (s.dailyClaims || 0) + 1,
+                                        daily7Cycles: (s.daily7Cycles || 0) + addCycle,
+                                    })
+                                } catch {}
                                 // Окно больше не закрывается автоматически - пользователь сам закроет крестиком
                             }}
                         />
@@ -2961,6 +3458,136 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
     )
 }
 
+function LevelsPanel({
+    onClose,
+    onClaimNext,
+    playerLevel,
+    stats,
+    levels,
+    isReady,
+    t,
+    lang,
+}: {
+    onClose: () => void
+    onClaimNext: () => void
+    playerLevel: number
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stats: any
+    levels: Array<{ level: number, action: string, how: string, unlocks: string[], rewardW: number, minInvites?: number }>
+    isReady: (lvl: number) => boolean
+    t: (k:string, vars?: Record<string, any>) => string
+    lang: 'ru'|'en'
+}) {
+    const [infoOpen, setInfoOpen] = React.useState(false)
+    const [infoLevel, setInfoLevel] = React.useState<number | null>(null)
+
+    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
+    const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
+    const infoBtn: React.CSSProperties = { width:24, height:24, borderRadius:'50%', background:'rgba(255,255,255,0.2)', border:'2px solid rgba(255,255,255,0.4)', color:'#fff', fontWeight:900, fontSize:14, display:'grid', placeItems:'center', cursor:'pointer', boxShadow:'0 2px 4px rgba(0,0,0,0.2)' }
+    const card: React.CSSProperties = { background:'rgba(255,255,255,0.08)', borderRadius:16, padding:12, boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.55)', display:'grid', gap:8 }
+    const row: React.CSSProperties = { display:'grid', gridTemplateColumns:'64px 1fr auto', gap:10, alignItems:'center' }
+    const lvlPill: React.CSSProperties = { justifySelf:'start', background:'#ffd23a', color:'#0b2f68', fontWeight:900, borderRadius:999, padding:'6px 10px', boxShadow:'inset 0 0 0 3px #7a4e06', textAlign:'center' }
+    const actionTxt: React.CSSProperties = { color:'#fff', fontWeight:900, lineHeight:1.2 }
+    const subTxt: React.CSSProperties = { color:'#dbe8ff', fontWeight:700, fontSize:12, opacity:.9, lineHeight:1.3 }
+    const claimBtn: React.CSSProperties = { padding:'10px 14px', borderRadius:12, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
+    const doneBadge: React.CSSProperties = { padding:'6px 10px', borderRadius:999, background:'rgba(34,197,94,0.2)', color:'#22c55e', fontWeight:900, boxShadow:'inset 0 0 0 2px rgba(34,197,94,0.45)' }
+
+    const nextLevel = Math.min(50, playerLevel + 1)
+    const nextCfg = levels.find(x => x.level === nextLevel)
+    const nextReady = nextLevel > playerLevel && isReady(nextLevel)
+    const visible = levels.filter(l => l.level <= playerLevel + 1)
+
+    const infoModal: React.CSSProperties = { position:'fixed', left:0,right:0,top:0,bottom:0, background:'rgba(0,0,0,0.7)', display:'grid', placeItems:'center', zIndex:10000 }
+    const infoModalContent: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:18, maxWidth:'88%', boxShadow:'inset 0 0 0 3px #0b2f68, 0 10px 26px rgba(0,0,0,0.45)' }
+
+    const currentInfo = infoLevel != null ? levels.find(x => x.level === infoLevel) : null
+
+    return (
+        <>
+        <div style={wrap}>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/press10.png" alt="levels" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={titleWrap}>
+                <div style={title}>{lang==='ru' ? 'Уровни и награды' : 'Levels & rewards'}</div>
+                <button style={infoBtn} onClick={() => { setInfoLevel(nextLevel); setInfoOpen(true) }}>i</button>
+            </div>
+
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>
+                {lang==='ru' ? `Твой уровень: ${playerLevel}` : `Your level: ${playerLevel}`}
+            </div>
+
+            {nextCfg && (
+                <div style={card}>
+                    <div style={row}>
+                        <div style={lvlPill}>{`LVL ${nextCfg.level}`}</div>
+                        <div style={{display:'grid', gap:4}}>
+                            <div style={actionTxt}>{nextCfg.action}</div>
+                            <div style={subTxt}>
+                                {nextCfg.minInvites != null ? (lang==='ru' ? `Друзей: ${stats?.invites || 0}/${nextCfg.minInvites}` : `Invites: ${stats?.invites || 0}/${nextCfg.minInvites}`) : (lang==='ru' ? 'Сделай действие, чтобы открыть следующий уровень' : 'Complete the action to unlock next level')}
+                            </div>
+                        </div>
+                        {nextReady ? (
+                            <button style={claimBtn} onClick={onClaimNext}>{lang==='ru' ? `Забрать +${nextCfg.rewardW} W` : `Claim +${nextCfg.rewardW} W`}</button>
+                        ) : (
+                            <button style={{...infoBtn, justifySelf:'end'}} onClick={() => { setInfoLevel(nextCfg.level); setInfoOpen(true) }}>i</button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <div style={{display:'grid', gap:10}}>
+                {visible.map((lv) => {
+                    const done = lv.level <= playerLevel
+                    return (
+                        <div key={`lvl-${lv.level}`} style={{...card, opacity: done ? 0.95 : 1}}>
+                            <div style={row}>
+                                <div style={lvlPill}>{`LVL ${lv.level}`}</div>
+                                <div style={{display:'grid', gap:4}}>
+                                    <div style={actionTxt}>{lv.action}</div>
+                                    {!!lv.unlocks?.length && (
+                                        <div style={subTxt}>{(lang==='ru' ? 'Возможности: ' : 'Unlocks: ') + lv.unlocks.join(', ')}</div>
+                                    )}
+                                </div>
+                                <div style={{display:'grid', gap:6, justifyItems:'end'}}>
+                                    {done ? <div style={doneBadge}>✓</div> : <div style={{color:'#ffe27a', fontWeight:900}}>{`+${lv.rewardW} W`}</div>}
+                                    <button style={infoBtn} onClick={() => { setInfoLevel(lv.level); setInfoOpen(true) }}>i</button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+
+            <div style={{display:'grid', placeItems:'center', marginTop:6}}>
+                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
+            </div>
+        </div>
+
+        {infoOpen && (
+            <div style={infoModal} onClick={() => setInfoOpen(false)}>
+                <div style={infoModalContent} onClick={(e)=>e.stopPropagation()}>
+                    <div style={{color:'#fff', fontWeight:900, fontSize:18, textAlign:'center'}}>{currentInfo ? `LVL ${currentInfo.level}` : ''}</div>
+                    <div style={{color:'#e8f1ff', fontWeight:900, textAlign:'center', marginTop:8}}>{currentInfo?.action || ''}</div>
+                    <div style={{color:'#dbe8ff', marginTop:10, lineHeight:1.4, fontWeight:700}}>
+                        {currentInfo?.how || ''}
+                    </div>
+                    {!!currentInfo?.unlocks?.length && (
+                        <div style={{color:'#ffe27a', marginTop:10, fontWeight:900}}>
+                            {(lang==='ru' ? 'Возможности: ' : 'Unlocks: ') + currentInfo.unlocks.join(', ')}
+                        </div>
+                    )}
+                    <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                        <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
+    )
+}
+
 function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: boolean, lang: 'ru'|'en' }){
     const [title, setTitle] = React.useState('')
     const [text, setText] = React.useState('')
@@ -3032,6 +3659,100 @@ function NewsPanel({ onClose, isAdmin, lang }: { onClose: () => void, isAdmin: b
                         <div style={{color:'rgba(255,255,255,0.7)', fontSize:11, marginTop:10, textAlign:'right', fontWeight:600}}>{new Date(n.ts).toLocaleString('ru-RU')}</div>
                     </div>
                 ))}
+            </div>
+        </div>
+    )
+}
+
+function OnboardingPanel({ lang, onFinish }: { lang: 'ru'|'en', onFinish: () => void }) {
+    const [step, setStep] = React.useState<number>(0)
+    const steps = lang === 'ru'
+        ? [
+            { title: 'Добро пожаловать!', body: 'Это регистрация и краткий инструктаж — показывается только один раз.\nСейчас объясню как играть.' },
+            { title: '1) Выбери цифру', body: 'Нажми на цифру 0–9 на колесе.\nПотом жми кнопку “Старт”.' },
+            { title: '2) Бонусный сектор', body: 'Перед стартом выбери бонусный сектор на колесе.\nЕсли угадаешь сектор — получишь деньги/бустер.' },
+            { title: '3) Бустеры', body: 'В “плюсе” можно выбрать бустер:\n- Сердце: вернёт ставку при проигрыше\n- Батарейка: даст доп. вращение при промахе\n- Ракета: усиливает выигрыш' },
+            { title: '4) Уровни и награды', body: 'Открой “Повысил уровень? — Забирай бонусы!”.\nВыполняй задания, кнопка “Забрать” загорится.\nВажно: накопитель по центру откроется с 5 уровня.' },
+        ]
+        : [
+            { title: 'Welcome!', body: 'Registration & quick tutorial — shown only once.\nLet’s learn the basics.' },
+            { title: '1) Pick a digit', body: 'Tap a digit 0–9 on the wheel.\nThen press “Start”.' },
+            { title: '2) Bonus sector', body: 'Before spinning, select a bonus sector.\nIf you hit it — you get money/booster.' },
+            { title: '3) Boosters', body: 'In the “plus” menu you can choose a booster:\n- Heart: returns bet on loss\n- Battery: extra spin on miss\n- Rocket: boosts winnings' },
+            { title: '4) Levels & rewards', body: 'Open “Leveled up? — claim bonuses!”.\nComplete tasks and the “Claim” button will light up.\nCenter accumulator unlocks at level 5.' },
+        ]
+
+    const isLast = step >= steps.length - 1
+
+    const wrap: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:16,
+        boxShadow:'inset 0 0 0 3px #0b2f68',
+        display:'grid',
+        gap:12,
+        height:'100%',
+    }
+    const title: React.CSSProperties = {
+        color:'#fff',
+        fontWeight:900,
+        fontSize:22,
+        textAlign:'center',
+        textShadow:'0 2px 0 rgba(0,0,0,0.35)',
+        letterSpacing:0.8,
+    }
+    const card: React.CSSProperties = {
+        background:'rgba(255,255,255,0.10)',
+        borderRadius:18,
+        padding:14,
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.55)',
+        display:'grid',
+        gap:10,
+    }
+    const body: React.CSSProperties = {
+        whiteSpace:'pre-line',
+        color:'#e8f1ff',
+        fontWeight:800,
+        lineHeight:1.35,
+        textAlign:'center',
+    }
+    const dotsWrap: React.CSSProperties = { display:'flex', gap:8, justifyContent:'center', alignItems:'center' }
+    const dot = (active: boolean): React.CSSProperties => ({
+        width:10,
+        height:10,
+        borderRadius:'50%',
+        background: active ? '#ffd23a' : 'rgba(255,255,255,0.25)',
+        boxShadow: active ? '0 0 0 3px rgba(122,78,6,0.65)' : 'inset 0 0 0 2px rgba(11,47,104,0.6)',
+    })
+    const btnRow: React.CSSProperties = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:'auto' }
+    const btn: React.CSSProperties = { padding:'10px 14px', borderRadius:12, border:'none', background:'#244e96', color:'#fff', fontWeight:900, boxShadow:'inset 0 0 0 3px #0b2f68', cursor:'pointer' }
+    const btnPrimary: React.CSSProperties = { ...btn, background:'#22c55e', color:'#0b2f68', boxShadow:'inset 0 0 0 3px #0a5d2b' }
+
+    return (
+        <div style={wrap}>
+            <div style={{display:'grid', placeItems:'center', marginTop:4}}>
+                <img src="/press10.png" alt="guide" style={{width:96,height:96,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+            </div>
+            <div style={title}>{steps[step]?.title || ''}</div>
+            <div style={card}>
+                <div style={body}>{steps[step]?.body || ''}</div>
+            </div>
+            <div style={dotsWrap}>
+                {steps.map((_, i) => <div key={`dot-${i}`} style={dot(i === step)} />)}
+            </div>
+            <div style={btnRow}>
+                <button
+                    style={{...btn, opacity: step === 0 ? 0.6 : 1, cursor: step === 0 ? 'default' : 'pointer'}}
+                    onClick={() => { if (step === 0) return; setStep(s => Math.max(0, s - 1)) }}
+                >
+                    {lang === 'ru' ? 'Назад' : 'Back'}
+                </button>
+                <button
+                    style={btnPrimary}
+                    onClick={() => { if (isLast) onFinish(); else setStep(s => Math.min(steps.length - 1, s + 1)) }}
+                >
+                    {isLast ? (lang === 'ru' ? 'Начать игру' : 'Start') : (lang === 'ru' ? 'Далее' : 'Next')}
+                </button>
             </div>
         </div>
     )

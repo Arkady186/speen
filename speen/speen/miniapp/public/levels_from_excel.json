@@ -1,0 +1,516 @@
+{
+  "source": "C:\\Users\\E51C~1\\Desktop\\Work\\speen\\Уровни 2.xlsx",
+  "sheet": "Лист1",
+  "levels": [
+    {
+      "level": 0,
+      "action": "регистрация",
+      "active": null,
+      "unlocks": "доступ к игре (без бонусного барабана)",
+      "rewardW": 10000,
+      "rewardW_raw": "рег. +10000",
+      "referrals": null,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 1,
+      "action": "сыграть одну игру \nв любом режиме",
+      "active": null,
+      "unlocks": "доступ к ежедневным заданиям",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": null,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 2,
+      "action": "выполнить ежедневное задание\n(забрать бонус за вход)",
+      "active": null,
+      "unlocks": "доступ к бонусным заданиям",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": null,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 3,
+      "action": "выполнить любое бонусное задание",
+      "active": null,
+      "unlocks": "доступ к рефералке",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": null,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 4,
+      "action": "пригласить 1 друга",
+      "active": null,
+      "unlocks": "активация актив. счёта",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": null,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 5,
+      "action": "сыграть режим 3/10",
+      "active": 0.01,
+      "unlocks": "активация бонусного барабана",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 6,
+      "action": "сыграть десять игр подряд\nв режиме х2",
+      "active": 0.01,
+      "unlocks": "активация магазина\nдоступ к покупке бустера \"сердце\"",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 7,
+      "action": "Купить бустер \"сердце\"",
+      "active": 0.01,
+      "unlocks": "доступ к покупке бустера \"батарейка\"",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 8,
+      "action": "Сыграть игру в любом режиме\nиспользуя бустер \"сердце\"",
+      "active": 0.01,
+      "unlocks": "доступ к покупке бустера \"ракета\"",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 9,
+      "action": "сыграть три игры подряд\nв режиме х5",
+      "active": 0.01,
+      "unlocks": "подъём актив.счёта до 0,02",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 10,
+      "action": "пригласить +1 друга",
+      "active": 0.02,
+      "unlocks": "активация рейтинга игроков",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 1,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 11,
+      "action": "Купить бустер \"батарейка\"",
+      "active": 0.02,
+      "unlocks": "подъём актив.счёта до 0,03",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 12,
+      "action": "Сыграть игру в любом режиме\nиспользуя бустер \"батарейка\"",
+      "active": 0.03,
+      "unlocks": "подъём актив.счёта до 0,04",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 13,
+      "action": "выполнить 1 круг еж.задания (заходить и забирать\nбонус 7 дней подряд)",
+      "active": 0.04,
+      "unlocks": "подъём актив.счёта до 0,05",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "*"
+    },
+    {
+      "level": 14,
+      "action": "выполнить любое бонусное \nзадание за BCOIN",
+      "active": 0.05,
+      "unlocks": "подъём актив.счёта до 0,06",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 15,
+      "action": "сыграть 10 игр в режиме х2\nза  BCOIN",
+      "active": 0.06,
+      "unlocks": "подъём актив.счёта до 0,07",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 2,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 16,
+      "action": "Купить бустер \"ракета\"",
+      "active": 0.07,
+      "unlocks": "подъём актив.счёта до 0,08",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 17,
+      "action": "Сыграть игру в любом режиме\nиспользуя бустер \"ракета\"",
+      "active": 0.08,
+      "unlocks": "подъём актив.счёта до 0,09",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 18,
+      "action": "пригласить +1 друга",
+      "active": 0.09,
+      "unlocks": "подъём актив.счёта до 0,10",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 2,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 19,
+      "action": "выполнить 5 любых бонусных\nзадании за BCOIN",
+      "active": 0.1,
+      "unlocks": "подъём актив.счёта до 0,11",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 20,
+      "action": "Сыграть игру в  режиме х5\nиспользуя  любой бустер",
+      "active": 0.11,
+      "unlocks": "подъём актив.счёта до 0,12",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 21,
+      "action": "сыграть 10 игр в режиме х5\nза  BCOIN",
+      "active": 0.12,
+      "unlocks": "подъём актив.счёта до 0,13",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 22,
+      "action": "выиграть три игры \nв режиме х2",
+      "active": 0.13,
+      "unlocks": "подъём актив.счёта до 0,14",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 23,
+      "action": "Сыграть игру в режиме 3/10\nиспользуя бустер \"сердце\"",
+      "active": 0.14,
+      "unlocks": "подъём актив.счёта до 0,15",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 24,
+      "action": "пригласить +1 друга",
+      "active": 0.15,
+      "unlocks": "подъём актив.счёта до 0,16",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 3,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 25,
+      "action": "сыграть 1 игру в режиме 3/10\nза  BCOIN",
+      "active": 0.16,
+      "unlocks": "доступ к конвертеру валют (Bcoin --> Wcoin)",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 26,
+      "action": "Обменять 10000 Bcoin на Wcoin",
+      "active": 0.16,
+      "unlocks": "подъём актив.счёта до 0,17",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 27,
+      "action": "выиграть три игры \nв режиме х5",
+      "active": 0.17,
+      "unlocks": "подъём актив.счёта до 0,18",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 28,
+      "action": "Сыграть игру в режиме 3/10\nиспользуя бустер \"батарейка\"",
+      "active": 0.18,
+      "unlocks": "подъём актив.счёта до 0,19",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 29,
+      "action": "дважды выполнить 1 круг еж.задания (заходить и забирать\nбонус 7 дней подряд)",
+      "active": 0.19,
+      "unlocks": "подъём актив.счёта до 0,20",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 30,
+      "action": "пригласить +1 друга",
+      "active": 0.2,
+      "unlocks": "подъём актив.счёта до 0,21",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 4,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 31,
+      "action": "сыграть игру в любом режиме\nна 10000 BCOIN",
+      "active": 0.21,
+      "unlocks": "подъём актив.счёта до 0,22",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 32,
+      "action": "выиграть три игры \nв режиме 3/10",
+      "active": 0.22,
+      "unlocks": "подъём актив.счёта до 0,23",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 33,
+      "action": "Сыграть игру в режиме 3/10\nиспользуя бустер \"ракета\"",
+      "active": 0.23,
+      "unlocks": "подъём актив.счёта до 0,24",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 34,
+      "action": "выполнить 10 любых бонусных\nзадании за BCOIN",
+      "active": 0.24,
+      "unlocks": "подъём актив.счёта до 0,25",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 35,
+      "action": "сыграть 3 игры в режиме 3/10\nза  BCOIN",
+      "active": 0.25,
+      "unlocks": "подъём актив.счёта до 0,26",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 36,
+      "action": "Обменять любую сумму\nWcoin на Bcoin",
+      "active": 0.26,
+      "unlocks": "подъём актив.счёта до 0,27",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 37,
+      "action": "сиграть три игры \nв режиме х2 на Bcoin",
+      "active": 0.27,
+      "unlocks": "подъём актив.счёта до 0,28",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 38,
+      "action": "пригласить +1 друга",
+      "active": 0.28,
+      "unlocks": "подъём актив.счёта до 0,29",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 5,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 39,
+      "action": "выполнить 10 любых бонусных\nзадании за BCOIN",
+      "active": 0.29,
+      "unlocks": "подъём актив.счёта до 0,30",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 40,
+      "action": "Обменять 10000 Bcoin на Wcoin",
+      "active": 0.3,
+      "unlocks": "подъём актив.счёта до 0,31",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 41,
+      "action": "трижды выполнить 1 круг еж.задания (заходить и забирать\nбонус 7 дней подряд)",
+      "active": 0.31,
+      "unlocks": "подъём актив.счёта до 0,32",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 42,
+      "action": "сиграть три игры \nв режиме х5 на Bcoin",
+      "active": 0.32,
+      "unlocks": "подъём актив.счёта до 0,33",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 43,
+      "action": "Купить 10000 Bcoin",
+      "active": 0.33,
+      "unlocks": "подъём актив.счёта до 0,34",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 44,
+      "action": "пригласить +1 друга",
+      "active": 0.34,
+      "unlocks": "подъём актив.счёта до 0,35",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 6,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 45,
+      "action": "сиграть три игры \nв режиме 3/10 на Bcoin",
+      "active": 0.35,
+      "unlocks": "подъём актив.счёта до 0,36",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 46,
+      "action": "выполнить 15 любых бонусных\nзадании за BCOIN",
+      "active": 0.36,
+      "unlocks": "подъём актив.счёта до 0,37",
+      "rewardW": 1000,
+      "rewardW_raw": "за ур.+1000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 47,
+      "action": "выиграть три игры \nв режиме х2 на Bcoin",
+      "active": 0.37,
+      "unlocks": "подъём актив.счёта до 0,38",
+      "rewardW": 3000,
+      "rewardW_raw": "за ур.+3000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 48,
+      "action": "выиграть три игры \nв режиме х5 на Bcoin",
+      "active": 0.38,
+      "unlocks": "подъём актив.счёта до 0,39",
+      "rewardW": 5000,
+      "rewardW_raw": "за ур.+5000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 49,
+      "action": "выиграть три игры \nв режиме 3/10 на Bcoin",
+      "active": 0.39,
+      "unlocks": "подъём актив.счёта до 0,4",
+      "rewardW": 10000,
+      "rewardW_raw": "за ур.+10000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    },
+    {
+      "level": 50,
+      "action": "Купить 100 000 Bcoin",
+      "active": 0.4,
+      "unlocks": "подъём актив.счёта до 0,5\nдоступ к выводу Bcoin на кошелёк",
+      "rewardW": 15000,
+      "rewardW_raw": "за ур.+15000",
+      "referrals": 7,
+      "bcoin_raw": "?"
+    }
+  ]
+}

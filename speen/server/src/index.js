@@ -58,6 +58,11 @@ async function init(){
     updated_at BIGINT
   )`)
 
+  // Прогресс игры (уровни/статы/онбординг) — храним в players, чтобы не плодить таблицы
+  await pool.query('ALTER TABLE players ADD COLUMN IF NOT EXISTS game_level INTEGER NOT NULL DEFAULT 0')
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS level_stats JSONB NOT NULL DEFAULT '{}'::jsonb`)
+  await pool.query('ALTER TABLE players ADD COLUMN IF NOT EXISTS onboarding_done BOOLEAN NOT NULL DEFAULT FALSE')
+
   // Рефералы: кто кого пригласил
   await pool.query(`CREATE TABLE IF NOT EXISTS referrals(
     id BIGSERIAL PRIMARY KEY,
@@ -191,6 +196,115 @@ app.post('/api/player/upsert', async (req,res)=>{
     res.json({ ok:true })
   } catch(e){
     console.error('Player upsert error:', e)
+    res.status(500).json({ error:'server_error' })
+  }
+})
+
+// ----- PLAYER PROGRESS (levels/stats/onboarding) -----
+// Source of truth for multi-device progress sync.
+
+app.get('/api/progress/:id', async (req,res)=>{
+  try{
+    const id = Number(req.params.id)
+    if (!id) return res.status(400).json({ error:'bad_input' })
+    const rows = await q(
+      'SELECT id, game_level, level_stats, onboarding_done, updated_at FROM players WHERE id = $1',
+      [id]
+    )
+    const row = rows[0]
+    if (!row) return res.json({ ok:true, exists:false, id, game_level: 0, level_stats: {}, onboarding_done: false })
+    res.json({
+      ok:true,
+      exists:true,
+      id: row.id,
+      game_level: Number(row.game_level || 0),
+      level_stats: row.level_stats || {},
+      onboarding_done: !!row.onboarding_done,
+      updated_at: Number(row.updated_at || 0),
+    })
+  }catch(e){
+    console.error('Progress get error:', e)
+    res.status(500).json({ error:'server_error' })
+  }
+})
+
+function mergeStatsMax(a, b){
+  // Merge numeric counters by MAX, objects recursively for 1-level deep maps, keep others from b if present.
+  const out = { ...(a || {}) }
+  const src = b || {}
+  for (const k of Object.keys(src)) {
+    const bv = src[k]
+    const av = out[k]
+    if (typeof bv === 'number') {
+      const an = typeof av === 'number' ? av : 0
+      out[k] = Math.max(an, bv)
+    } else if (bv && typeof bv === 'object' && !Array.isArray(bv)) {
+      // one-level deep merge for maps (e.g., boostersBought/boostersUsed)
+      const base = (av && typeof av === 'object' && !Array.isArray(av)) ? av : {}
+      const merged = { ...base }
+      for (const kk of Object.keys(bv)) {
+        const bb = bv[kk]
+        const aa = base[kk]
+        if (typeof bb === 'number') merged[kk] = Math.max(typeof aa === 'number' ? aa : 0, bb)
+        else merged[kk] = bb
+      }
+      out[k] = merged
+    } else if (typeof bv === 'boolean') {
+      out[k] = !!av || bv
+    } else if (bv != null) {
+      out[k] = bv
+    }
+  }
+  return out
+}
+
+app.post('/api/progress/upsert', async (req,res)=>{
+  try{
+    const { id, game_level, level_stats, onboarding_done } = req.body || {}
+    const userId = Number(id)
+    if (!userId) return res.status(400).json({ error:'bad_input' })
+
+    const lvlIncoming = Number.isFinite(Number(game_level)) ? Math.max(0, Math.min(50, Math.floor(Number(game_level)))) : 0
+    const statsIncoming = (level_stats && typeof level_stats === 'object') ? level_stats : {}
+    const onboardingIncoming = !!onboarding_done
+    const now = Date.now()
+
+    const client = await pool.connect()
+    try{
+      await client.query('BEGIN')
+      // ensure row exists
+      await client.query(
+        `INSERT INTO players(id,username,photo,level,coins,created_at,updated_at)
+         VALUES($1,NULL,NULL,1,0,$2,$2)
+         ON CONFLICT (id) DO NOTHING`,
+        [userId, now]
+      )
+
+      const curRes = await client.query(
+        'SELECT game_level, level_stats, onboarding_done FROM players WHERE id = $1 FOR UPDATE',
+        [userId]
+      )
+      const cur = curRes.rows[0] || {}
+      const lvlCurrent = Number(cur.game_level || 0)
+      const lvlNext = Math.max(lvlCurrent, lvlIncoming)
+      const statsNext = mergeStatsMax(cur.level_stats || {}, statsIncoming || {})
+      const onboardingNext = !!cur.onboarding_done || onboardingIncoming
+
+      await client.query(
+        'UPDATE players SET game_level=$2, level_stats=$3, onboarding_done=$4, updated_at=$5 WHERE id=$1',
+        [userId, lvlNext, JSON.stringify(statsNext), onboardingNext, now]
+      )
+
+      await client.query('COMMIT')
+      res.json({ ok:true, id:userId, game_level:lvlNext, onboarding_done:onboardingNext })
+    }catch(e){
+      try { await client.query('ROLLBACK') } catch {}
+      throw e
+    }finally{
+      client.release()
+    }
+  }catch(e){
+    console.error('Progress upsert error:', e)
     res.status(500).json({ error:'server_error' })
   }
 })
