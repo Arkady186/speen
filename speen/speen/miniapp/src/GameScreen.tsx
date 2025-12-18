@@ -2196,7 +2196,7 @@ export function GameScreen() {
                         <div style={usernameRow}>
                             <div style={usernameStyle}>{username || 'Игрок'}</div>
                         </div>
-                        <div style={levelStyle}>1 lvl</div>
+                        <div style={levelStyle}>{playerLevel} lvl</div>
                     </div>
                 </div>
                 <div style={balances}>
@@ -2508,6 +2508,7 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
+                                        if (act === 'levels') setLevelsOpen(true)
                                         if (act === 'leaderboard') {
                                             // Перед открытием рейтинга отправляем текущие данные игрока
                                             updateLeaderboard(balanceW, balanceB)
@@ -2517,6 +2518,7 @@ export function GameScreen() {
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
+                                        if (act === 'levels') setLevelsOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                     }
                                 }}
