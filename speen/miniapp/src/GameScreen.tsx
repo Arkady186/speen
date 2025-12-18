@@ -2179,7 +2179,7 @@ export function GameScreen() {
                                         }
                                     }}
                                 >
-                                    {item.badgeImg && (item as any).action !== 'levels' && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                                    {/* Полностью убираем красный бейдж "coming soon" для всех пунктов меню */}
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>

@@ -1912,27 +1912,33 @@ export function GameScreen() {
                                     onPointerDown={() => setPressedCardIdx(idx)}
                                     onPointerUp={() => setPressedCardIdx(null)}
                                     onPointerLeave={() => setPressedCardIdx(null)}
-                                onClick={() => {
-                                    const left = isMenuOpen
-                                    const act = (item as any).action
-                                    if (left) {
-                                        if (act === 'invite') setInviteOpen(true)
-                                        if (act === 'daily') setDailyOpen(true)
-                                        if (act === 'shop') setShopOpen(true)
-                                        if (act === 'leaderboard') {
-                                            // Перед открытием рейтинга отправляем текущие данные игрока
-                                            updateLeaderboard(balanceW, balanceB)
-                                            setLeaderboardOpen(true)
+                                    onClick={() => {
+                                        const left = isMenuOpen
+                                        const act = (item as any).action
+                                        if (left) {
+                                            if (act === 'invite') setInviteOpen(true)
+                                            if (act === 'daily') setDailyOpen(true)
+                                            if (act === 'shop') setShopOpen(true)
+                                            if (act === 'leaderboard') {
+                                                // Перед открытием рейтинга отправляем текущие данные игрока
+                                                updateLeaderboard(balanceW, balanceB)
+                                                setLeaderboardOpen(true)
+                                            }
+                                            if (act === 'ton') { openTonConnect(); return }
+                                            if (act === 'levels') {
+                                                setLevelsOpen(true)
+                                            }
+                                        } else {
+                                            if (act === 'wheelshop') setWheelShopOpen(true)
+                                            if (act === 'tasks') setTasksOpen(true)
+                                            if (act === 'news') setNewsOpen(true)
+                                            if (act === 'levels') {
+                                                setLevelsOpen(true)
+                                            }
                                         }
-                                        if (act === 'ton') { openTonConnect(); return }
-                                    } else {
-                                        if (act === 'wheelshop') setWheelShopOpen(true)
-                                        if (act === 'tasks') setTasksOpen(true)
-                                        if (act === 'news') setNewsOpen(true)
-                                    }
-                                }}
+                                    }}
                                 >
-                                    {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                                    {/* Убираем бейдж "coming soon" в этой версии меню */}
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>

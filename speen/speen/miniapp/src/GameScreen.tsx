@@ -2518,12 +2518,17 @@ export function GameScreen() {
                                     } else {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
-                                        if (act === 'levels') setLevelsOpen(true)
                                         if (act === 'news') setNewsOpen(true)
+                                        if (act === 'levels') {
+                                            setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+                                            setIsMenuOpen(false)
+                                            setIsRightMenuOpen(false)
+                                            setLevelsOpen(true)
+                                        }
                                     }
                                 }}
                                 >
-                                    {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                                    {/* Глобально убираем бейдж "coming soon" в нижнем меню */}
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>{item.title}</div>
@@ -4302,7 +4307,7 @@ function MenuOverlay({ open, onClose, items }: MenuOverlayProps) {
                 <div style={menuList}>
                     {items.map((item, idx) => (
                         <div key={idx} style={menuCard}>
-                            {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                            {/* Глобально убираем бейдж "coming soon" из оверлей-меню */}
                             <div style={menuIconWrap}>{item.icon}</div>
                             <div style={menuTextWrap}>
                                 <div style={menuTitle}>{item.title}</div>
