@@ -4050,7 +4050,7 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
             </div>
         )}
         <div style={{position:'fixed', left:8, bottom:4, fontSize:10, opacity:0.45, color:'#e8f1ff', zIndex:1000}}>
-            v0.1.5
+            v0.1.6
         </div>
         </>
     )
