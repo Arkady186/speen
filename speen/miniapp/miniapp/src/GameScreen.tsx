@@ -4049,6 +4049,9 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
                 </div>
             </div>
         )}
+        <div style={{position:'fixed', left:8, bottom:4, fontSize:10, opacity:0.45, color:'#e8f1ff', zIndex:1000}}>
+            v0.1.5
+        </div>
         </>
     )
 }
@@ -4064,12 +4067,12 @@ function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, sub
     ]
 }
 
-function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' }> {
+function createMenuItemsRight(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'wheelshop' | 'tasks' | 'news' | 'levels' }> {
     return [
         { title: tr('press7_title'), subtitle: tr('press7_sub'), action: 'wheelshop', icon: <PressIcon src="/press7.png" alt="press7" fallbackEmoji="🙂" /> },
         { title: tr('press8_title'), subtitle: tr('press8_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press8.png" alt="press8" fallbackEmoji="🙂" /> },
         { title: tr('press9_title'), subtitle: tr('press9_sub'), action: 'tasks', icon: <PressIcon src="/press9.png" alt="press9" fallbackEmoji="🙂" /> },
-        { title: tr('press10_title'), subtitle: tr('press10_sub'), badgeImg:'/coming1.png', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
+        { title: tr('press10_title'), subtitle: tr('press10_sub'), action: 'levels', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
         { title: tr('press11_title'), subtitle: tr('press11_sub'), action: 'news', icon: <PressIcon src="/press11.png" alt="press11" fallbackEmoji="🙂" /> },
     ]
 }
