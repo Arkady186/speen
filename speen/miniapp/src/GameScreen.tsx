@@ -1850,7 +1850,7 @@ export function GameScreen() {
                         <div style={usernameRow}>
                             <div style={usernameStyle}>{username || 'Игрок'}</div>
                         </div>
-                        <div style={levelStyle}>1 lvl</div>
+                        <div style={levelStyle}>{playerLevel} lvl</div>
                     </div>
                 </div>
                 <div style={balances}>
@@ -2154,7 +2154,12 @@ export function GameScreen() {
                                             if (act === 'invite') setInviteOpen(true)
                                             if (act === 'daily') setDailyOpen(true)
                                             if (act === 'shop') setShopOpen(true)
-                                            if (act === 'levels') setLevelsOpen(true)
+                                            if (act === 'levels') {
+                                                setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+                                                setIsMenuOpen(false)
+                                                setIsRightMenuOpen(false)
+                                                setLevelsOpen(true)
+                                            }
                                             if (act === 'leaderboard') {
                                                 // Перед открытием рейтинга отправляем текущие данные игрока
                                                 updateLeaderboard(balanceW, balanceB)
@@ -2165,11 +2170,16 @@ export function GameScreen() {
                                             if (act === 'wheelshop') setWheelShopOpen(true)
                                             if (act === 'tasks') setTasksOpen(true)
                                             if (act === 'news') setNewsOpen(true)
-                                            if (act === 'levels') setLevelsOpen(true)
+                                            if (act === 'levels') {
+                                                setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+                                                setIsMenuOpen(false)
+                                                setIsRightMenuOpen(false)
+                                                setLevelsOpen(true)
+                                            }
                                         }
                                     }}
                                 >
-                                    {item.badgeImg && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
+                                    {item.badgeImg && (item as any).action !== 'levels' && <img src={item.badgeImg} alt="coming soon" style={comingSoonBanner} />}
                                     <div style={isMenuOpen ? menuIconWrap : menuIconWrapRight}>{item.icon}</div>
                                     <div style={menuTextWrap}>
                                         <div style={menuTitle}>
@@ -4464,10 +4474,10 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
 function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, requiredLevel?: number, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' | 'levels' }> {
     return [
         { title: tr('press1_title'), badgeImg:'/coming1.png', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
-        { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', requiredLevel: 3, icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
-        { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', requiredLevel: 1, icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
+        { title: tr('press2_title'), action: 'invite', requiredLevel: 3, icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
+        { title: tr('press3_title'), action: 'daily', requiredLevel: 1, icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
         { title: tr('press4_title'), action: 'leaderboard', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
-        { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', requiredLevel: 6, icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
+        { title: tr('press5_title'), action: 'shop', requiredLevel: 6, icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
         { title: tr('press10_title'), subtitle: tr('press10_sub'), action: 'levels', icon: <PressIcon src="/press10.png" alt="press10" fallbackEmoji="🙂" /> },
         { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
     ]
