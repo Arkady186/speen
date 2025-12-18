@@ -2170,8 +2170,16 @@ export function GameScreen() {
                         <OnboardingPanel
                             lang={lang}
                             onFinish={() => {
+                                // Помечаем онбординг как завершённый
                                 try { localStorage.setItem(ONBOARDING_KEY, '1') } catch {}
-                                scheduleProgressSync()
+                                // Если игрок был на уровне 0 (регистрация), поднимаем до 1 уровня после того,
+                                // как он прочитал и принял условия в последнем шаге онбординга.
+                                if (playerLevel < 1) {
+                                    persistLevel(1)
+                                } else {
+                                    // всё равно синкаем прогресс, чтобы сервер знал про завершение онбординга
+                                    scheduleProgressSync()
+                                }
                                 triggerHaptic('success')
                                 setOnboardingAnimatingOut(true)
                                 setTimeout(() => {
