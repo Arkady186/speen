@@ -1834,7 +1834,9 @@ export function GameScreen() {
         )
     }
 
-    console.log('[GameScreen] mounted v0.1.5 (Render debug)');
+    React.useEffect(() => {
+        console.log('[GameScreen] mounted v0.1.5 (Render debug)');
+    }, []);
 
     return (
         <>
@@ -2709,6 +2711,7 @@ export function GameScreen() {
                 </div>
             )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
+            <div style={{ position: 'absolute', bottom: 8, left: 8, color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700, zIndex: 10 }}>v0.1.5</div>
         </div>
         </>
     )
