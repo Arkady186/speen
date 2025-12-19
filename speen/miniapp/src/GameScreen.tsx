@@ -820,25 +820,7 @@ export function GameScreen() {
         updateLeaderboard(roundedW, roundedB)
     }
 
-    function claimNextLevel() {
-        const next = Math.min(50, playerLevel + 1)
-        if (next <= playerLevel) return
-        if (!isLevelRequirementMet(next)) {
-            const conf = LEVELS.find(x => x.level === next)
-            if (conf?.minInvites != null && (levelStatsRef.current.invites || 0) < conf.minInvites) {
-                setToast(`Нужно друзей: ${conf.minInvites}. Сейчас: ${levelStatsRef.current.invites || 0}`)
-            } else {
-                setToast(`Не выполнены условия для уровня ${next}`)
-            }
-            return
-        }
-        const conf = LEVELS.find(x => x.level === next)
-        const reward = conf?.rewardW || 0
-        saveBalances(balanceW + reward, balanceB, `Level reward: lvl=${next}, +${reward} W`)
-        persistLevel(next)
-        setToast(`Уровень ${next}! +${reward} W`)
-        triggerHaptic('success')
-    }
+    // (removed legacy duplicate claimNextLevel without args)
     
     const leaderboardUpdateTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const leaderboardInitSent = React.useRef<boolean>(false)
