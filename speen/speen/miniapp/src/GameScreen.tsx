@@ -2616,8 +2616,15 @@ export function GameScreen() {
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
                                         if (act === 'levels') {
-                                            setLevelsAnimatingOut(false)
-                                            setLevelsOpen(true)
+                                            console.log('[Levels] Opening levels panel from left menu')
+                                            try {
+                                                setLevelsAnimatingOut(false)
+                                                setLevelsOpen(true)
+                                                console.log('[Levels] levelsOpen set to true')
+                                            } catch (err) {
+                                                console.error('[Levels] Error opening levels panel:', err)
+                                                setLevelsOpen(true)
+                                            }
                                         }
                                         if (act === 'leaderboard') {
                                             // Перед открытием рейтинга отправляем текущие данные игрока
@@ -2630,8 +2637,15 @@ export function GameScreen() {
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                         if (act === 'levels') {
-                                            setLevelsAnimatingOut(false)
-                                            setLevelsOpen(true)
+                                            console.log('[Levels] Opening levels panel from right menu')
+                                            try {
+                                                setLevelsAnimatingOut(false)
+                                                setLevelsOpen(true)
+                                                console.log('[Levels] levelsOpen set to true')
+                                            } catch (err) {
+                                                console.error('[Levels] Error opening levels panel:', err)
+                                                setLevelsOpen(true)
+                                            }
                                         }
                                     }
                                 }}
@@ -3001,34 +3015,41 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
-            {levelsOpen && (
-                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 320) }}>
-                    <div style={{...inviteSheet, height:`${levelsSheetHeightVh}vh`, animation: levelsAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
-                        <div
-                            style={inviteGrabWrap}
-                            onPointerDown={(e)=>{ levelsDragStartY.current = e.clientY; levelsDragStartTs.current=Date.now(); levelsDragStartHeightVh.current = levelsSheetHeightVh; levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
-                            onPointerMove={(e)=>{ if (levelsDragStartY.current==null) return; const dy = levelsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, levelsDragStartHeightVh.current + dy/(window.innerHeight/100))); setLevelsSheetHeightVh(vh); levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
-                            onPointerUp={()=>{ if (levelsDragStartY.current==null) return; const totalDy = levelsDragStartY.current - (levelsLastY.current || levelsDragStartY.current); const dt = Math.max(1, Date.now() - (levelsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-levelsSheetHeightVh)<Math.abs(a-levelsSheetHeightVh)?b:a,snaps[0]); setLevelsSheetHeightVh(next); triggerHaptic('impact') } levelsDragStartY.current=null }}
-                            onPointerCancel={()=>{ levelsDragStartY.current=null }}
-                        >
-                            <div style={inviteGrabBar} />
+            {levelsOpen && (() => {
+                try {
+                    return (
+                        <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 320) }}>
+                            <div style={{...inviteSheet, height:`${levelsSheetHeightVh}vh`, animation: levelsAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                                <div
+                                    style={inviteGrabWrap}
+                                    onPointerDown={(e)=>{ levelsDragStartY.current = e.clientY; levelsDragStartTs.current=Date.now(); levelsDragStartHeightVh.current = levelsSheetHeightVh; levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                                    onPointerMove={(e)=>{ if (levelsDragStartY.current==null) return; const dy = levelsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, levelsDragStartHeightVh.current + dy/(window.innerHeight/100))); setLevelsSheetHeightVh(vh); levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                                    onPointerUp={()=>{ if (levelsDragStartY.current==null) return; const totalDy = levelsDragStartY.current - (levelsLastY.current || levelsDragStartY.current); const dt = Math.max(1, Date.now() - (levelsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-levelsSheetHeightVh)<Math.abs(a-levelsSheetHeightVh)?b:a,snaps[0]); setLevelsSheetHeightVh(next); triggerHaptic('impact') } levelsDragStartY.current=null }}
+                                    onPointerCancel={()=>{ levelsDragStartY.current=null }}
+                                >
+                                    <div style={inviteGrabBar} />
+                                </div>
+                                <LevelsPanel
+                                    t={t}
+                                    lang={lang}
+                                    onClose={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
+                                    playerLevel={playerLevel}
+                                    stats={levelStats}
+                                    levels={levelsConfig}
+                                    isReady={(lvl) => isLevelRequirementMet(lvl)}
+                                    getProgress={(lvl) => getLevelProgress(lvl)}
+                                    onClaimLevel={(lvl) => {
+                                        tryClaimNextLevel(lvl)
+                                    }}
+                                />
+                            </div>
                         </div>
-                        <LevelsPanel
-                            t={t}
-                            lang={lang}
-                            onClose={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
-                            playerLevel={playerLevel}
-                            stats={levelStats}
-                            levels={levelsConfig}
-                            isReady={(lvl) => isLevelRequirementMet(lvl)}
-                            getProgress={(lvl) => getLevelProgress(lvl)}
-                            onClaimLevel={(lvl) => {
-                                tryClaimNextLevel(lvl)
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
+                    )
+                } catch (err) {
+                    console.error('Error rendering levels panel:', err)
+                    return null
+                }
+            })()}
             {newsOpen && (
                 <div style={overlayDim} onClick={() => setNewsOpen(false)}>
                     <div style={newsPopup} onClick={(e)=>e.stopPropagation()}>
