@@ -692,6 +692,7 @@ export function GameScreen() {
     const [levelsAnimatingOut, setLevelsAnimatingOut] = React.useState<boolean>(false)
     const [levelsSheetHeightVh, setLevelsSheetHeightVh] = React.useState<number>(80)
     const levelsDragStartY = React.useRef<number | null>(null)
+    const levelsOpenRef = React.useRef<boolean>(false)
     const levelsDragStartTs = React.useRef<number>(0)
     const levelsDragStartHeightVh = React.useRef<number>(64)
     const levelsLastY = React.useRef<number>(0)
@@ -942,17 +943,43 @@ export function GameScreen() {
             press11_sub: 'stay tuned',
         }
     }
+    // Синхронизируем ref с состоянием
+    React.useEffect(() => {
+        levelsOpenRef.current = levelsOpen
+        if (levelsOpen) {
+            console.log('[GameScreen] ✅ levelsOpen is TRUE - panel should be visible')
+        }
+    }, [levelsOpen])
+    
     // Открытие панели уровней (определяем после lang, чтобы избежать TDZ)
+    // Делаем точно так же, как открываются другие панели (tasks, news и т.д.)
     function openLevelsPanel() {
+        console.log('[openLevelsPanel] ⚡ CALLED, current levelsOpen:', levelsOpenRef.current)
         triggerHaptic('impact')
         setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+        
+        // Сбрасываем анимацию закрытия
         setLevelsAnimatingOut(false)
+        
+        // Закрываем меню
         setIsMenuOpen(false)
         setIsRightMenuOpen(false)
-        // Используем requestAnimationFrame для более надежного открытия в Telegram WebView
-        requestAnimationFrame(() => {
-            setLevelsOpen(true)
-        })
+        
+        // Открываем панель СРАЗУ
+        console.log('[openLevelsPanel] 🔓 Setting levelsOpen to TRUE')
+        setLevelsOpen(true)
+        levelsOpenRef.current = true
+        
+        // Дополнительная проверка через небольшую задержку на случай, если React не обновил состояние
+        setTimeout(() => {
+            if (!levelsOpenRef.current) {
+                console.log('[openLevelsPanel] ⚠️ WARNING: levelsOpen is still false after 100ms, forcing update')
+                setLevelsOpen(true)
+                levelsOpenRef.current = true
+            } else {
+                console.log('[openLevelsPanel] ✅ levelsOpen is TRUE after 100ms')
+            }
+        }, 100)
     }
     function t(key: string, vars?: Record<string, string | number>) {
         const raw = (STR[lang] && STR[lang][key]) || key
