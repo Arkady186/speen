@@ -2327,6 +2327,10 @@ export function GameScreen() {
                                         style={{position:'relative', width:48, height:48, display:'grid', placeItems:'center', cursor: (mode === 'pyramid' && pyramidSpinCount > 0) ? 'default' : 'pointer', opacity: (mode === 'pyramid' && pyramidSpinCount > 0) ? 0.5 : 1}}
                                         onClick={() => {
                                             if (mode === 'pyramid' && pyramidSpinCount > 0) return;
+                                            if (playerLevel < 5) {
+                                                setToast(lang === 'ru' ? 'Активируется на 5 lvl' : 'Activates at level 5')
+                                                return
+                                            }
                                             if (midW > 0) {
                                                 const toAdd = Math.floor(midW)
                                                 saveBalances(balanceW + toAdd, balanceB)
@@ -2342,7 +2346,7 @@ export function GameScreen() {
                                         <img src="/coin-w.png" alt="W" style={{width:44,height:44, transform: midAnim? 'scale(1.15)': 'scale(1)', transition:'transform 240ms ease'}} />
                                         {midAnim && <div style={midPlusOne}>+1</div>}
                                     </div>
-                                    <div style={midValue}>{midW.toFixed(2)}</div>
+                                    <div style={midValue}>{playerLevel < 5 ? '0.00' : midW.toFixed(2)}</div>
                                     
                                 </div>
                             </div>
@@ -3092,6 +3096,36 @@ export function GameScreen() {
                     </div>
                 </div>
             )}
+            {levelsOpen && (
+                <div style={overlayDimModal} onClick={() => { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 320) }}>
+                    <div style={{...inviteSheet, height:`${levelsSheetHeightVh}vh`, animation: levelsAnimatingOut ? 'bottomSheetDown 300ms ease-out forwards' : 'bottomSheetUp 320ms ease-out forwards'}} onClick={(e)=>e.stopPropagation()}>
+                        <div
+                            style={inviteGrabWrap}
+                            onPointerDown={(e)=>{ levelsDragStartY.current = e.clientY; levelsDragStartTs.current=Date.now(); levelsDragStartHeightVh.current = levelsSheetHeightVh; levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerMove={(e)=>{ if (levelsDragStartY.current==null) return; const dy = levelsDragStartY.current - e.clientY; const vh = Math.max(40, Math.min(90, levelsDragStartHeightVh.current + dy/(window.innerHeight/100))); setLevelsSheetHeightVh(vh); levelsLastY.current=e.clientY; levelsLastTs.current=Date.now() }}
+                            onPointerUp={()=>{ if (levelsDragStartY.current==null) return; const totalDy = levelsDragStartY.current - (levelsLastY.current || levelsDragStartY.current); const dt = Math.max(1, Date.now() - (levelsDragStartTs.current||Date.now())); const velocity = (totalDy/dt); if (velocity < -0.8) { triggerHaptic('impact'); setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) } else { const snaps=[40,60,80,90]; const next=snaps.reduce((a,b)=>Math.abs(b-levelsSheetHeightVh)<Math.abs(a-levelsSheetHeightVh)?b:a,snaps[0]); setLevelsSheetHeightVh(next); triggerHaptic('impact') } levelsDragStartY.current=null }}
+                            onPointerCancel={()=>{ levelsDragStartY.current=null }}
+                        >
+                            <div style={inviteGrabBar} />
+                        </div>
+                        <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'10px', boxSizing:'border-box'}}>
+                            <LevelsPanel
+                                onClose={() => { setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
+                                onClaimLevel={(lvl) => {
+                                    tryClaimNextLevel(lvl)
+                                }}
+                                playerLevel={playerLevel}
+                                stats={levelStats}
+                                levels={levelsConfig}
+                                isReady={isLevelRequirementMet}
+                                getProgress={getLevelProgress}
+                                t={t}
+                                lang={lang}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
             <div style={{ position: 'absolute', bottom: 8, left: 8, color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700, zIndex: 10 }}>v0.1.5</div>
         </div>
@@ -3815,18 +3849,18 @@ function OnboardingPanel({ lang, onFinish }: { lang: 'ru'|'en', onFinish: () => 
     const [step, setStep] = React.useState<number>(0)
     const steps = lang === 'ru'
         ? [
-            { title: 'Добро пожаловать!', body: 'Это регистрация и краткий инструктаж — показывается только один раз.\nСейчас объясню как играть.' },
-            { title: '1) Выбери цифру', body: 'Нажми на цифру 0–9 на колесе.\nПотом жми кнопку “Старт”.' },
-            { title: '2) Бонусный сектор', body: 'Перед стартом выбери бонусный сектор на колесе.\nЕсли угадаешь сектор — получишь деньги/бустер.' },
-            { title: '3) Бустеры', body: 'В “плюсе” можно выбрать бустер:\n- Сердце: вернёт ставку при проигрыше\n- Батарейка: даст доп. вращение при промахе\n- Ракета: усиливает выигрыш' },
-            { title: '4) Уровни и награды', body: 'Открой “Повысил уровень? — Забирай бонусы!”.\nВыполняй задания, кнопка “Забрать” загорится.\nВажно: накопитель по центру откроется с 5 уровня.' },
+            { title: 'Добро пожаловать!', body: 'Это регистрация и краткий инструктаж — показывается только один раз.\nСейчас объясню как играть.', image: '/press10.png' },
+            { title: '1) Выбери цифру', body: 'Нажми на цифру 0–9 на колесе.\nПотом жми кнопку “Старт”.', image: '/wheel.png' },
+            { title: '2) Бонусный сектор', body: 'Перед стартом выбери бонусный сектор на колесе.\nЕсли угадаешь сектор — получишь деньги/бустер.', image: '/bonus.png' },
+            { title: '3) Бустеры', body: 'В “плюсе” можно выбрать бустер:\n- Сердце: вернёт ставку при проигрыше\n- Батарейка: даст доп. вращение при промахе\n- Ракета: усиливает выигрыш', image: '/plus.png' },
+            { title: '4) Уровни и награды', body: 'Открой “Повысил уровень? — Забирай бонусы!”.\nВыполняй задания, кнопка “Забрать” загорится.\nВажно: накопитель по центру откроется с 5 уровня.', image: '/press10.png' },
         ]
         : [
-            { title: 'Welcome!', body: 'Registration & quick tutorial — shown only once.\nLet’s learn the basics.' },
-            { title: '1) Pick a digit', body: 'Tap a digit 0–9 on the wheel.\nThen press “Start”.' },
-            { title: '2) Bonus sector', body: 'Before spinning, select a bonus sector.\nIf you hit it — you get money/booster.' },
-            { title: '3) Boosters', body: 'In the “plus” menu you can choose a booster:\n- Heart: returns bet on loss\n- Battery: extra spin on miss\n- Rocket: boosts winnings' },
-            { title: '4) Levels & rewards', body: 'Open “Leveled up? — claim bonuses!”.\nComplete tasks and the “Claim” button will light up.\nCenter accumulator unlocks at level 5.' },
+            { title: 'Welcome!', body: 'Registration & quick tutorial — shown only once.\nLet's learn the basics.', image: '/press10.png' },
+            { title: '1) Pick a digit', body: 'Tap a digit 0–9 on the wheel.\nThen press “Start”.', image: '/wheel.png' },
+            { title: '2) Bonus sector', body: 'Before spinning, select a bonus sector.\nIf you hit it — you get money/booster.', image: '/bonus.png' },
+            { title: '3) Boosters', body: 'In the “plus” menu you can choose a booster:\n- Heart: returns bet on loss\n- Battery: extra spin on miss\n- Rocket: boosts winnings', image: '/plus.png' },
+            { title: '4) Levels & rewards', body: 'Open “Leveled up? — claim bonuses!”.\nComplete tasks and the “Claim” button will light up.\nCenter accumulator unlocks at level 5.', image: '/press10.png' },
         ]
 
     const isLast = step >= steps.length - 1
@@ -3878,7 +3912,16 @@ function OnboardingPanel({ lang, onFinish }: { lang: 'ru'|'en', onFinish: () => 
     return (
         <div style={wrap}>
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
-                <img src="/press10.png" alt="guide" style={{width:96,height:96,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
+                <img 
+                    src={steps[step]?.image || '/press10.png'} 
+                    alt="guide" 
+                    style={{
+                        width: step === 0 ? 96 : step === 1 ? 120 : step === 2 ? 80 : step === 3 ? 80 : 96,
+                        height: step === 0 ? 96 : step === 1 ? 120 : step === 2 ? 80 : step === 3 ? 80 : 96,
+                        objectFit:'contain',
+                        filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'
+                    }} 
+                />
             </div>
             <div style={title}>{steps[step]?.title || ''}</div>
             <div style={card}>
