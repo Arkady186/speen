@@ -3856,7 +3856,7 @@ function OnboardingPanel({ lang, onFinish }: { lang: 'ru'|'en', onFinish: () => 
             { title: '4) Уровни и награды', body: 'Открой “Повысил уровень? — Забирай бонусы!”.\nВыполняй задания, кнопка “Забрать” загорится.\nВажно: накопитель по центру откроется с 5 уровня.', image: '/press10.png' },
         ]
         : [
-            { title: 'Welcome!', body: 'Registration & quick tutorial — shown only once.\nLet's learn the basics.', image: '/press10.png' },
+            { title: 'Welcome!', body: 'Registration & quick tutorial — shown only once.\nLet\'s learn the basics.', image: '/press10.png' },
             { title: '1) Pick a digit', body: 'Tap a digit 0–9 on the wheel.\nThen press “Start”.', image: '/wheel.png' },
             { title: '2) Bonus sector', body: 'Before spinning, select a bonus sector.\nIf you hit it — you get money/booster.', image: '/bonus.png' },
             { title: '3) Boosters', body: 'In the “plus” menu you can choose a booster:\n- Heart: returns bet on loss\n- Battery: extra spin on miss\n- Rocket: boosts winnings', image: '/plus.png' },
