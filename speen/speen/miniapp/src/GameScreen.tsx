@@ -1299,8 +1299,20 @@ export function GameScreen() {
                 try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
                 return next
             })
+            // Сразу ставим задачу на синк прогресса, чтобы сервер знал о спинах
+            scheduleProgressSync()
         } catch {}
     }
+
+    // Авто-повышение уровня, как только выполнено условие следующего уровня
+    React.useEffect(() => {
+        const next = Math.min(50, playerLevel + 1)
+        if (next > playerLevel && isLevelRequirementMet(next)) {
+            claimNextLevel(next)
+            triggerHaptic('success')
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [levelStats])
 
     function onBeforeSpin() {
         // Авто‑спин от батарейки: не списываем ставку и не требуем выбор бонусного сектора
@@ -2565,7 +2577,8 @@ export function GameScreen() {
                                         if (act === 'levels') {
                                             setIsMenuOpen(false)
                                             setIsRightMenuOpen(false)
-                                            setLevelsOpen(true)
+                                            setTimeout(() => setLevelsOpen(true), 30)
+                                            setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
                                         }
                                     }
                                 }}
