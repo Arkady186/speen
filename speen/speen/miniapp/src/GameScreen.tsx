@@ -707,6 +707,19 @@ export function GameScreen() {
     const leaderboardDragStartHeightVh = React.useRef<number>(64)
     const leaderboardLastY = React.useRef<number>(0)
     const leaderboardLastTs = React.useRef<number>(0)
+
+    // Открытие панели уровней (делаем максимально надежно для Telegram WebView)
+    const openLevelsPanel = React.useCallback(() => {
+        triggerHaptic('impact')
+        setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+        setLevelsAnimatingOut(false)
+        // force reopen even if state somehow stuck
+        setLevelsOpen(false)
+        setIsMenuOpen(false)
+        setIsRightMenuOpen(false)
+        // открыть в следующем тике, после закрытия меню
+        setTimeout(() => setLevelsOpen(true), 0)
+    }, [lang])
     // Бонусы: Сердце (сохраняет деньги при проигрыше), Батарейка (дополнительное вращение), Ракета (удваивает выигрыш)
     const BONUS_LABELS: string[] = ['Heart','Battery','Rocket']
     const BONUS_IMAGES: string[] = ['/heardwh.png', '/battery.png', '/spacewh.png']
@@ -2581,9 +2594,7 @@ export function GameScreen() {
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
                                         if (act === 'levels') {
-                                            setIsMenuOpen(false)
-                                            setIsRightMenuOpen(false)
-                                            setLevelsOpen(true)
+                                            openLevelsPanel()
                                         }
                                         if (act === 'leaderboard') {
                                             // Перед открытием рейтинга отправляем текущие данные игрока
@@ -2596,9 +2607,7 @@ export function GameScreen() {
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                         if (act === 'levels') {
-                                            setIsMenuOpen(false)
-                                            setIsRightMenuOpen(false)
-                                            setLevelsOpen(true)
+                                            openLevelsPanel()
                                         }
                                     }
                                 }}
