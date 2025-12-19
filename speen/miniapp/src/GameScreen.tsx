@@ -2210,11 +2210,20 @@ export function GameScreen() {
                                             if (act === 'wheelshop') setWheelShopOpen(true)
                                             if (act === 'tasks') setTasksOpen(true)
                                             if (act === 'news') setNewsOpen(true)
-                                            if (act === 'levels') {
-                                                setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
-                                                setIsMenuOpen(false)
-                                                setIsRightMenuOpen(false)
-                                                setLevelsOpen(true)
+                                            const title = (item as any).title
+                                            const isLevelsItem = act === 'levels' || (title && (title.includes('Повысил уровень') || title.includes('Leveled up')))
+                                            if (isLevelsItem) {
+                                                console.log('[Levels] Opening levels panel from right menu, act:', act, 'title:', title)
+                                                try {
+                                                    setLevelsAnimatingOut(false)
+                                                    setIsMenuOpen(false)
+                                                    setIsRightMenuOpen(false)
+                                                    setLevelsOpen(true)
+                                                    console.log('[Levels] levelsOpen set to true')
+                                                } catch (err) {
+                                                    console.error('[Levels] Error opening levels panel:', err)
+                                                    setLevelsOpen(true)
+                                                }
                                             }
                                         }
                                     }}
