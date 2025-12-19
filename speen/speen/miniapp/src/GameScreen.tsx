@@ -2598,8 +2598,7 @@ export function GameScreen() {
                                         if (act === 'levels') {
                                             setIsMenuOpen(false)
                                             setIsRightMenuOpen(false)
-                                            setTimeout(() => setLevelsOpen(true), 30)
-                                            setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+                                            setLevelsOpen(true)
                                         }
                                     }
                                 }}
