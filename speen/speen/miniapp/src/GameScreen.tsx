@@ -946,15 +946,18 @@ export function GameScreen() {
     // Синхронизируем ref с состоянием
     React.useEffect(() => {
         levelsOpenRef.current = levelsOpen
-        if (levelsOpen) {
-            console.log('[GameScreen] ✅ levelsOpen is TRUE - panel should be visible')
+        if (levelsOpen && window.console && window.console.log) {
+            window.console.log('[GameScreen] levelsOpen is TRUE - panel should be visible')
         }
     }, [levelsOpen])
     
     // Открытие панели уровней (определяем после lang, чтобы избежать TDZ)
     // Делаем точно так же, как открываются другие панели (tasks, news и т.д.)
     function openLevelsPanel() {
-        console.log('[openLevelsPanel] ⚡ CALLED, current levelsOpen:', levelsOpenRef.current)
+        // Явная проверка - используем window.console чтобы логи не удалялись при минификации
+        if (window.console && window.console.log) {
+            window.console.log('[openLevelsPanel] CALLED')
+        }
         triggerHaptic('impact')
         setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
         
@@ -965,21 +968,13 @@ export function GameScreen() {
         setIsMenuOpen(false)
         setIsRightMenuOpen(false)
         
-        // Открываем панель СРАЗУ
-        console.log('[openLevelsPanel] 🔓 Setting levelsOpen to TRUE')
+        // Открываем панель СРАЗУ - без задержек
         setLevelsOpen(true)
         levelsOpenRef.current = true
         
-        // Дополнительная проверка через небольшую задержку на случай, если React не обновил состояние
-        setTimeout(() => {
-            if (!levelsOpenRef.current) {
-                console.log('[openLevelsPanel] ⚠️ WARNING: levelsOpen is still false after 100ms, forcing update')
-                setLevelsOpen(true)
-                levelsOpenRef.current = true
-            } else {
-                console.log('[openLevelsPanel] ✅ levelsOpen is TRUE after 100ms')
-            }
-        }, 100)
+        if (window.console && window.console.log) {
+            window.console.log('[openLevelsPanel] levelsOpen set to TRUE')
+        }
     }
     function t(key: string, vars?: Record<string, string | number>) {
         const raw = (STR[lang] && STR[lang][key]) || key
