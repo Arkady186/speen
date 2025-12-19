@@ -1329,7 +1329,7 @@ export function GameScreen() {
     React.useEffect(() => {
         const next = Math.min(50, playerLevel + 1)
         if (next > playerLevel && isLevelRequirementMet(next)) {
-            claimNextLevel(next)
+            tryClaimNextLevel(next)
             triggerHaptic('success')
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
