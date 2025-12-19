@@ -411,8 +411,30 @@ export function GameScreen() {
         }
     }
 
-    function tryClaimNextLevel() {
-        const next = Math.min(50, playerLevel + 1)
+    function getLevelProgress(targetLevel: number): { current: number, required: number, text: string } {
+        const s = levelStatsRef.current
+        const conf = levelsConfig.find(x => x.level === targetLevel)
+        if (!conf) return { current: 0, required: 0, text: '' }
+        
+        if (targetLevel === 0) return { current: 1, required: 1, text: '1/1' }
+        if (targetLevel === 1) return { current: s.spinsTotal, required: 1, text: `${s.spinsTotal}/1` }
+        if (targetLevel === 2) return { current: s.dailyClaims, required: 1, text: `${s.dailyClaims}/1` }
+        if (targetLevel === 3) return { current: s.tasksClaimed, required: 1, text: `${s.tasksClaimed}/1` }
+        if (targetLevel === 4) return { current: s.invites, required: 1, text: `${s.invites}/1` }
+        if (targetLevel === 5) return { current: s.spins3of10, required: 1, text: `${s.spins3of10}/1` }
+        if (targetLevel === 6) return { current: s.spinsX2, required: 10, text: `${s.spinsX2}/10` }
+        if (targetLevel === 7) return { current: (s.boostersBought['Heart'] || 0), required: 1, text: `${s.boostersBought['Heart'] || 0}/1` }
+        if (targetLevel === 8) return { current: (s.boostersUsed['Heart'] || 0), required: 1, text: `${s.boostersUsed['Heart'] || 0}/1` }
+        if (targetLevel === 9) return { current: s.spinsX5, required: 3, text: `${s.spinsX5}/3` }
+        if (targetLevel === 10) return { current: s.invites, required: 2, text: `${s.invites}/2` }
+        
+        // Для уровней 11-50 используем общую логику
+        const required = Math.max(10, targetLevel * 5)
+        return { current: s.spinsTotal, required, text: `${s.spinsTotal}/${required}` }
+    }
+
+    function tryClaimNextLevel(targetLevel?: number) {
+        const next = targetLevel || Math.min(50, playerLevel + 1)
         if (next <= playerLevel) return
         if (!isLevelRequirementMet(next)) {
             const need = levelsConfig.find(x => x.level === next)
@@ -2152,6 +2174,10 @@ export function GameScreen() {
         )
     }
 
+    React.useEffect(() => {
+        console.log('[GameScreen] mounted v0.1.5 (Render debug)');
+    }, []);
+
     return (
         <>
             {isLoading && <Preloader />}
@@ -2937,7 +2963,10 @@ export function GameScreen() {
                             stats={levelStats}
                             levels={levelsConfig}
                             isReady={(lvl) => isLevelRequirementMet(lvl)}
-                            onClaimNext={() => tryClaimNextLevel()}
+                            getProgress={(lvl) => getLevelProgress(lvl)}
+                            onClaimLevel={(lvl) => {
+                                tryClaimNextLevel(lvl)
+                            }}
                         />
                     </div>
                 </div>
@@ -3492,48 +3521,162 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
 
 function LevelsPanel({
     onClose,
-    onClaimNext,
+    onClaimLevel,
     playerLevel,
     stats,
     levels,
     isReady,
+    getProgress,
     t,
     lang,
 }: {
     onClose: () => void
-    onClaimNext: () => void
+    onClaimLevel: (level: number) => void
     playerLevel: number
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stats: any
     levels: Array<{ level: number, action: string, how: string, unlocks: string[], rewardW: number, minInvites?: number }>
     isReady: (lvl: number) => boolean
+    getProgress: (lvl: number) => { current: number, required: number, text: string }
     t: (k:string, vars?: Record<string, any>) => string
     lang: 'ru'|'en'
 }) {
     const [infoOpen, setInfoOpen] = React.useState(false)
-    const [infoLevel, setInfoLevel] = React.useState<number | null>(null)
 
     const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
     const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
-    const infoBtn: React.CSSProperties = { width:24, height:24, borderRadius:'50%', background:'rgba(255,255,255,0.2)', border:'2px solid rgba(255,255,255,0.4)', color:'#fff', fontWeight:900, fontSize:14, display:'grid', placeItems:'center', cursor:'pointer', boxShadow:'0 2px 4px rgba(0,0,0,0.2)' }
-    const card: React.CSSProperties = { background:'rgba(255,255,255,0.08)', borderRadius:16, padding:12, boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.55)', display:'grid', gap:8 }
-    const row: React.CSSProperties = { display:'grid', gridTemplateColumns:'64px 1fr auto', gap:10, alignItems:'center' }
-    const lvlPill: React.CSSProperties = { justifySelf:'start', background:'#ffd23a', color:'#0b2f68', fontWeight:900, borderRadius:999, padding:'6px 10px', boxShadow:'inset 0 0 0 3px #7a4e06', textAlign:'center' }
-    const actionTxt: React.CSSProperties = { color:'#fff', fontWeight:900, lineHeight:1.2 }
-    const subTxt: React.CSSProperties = { color:'#dbe8ff', fontWeight:700, fontSize:12, opacity:.9, lineHeight:1.3 }
-    const claimBtn: React.CSSProperties = { padding:'10px 14px', borderRadius:12, border:'none', background:'#22c55e', color:'#0b2f68', fontWeight:900, boxShadow:'inset 0 0 0 3px #0a5d2b', cursor:'pointer' }
-    const doneBadge: React.CSSProperties = { padding:'6px 10px', borderRadius:999, background:'rgba(34,197,94,0.2)', color:'#22c55e', fontWeight:900, boxShadow:'inset 0 0 0 2px rgba(34,197,94,0.45)' }
+    const infoBtn: React.CSSProperties = { 
+        width:24, height:24, borderRadius:'50%', 
+        background:'rgba(255,255,255,0.2)', 
+        border:'2px solid rgba(255,255,255,0.4)', 
+        color:'#fff', 
+        fontWeight:900, 
+        fontSize:14, 
+        display:'grid', 
+        placeItems:'center', 
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 2px 4px rgba(0,0,0,0.2)'
+    }
+    const descrPill: React.CSSProperties = { color:'#e8f1ff', textAlign:'center', fontWeight:800, lineHeight:1.4, margin:'0 auto', width:'95%' }
+    const taskCard: React.CSSProperties = {
+        display:'grid',
+        gridTemplateColumns:'1fr auto',
+        alignItems:'center',
+        gap:12,
+        background:'linear-gradient(180deg,#6bb3ff 0%, #2b66b9 100%)',
+        borderRadius:14,
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)',
+        padding:14,
+        position:'relative',
+        transition:'transform 120ms ease, boxShadow 120ms ease'
+    }
+    const taskCardDone: React.CSSProperties = {
+        ...taskCard,
+        background:'linear-gradient(180deg, #4b5563 0%, #1f2937 100%)',
+        opacity:0.7
+    }
+    const taskInfo: React.CSSProperties = { display:'grid', gap:6 }
+    const taskTitle: React.CSSProperties = { color:'#fff', fontWeight:900, fontSize:15, textShadow:'0 1px 2px rgba(0,0,0,0.35)' }
+    const taskProgress: React.CSSProperties = { color:'#e8f1ff', opacity:0.9, fontSize:13, fontWeight:700 }
+    const taskButton: React.CSSProperties = {
+        padding:'10px 18px',
+        borderRadius:10,
+        border:'none',
+        background:'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+        color:'#0b2f68',
+        fontWeight:900,
+        fontSize:13,
+        boxShadow:'inset 0 0 0 2px #0a5d2b, 0 2px 4px rgba(0,0,0,0.25)',
+        cursor:'pointer',
+        transition:'all 120ms ease'
+    }
+    const taskButtonDisabled: React.CSSProperties = {
+        ...taskButton,
+        background:'linear-gradient(180deg, #889bb9 0%, #64748b 100%)',
+        cursor:'default',
+        opacity:0.6
+    }
+    const infoModal: React.CSSProperties = {
+        position:'fixed', left:0, right:0, top:0, bottom:0,
+        background:'rgba(0,0,0,0.7)',
+        display:'grid', placeItems:'center',
+        zIndex:10000,
+        pointerEvents: infoOpen ? 'auto' : 'none',
+        opacity: infoOpen ? 1 : 0,
+        transition:'opacity 200ms ease'
+    }
+    const infoModalContent: React.CSSProperties = {
+        background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)',
+        borderRadius:20,
+        padding:20,
+        maxWidth:'85%',
+        boxShadow:'inset 0 0 0 3px #0b2f68, 0 8px 24px rgba(0,0,0,0.4)',
+        transform: infoOpen ? 'scale(1)' : 'scale(0.9)',
+        transition:'transform 200ms ease'
+    }
 
-    const nextLevel = Math.min(50, playerLevel + 1)
-    const nextCfg = levels.find(x => x.level === nextLevel)
-    const nextReady = nextLevel > playerLevel && isReady(nextLevel)
-    const visible = levels.filter(l => l.level <= playerLevel + 1)
+    // Показываем только следующие 3-5 уровней, которые можно выполнить
+    const availableLevels = levels
+        .filter(l => l.level > playerLevel && l.level <= playerLevel + 5)
+        .slice(0, 5)
 
-    const infoModal: React.CSSProperties = { position:'fixed', left:0,right:0,top:0,bottom:0, background:'rgba(0,0,0,0.7)', display:'grid', placeItems:'center', zIndex:10000 }
-    const infoModalContent: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:18, maxWidth:'88%', boxShadow:'inset 0 0 0 3px #0b2f68, 0 10px 26px rgba(0,0,0,0.45)' }
-
-    const currentInfo = infoLevel != null ? levels.find(x => x.level === infoLevel) : null
+    const renderLevelTask = (level: number, action: string, progress: string, canClaim: boolean, done: boolean, rewardW: number, onClick: () => void) => (
+        <div 
+            key={`level-${level}`}
+            style={done ? taskCardDone : taskCard}
+            onMouseEnter={(e) => {
+                if (!done) {
+                    e.currentTarget.style.transform = 'scale(1.02)'
+                    e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 6px 12px rgba(0,0,0,0.35)'
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (!done) {
+                    e.currentTarget.style.transform = 'scale(1)'
+                    e.currentTarget.style.boxShadow = 'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)'
+                }
+            }}
+        >
+            {done && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 10,
+                    fontSize: 48,
+                    color: '#22c55e',
+                    textShadow: '0 0 4px #0b2f68, 0 0 10px rgba(0,0,0,0.7)'
+                }}>✓</div>
+            )}
+            <div style={taskInfo}>
+                <div style={taskTitle}>{lang === 'ru' ? `Уровень ${level}: ${action}` : `Level ${level}: ${action}`}</div>
+                <div style={taskProgress}>{progress}</div>
+                <div style={{color:'#ffe27a', fontSize:12, fontWeight:800, marginTop:2}}>{lang === 'ru' ? `Награда: +${rewardW} W` : `Reward: +${rewardW} W`}</div>
+            </div>
+            <button 
+                disabled={!canClaim || done}
+                style={(!canClaim || done) ? taskButtonDisabled : taskButton}
+                onClick={onClick}
+                onMouseEnter={(e) => {
+                    if (canClaim && !done) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #2dd977 0%, #16a34a 100%)'
+                        e.currentTarget.style.transform = 'scale(1.05)'
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (canClaim && !done) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)'
+                        e.currentTarget.style.transform = 'scale(1)'
+                    }
+                }}
+            >
+                {t('get')}
+            </button>
+        </div>
+    )
 
     return (
         <>
@@ -3542,80 +3685,52 @@ function LevelsPanel({
                 <img src="/press10.png" alt="levels" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
             <div style={titleWrap}>
-                <div style={title}>{lang==='ru' ? 'Уровни и награды' : 'Levels & rewards'}</div>
-                <button style={infoBtn} onClick={() => { setInfoLevel(nextLevel); setInfoOpen(true) }}>i</button>
+                <div style={title}>{lang==='ru' ? 'Повысил уровень? Забирай бонусы!' : 'Leveled up? Claim bonuses!'}</div>
+                <button 
+                    style={infoBtn} 
+                    onClick={() => setInfoOpen(true)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)' }}
+                >
+                    i
+                </button>
             </div>
-
-            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900}}>
+            <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, fontSize:16, marginBottom:4}}>
                 {lang==='ru' ? `Твой уровень: ${playerLevel}` : `Your level: ${playerLevel}`}
             </div>
-
-            {nextCfg && (
-                <div style={card}>
-                    <div style={row}>
-                        <div style={lvlPill}>{`LVL ${nextCfg.level}`}</div>
-                        <div style={{display:'grid', gap:4}}>
-                            <div style={actionTxt}>{nextCfg.action}</div>
-                            <div style={subTxt}>
-                                {nextCfg.minInvites != null ? (lang==='ru' ? `Друзей: ${stats?.invites || 0}/${nextCfg.minInvites}` : `Invites: ${stats?.invites || 0}/${nextCfg.minInvites}`) : (lang==='ru' ? 'Сделай действие, чтобы открыть следующий уровень' : 'Complete the action to unlock next level')}
-                            </div>
-                        </div>
-                        {nextReady ? (
-                            <button style={claimBtn} onClick={onClaimNext}>{lang==='ru' ? `Забрать +${nextCfg.rewardW} W` : `Claim +${nextCfg.rewardW} W`}</button>
-                        ) : (
-                            <button style={{...infoBtn, justifySelf:'end'}} onClick={() => { setInfoLevel(nextCfg.level); setInfoOpen(true) }}>i</button>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <div style={{display:'grid', gap:10}}>
-                {visible.map((lv) => {
+            <div style={{display:'grid', gap:12}}>
+                {availableLevels.length > 0 ? availableLevels.map((lv) => {
                     const done = lv.level <= playerLevel
-                    return (
-                        <div key={`lvl-${lv.level}`} style={{...card, opacity: done ? 0.95 : 1}}>
-                            <div style={row}>
-                                <div style={lvlPill}>{`LVL ${lv.level}`}</div>
-                                <div style={{display:'grid', gap:4}}>
-                                    <div style={actionTxt}>{lv.action}</div>
-                                    {!!lv.unlocks?.length && (
-                                        <div style={subTxt}>{(lang==='ru' ? 'Возможности: ' : 'Unlocks: ') + lv.unlocks.join(', ')}</div>
-                                    )}
-                                </div>
-                                <div style={{display:'grid', gap:6, justifyItems:'end'}}>
-                                    {done ? <div style={doneBadge}>✓</div> : <div style={{color:'#ffe27a', fontWeight:900}}>{`+${lv.rewardW} W`}</div>}
-                                    <button style={infoBtn} onClick={() => { setInfoLevel(lv.level); setInfoOpen(true) }}>i</button>
-                                </div>
-                            </div>
-                        </div>
+                    const ready = isReady(lv.level)
+                    const progress = getProgress(lv.level)
+                    return renderLevelTask(
+                        lv.level,
+                        lv.action,
+                        progress.text,
+                        ready && !done,
+                        done,
+                        lv.rewardW,
+                        () => {
+                            if (ready && !done) {
+                                onClaimLevel(lv.level)
+                            }
+                        }
                     )
-                })}
-            </div>
-
-            <div style={{display:'grid', placeItems:'center', marginTop:6}}>
-                <button style={inviteSecondaryBtn} onClick={onClose}>{t('close')}</button>
+                }) : (
+                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, padding:20}}>
+                        {lang === 'ru' ? 'Все доступные уровни выполнены!' : 'All available levels completed!'}
+                    </div>
+                )}
             </div>
         </div>
-
-        {infoOpen && (
-            <div style={infoModal} onClick={() => setInfoOpen(false)}>
-                <div style={infoModalContent} onClick={(e)=>e.stopPropagation()}>
-                    <div style={{color:'#fff', fontWeight:900, fontSize:18, textAlign:'center'}}>{currentInfo ? `LVL ${currentInfo.level}` : ''}</div>
-                    <div style={{color:'#e8f1ff', fontWeight:900, textAlign:'center', marginTop:8}}>{currentInfo?.action || ''}</div>
-                    <div style={{color:'#dbe8ff', marginTop:10, lineHeight:1.4, fontWeight:700}}>
-                        {currentInfo?.how || ''}
-                    </div>
-                    {!!currentInfo?.unlocks?.length && (
-                        <div style={{color:'#ffe27a', marginTop:10, fontWeight:900}}>
-                            {(lang==='ru' ? 'Возможности: ' : 'Unlocks: ') + currentInfo.unlocks.join(', ')}
-                        </div>
-                    )}
-                    <div style={{display:'grid', placeItems:'center', marginTop:16}}>
-                        <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
-                    </div>
+        <div style={infoModal} onClick={() => setInfoOpen(false)}>
+            <div style={infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div style={descrPill}>{lang==='ru' ? 'Выполняй задания для повышения уровня и получай награды. Каждый уровень можно получить только один раз.' : 'Complete tasks to level up and get rewards. Each level can only be claimed once.'}</div>
+                <div style={{display:'grid', placeItems:'center', marginTop:16}}>
+                    <button style={inviteSecondaryBtn} onClick={() => setInfoOpen(false)}>{t('close')}</button>
                 </div>
             </div>
-        )}
+        </div>
         </>
     )
 }
