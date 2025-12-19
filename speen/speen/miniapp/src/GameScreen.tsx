@@ -49,6 +49,23 @@ animationStyle.textContent = `
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+@keyframes neonFlicker {
+  0% { opacity: 0; text-shadow: none; }
+  10% { opacity: 1; text-shadow: 0 0 4px rgba(0,255,200,0.6), 0 0 12px rgba(0,255,200,0.4); }
+  20% { opacity: 0.3; text-shadow: 0 0 2px rgba(0,255,200,0.3); }
+  30% { opacity: 1; text-shadow: 0 0 6px rgba(0,255,200,0.7), 0 0 16px rgba(0,255,200,0.5); }
+  40% { opacity: 0.5; text-shadow: 0 0 3px rgba(0,255,200,0.4); }
+  50% { opacity: 1; text-shadow: 0 0 8px rgba(0,255,200,0.8), 0 0 20px rgba(0,255,200,0.6); }
+  60% { opacity: 0.4; text-shadow: 0 0 3px rgba(0,255,200,0.3); }
+  70% { opacity: 1; text-shadow: 0 0 10px rgba(0,255,200,0.85), 0 0 26px rgba(0,255,200,0.7); }
+  85% { opacity: 0.9; text-shadow: 0 0 12px rgba(0,255,200,0.9), 0 0 32px rgba(0,255,200,0.75); }
+  100% { opacity: 1; text-shadow: 0 0 14px rgba(0,255,200,1), 0 0 36px rgba(0,255,200,0.85); }
+}
+@keyframes neonPulse {
+  0% { text-shadow: 0 0 10px rgba(0,255,200,0.7), 0 0 28px rgba(0,255,200,0.5); }
+  50% { text-shadow: 0 0 18px rgba(0,255,200,1), 0 0 44px rgba(0,255,200,0.85); }
+  100% { text-shadow: 0 0 10px rgba(0,255,200,0.7), 0 0 28px rgba(0,255,200,0.5); }
+}
 `
 if (!document.head.querySelector('#animation-styles')) {
     animationStyle.id = 'animation-styles'
@@ -61,6 +78,10 @@ function Preloader() {
             <div style={preloaderContent}>
                 <div style={preloaderSpinner}></div>
                 <div style={preloaderText}>Загрузка...</div>
+                <div style={neonWrap}>
+                    <div style={neonText}>С НАСТУПАЮЩИМ</div>
+                    <div style={neonText}>НОВЫМ ГОДОМ!</div>
+                </div>
             </div>
         </div>
     )
@@ -4319,6 +4340,27 @@ const preloaderContent: React.CSSProperties = {
     display: 'grid',
     placeItems: 'center',
     gap: 20,
+}
+
+const neonWrap: React.CSSProperties = {
+    display: 'grid',
+    gap: 6,
+    padding: '10px 14px',
+    borderRadius: 12,
+    background: 'rgba(0,0,0,0.25)',
+    border: '1px solid rgba(0,255,200,0.25)',
+    boxShadow: '0 0 16px rgba(0,255,200,0.25), inset 0 0 12px rgba(0,0,0,0.35)',
+}
+
+const neonText: React.CSSProperties = {
+    color: '#d9fffb',
+    fontWeight: 900,
+    letterSpacing: 1.8,
+    fontSize: 18,
+    textTransform: 'uppercase' as const,
+    textAlign: 'center' as const,
+    animation: 'neonFlicker 2400ms ease-in-out forwards, neonPulse 1600ms ease-in-out infinite 2400ms',
+    filter: 'drop-shadow(0 0 6px rgba(0,255,200,0.5))',
 }
 
 const preloaderSpinner: React.CSSProperties = {
