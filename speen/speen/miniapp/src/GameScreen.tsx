@@ -2203,6 +2203,22 @@ export function GameScreen() {
                     <div style={{display:'grid'}}>
                         <div style={usernameRow}>
                             <div style={usernameStyle}>{username || 'Игрок'}</div>
+                            <div
+                                style={{
+                                    marginLeft: 6,
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #22c55e 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 0 0 2px rgba(3, 7, 18, 0.7)',
+                                    flexShrink: 0
+                                }}
+                            >
+                                <span style={{color:'#f9fafb', fontSize:10, fontWeight:900}}>✔</span>
+                            </div>
                         </div>
                         <div style={levelStyle}>{playerLevel} lvl</div>
                     </div>
@@ -3048,6 +3064,7 @@ export function GameScreen() {
                 </div>
             )}
             {toast && <Toast text={toast} onClose={() => setToast(null)} />}
+            <div style={{ position: 'absolute', bottom: 8, left: 8, color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700, zIndex: 10 }}>v0.1.5</div>
         </div>
         </>
     )
