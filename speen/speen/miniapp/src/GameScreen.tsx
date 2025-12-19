@@ -2610,6 +2610,7 @@ export function GameScreen() {
                                 onClick={() => {
                                     const left = isMenuOpen
                                     const act = (item as any).action
+                                    const title = (item as any).title
                                     console.log('[Menu] onClick triggered, left:', left, 'action:', act, 'item:', item)
                                     triggerHaptic('impact')
                                     if (left) {
@@ -2617,7 +2618,8 @@ export function GameScreen() {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
-                                        if (act === 'levels') {
+                                        const isLevelsItem = act === 'levels' || (title && (title.includes('Повысил уровень') || title.includes('Leveled up')))
+                                        if (isLevelsItem) {
                                             console.log('[Levels] Opening levels panel from left menu')
                                             try {
                                                 setLevelsAnimatingOut(false)
@@ -2639,8 +2641,9 @@ export function GameScreen() {
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
-                                        if (act === 'levels') {
-                                            console.log('[Levels] Opening levels panel from right menu, act === levels:', act === 'levels')
+                                        const isLevelsItem = act === 'levels' || (title && (title.includes('Повысил уровень') || title.includes('Leveled up')))
+                                        if (isLevelsItem) {
+                                            console.log('[Levels] Opening levels panel from right menu, act:', act, 'title:', title)
                                             try {
                                                 setLevelsAnimatingOut(false)
                                                 setLevelsOpen(true)
@@ -2649,8 +2652,6 @@ export function GameScreen() {
                                                 console.error('[Levels] Error opening levels panel:', err)
                                                 setLevelsOpen(true)
                                             }
-                                        } else {
-                                            console.log('[Menu] act is not levels, act:', act, 'type:', typeof act)
                                         }
                                     }
                                 }}

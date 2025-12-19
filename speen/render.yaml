@@ -12,3 +12,14 @@ services:
         value: 20
       - key: DATABASE_URL
         sync: false
+
+  - type: static
+    name: speen-miniapp
+    rootDir: speen/miniapp
+    buildCommand: npm ci --include=dev && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
