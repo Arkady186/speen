@@ -2616,7 +2616,7 @@ export function GameScreen() {
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
                                         if (act === 'levels') {
-                                            openLevelsPanel()
+                                            setLevelsOpen(true)
                                         }
                                         if (act === 'leaderboard') {
                                             // Перед открытием рейтинга отправляем текущие данные игрока
@@ -2629,7 +2629,7 @@ export function GameScreen() {
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                         if (act === 'levels') {
-                                            openLevelsPanel()
+                                            setLevelsOpen(true)
                                         }
                                     }
                                 }}
