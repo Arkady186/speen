@@ -708,20 +708,6 @@ export function GameScreen() {
     const leaderboardLastY = React.useRef<number>(0)
     const leaderboardLastTs = React.useRef<number>(0)
 
-    // Открытие панели уровней (делаем максимально надежно для Telegram WebView)
-    // Важно: НЕ используем useCallback([lang]) здесь, потому что lang объявляется ниже по файлу
-    // и в Telegram WebView это может дать TDZ-ошибку "Cannot access ... before initialization" в прод-сборке.
-    function openLevelsPanel() {
-        triggerHaptic('impact')
-        setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
-        setLevelsAnimatingOut(false)
-        // force reopen even if state somehow stuck
-        setLevelsOpen(false)
-        setIsMenuOpen(false)
-        setIsRightMenuOpen(false)
-        // открыть в следующем тике, после закрытия меню
-        setTimeout(() => setLevelsOpen(true), 0)
-    }
     // Бонусы: Сердце (сохраняет деньги при проигрыше), Батарейка (дополнительное вращение), Ракета (удваивает выигрыш)
     const BONUS_LABELS: string[] = ['Heart','Battery','Rocket']
     const BONUS_IMAGES: string[] = ['/heardwh.png', '/battery.png', '/spacewh.png']
@@ -955,6 +941,18 @@ export function GameScreen() {
             press11_title: 'WCOIN news',
             press11_sub: 'stay tuned',
         }
+    }
+    // Открытие панели уровней (определяем после lang, чтобы избежать TDZ)
+    function openLevelsPanel() {
+        triggerHaptic('impact')
+        setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
+        setLevelsAnimatingOut(false)
+        setIsMenuOpen(false)
+        setIsRightMenuOpen(false)
+        // Используем requestAnimationFrame для более надежного открытия в Telegram WebView
+        requestAnimationFrame(() => {
+            setLevelsOpen(true)
+        })
     }
     function t(key: string, vars?: Record<string, string | number>) {
         const raw = (STR[lang] && STR[lang][key]) || key
