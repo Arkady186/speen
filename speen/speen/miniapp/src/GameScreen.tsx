@@ -2610,8 +2610,10 @@ export function GameScreen() {
                                 onClick={() => {
                                     const left = isMenuOpen
                                     const act = (item as any).action
+                                    console.log('[Menu] onClick triggered, left:', left, 'action:', act, 'item:', item)
                                     triggerHaptic('impact')
                                     if (left) {
+                                        console.log('[Menu] Left menu branch, act:', act)
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
@@ -2633,11 +2635,12 @@ export function GameScreen() {
                                         }
                                         if (act === 'ton') { openTonConnect(); return }
                                     } else {
+                                        console.log('[Menu] Right menu branch, act:', act)
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                         if (act === 'levels') {
-                                            console.log('[Levels] Opening levels panel from right menu')
+                                            console.log('[Levels] Opening levels panel from right menu, act === levels:', act === 'levels')
                                             try {
                                                 setLevelsAnimatingOut(false)
                                                 setLevelsOpen(true)
@@ -2646,6 +2649,8 @@ export function GameScreen() {
                                                 console.error('[Levels] Error opening levels panel:', err)
                                                 setLevelsOpen(true)
                                             }
+                                        } else {
+                                            console.log('[Menu] act is not levels, act:', act, 'type:', typeof act)
                                         }
                                     }
                                 }}
