@@ -2229,22 +2229,6 @@ export function GameScreen() {
                     <div style={{display:'grid'}}>
                         <div style={usernameRow}>
                             <div style={usernameStyle}>{username || 'Игрок'}</div>
-                            <div
-                                style={{
-                                    marginLeft: 6,
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #22c55e 100%)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 0 0 2px rgba(3, 7, 18, 0.7)',
-                                    flexShrink: 0
-                                }}
-                            >
-                                <span style={{color:'#f9fafb', fontSize:10, fontWeight:900}}>✔</span>
-                            </div>
                         </div>
                         <div style={levelStyle}>{playerLevel} lvl</div>
                     </div>
@@ -2558,11 +2542,16 @@ export function GameScreen() {
                                 onClick={() => {
                                     const left = isMenuOpen
                                     const act = (item as any).action
+                                    triggerHaptic('impact')
                                     if (left) {
                                         if (act === 'invite') setInviteOpen(true)
                                         if (act === 'daily') setDailyOpen(true)
                                         if (act === 'shop') setShopOpen(true)
-                                        if (act === 'levels') setLevelsOpen(true)
+                                        if (act === 'levels') {
+                                            setIsMenuOpen(false)
+                                            setIsRightMenuOpen(false)
+                                            setLevelsOpen(true)
+                                        }
                                         if (act === 'leaderboard') {
                                             // Перед открытием рейтинга отправляем текущие данные игрока
                                             updateLeaderboard(balanceW, balanceB)
@@ -2574,7 +2563,6 @@ export function GameScreen() {
                                         if (act === 'tasks') setTasksOpen(true)
                                         if (act === 'news') setNewsOpen(true)
                                         if (act === 'levels') {
-                                            setToast(lang === 'ru' ? 'Открываю уровни…' : 'Opening levels…')
                                             setIsMenuOpen(false)
                                             setIsRightMenuOpen(false)
                                             setLevelsOpen(true)
