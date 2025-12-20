@@ -2731,8 +2731,18 @@ export function GameScreen() {
                                             updateLeaderboard(balanceW, balanceB)
                                             setLeaderboardOpen(true)
                                         }
-                                        if (act === 'ton') { openTonConnect(); return }
-                                    } else {
+                                            if (act === 'ton') { openTonConnect(); return }
+                                            if (act === 'telegram_group') {
+                                                const tg = (window as any).Telegram?.WebApp
+                                                const url = 'https://t.me/wheel_777'
+                                                if (tg?.openTelegramLink) {
+                                                    tg.openTelegramLink(url)
+                                                } else {
+                                                    window.open(url, '_blank')
+                                                }
+                                                return
+                                            }
+                                        } else {
                                         console.log('[Menu] Right menu branch, act:', act)
                                         if (act === 'wheelshop') setWheelShopOpen(true)
                                         if (act === 'tasks') setTasksOpen(true)
@@ -5375,14 +5385,14 @@ function LeaderboardPanel({ onClose, userId, username, avatarUrl, t, lang }: { o
     )
 }
 
-function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' }> {
+function createMenuItemsLeft(tr: (k:string)=>string): Array<{ title: string, subtitle?: string, badge?: string, badgeImg?: string, icon: React.ReactNode, action?: 'invite' | 'daily' | 'shop' | 'ton' | 'leaderboard' | 'telegram_group' }> {
     return [
         { title: tr('press1_title'), badgeImg:'/coming1.png', action: 'ton', icon: <PressIcon src="/press1.png" alt="press1" fallbackEmoji="🙂" /> },
         { title: tr('press2_title'), badgeImg:'/coming1.png', action: 'invite', icon: <PressIcon src="/press2.png" alt="press2" fallbackEmoji="🙂" /> },
         { title: tr('press3_title'), badgeImg:'/coming1.png', action: 'daily', icon: <PressIcon src="/press3.png" alt="press3" fallbackEmoji="🙂" /> },
         { title: tr('press4_title'), action: 'leaderboard', icon: <PressIcon src="/press4.png" alt="press4" fallbackEmoji="🙂" /> },
         { title: tr('press5_title'), badgeImg:'/coming1.png', action: 'shop', icon: <PressIcon src="/press5.png" alt="press5" fallbackEmoji="🙂" /> },
-        { title: tr('press6_title'), badgeImg:'/coming1.png', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
+        { title: tr('press6_title'), action: 'telegram_group', icon: <PressIcon src="/press6.png" alt="press6" fallbackEmoji="🙂" /> },
     ]
 }
 
