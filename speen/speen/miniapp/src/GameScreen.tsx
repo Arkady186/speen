@@ -140,6 +140,9 @@ export function GameScreen() {
         exchangedBtoW_totalW: number
         exchangedWtoB_times: number
         purchasedBTotal: number
+        // onboarding + milestones
+        onboardingDone: number
+        series3of10Completed: number
     }
 
     const LEVEL_KEY = 'player_level_v1'
@@ -152,6 +155,22 @@ export function GameScreen() {
     })
     const playerLevelRef = React.useRef<number>(playerLevel)
     React.useEffect(() => { playerLevelRef.current = playerLevel }, [playerLevel])
+
+    // Rewards are claimed separately from level-up (player gets the level immediately, then claims reward in Levels)
+    const CLAIMED_LEVEL_KEY = 'player_level_claimed_v1'
+    const [claimedLevel, setClaimedLevel] = React.useState<number>(() => {
+        const v = Number(localStorage.getItem(CLAIMED_LEVEL_KEY) || '0')
+        return Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
+    })
+    React.useEffect(() => {
+        // never allow "claimed" to exceed current level
+        if (claimedLevel > playerLevel) {
+            const v = playerLevel
+            setClaimedLevel(v)
+            try { localStorage.setItem(CLAIMED_LEVEL_KEY, String(v)) } catch {}
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerLevel])
 
     const [levelStats, setLevelStats] = React.useState<LevelStats>(() => {
         try {
@@ -190,6 +209,8 @@ export function GameScreen() {
                     exchangedBtoW_totalW: Number(d.exchangedBtoW_totalW || 0),
                     exchangedWtoB_times: Number(d.exchangedWtoB_times || 0),
                     purchasedBTotal: Number(d.purchasedBTotal || 0),
+                    onboardingDone: Number(d.onboardingDone || 0),
+                    series3of10Completed: Number(d.series3of10Completed || 0),
                 }
             }
         } catch {}
@@ -225,6 +246,8 @@ export function GameScreen() {
             exchangedBtoW_totalW: 0,
             exchangedWtoB_times: 0,
             purchasedBTotal: 0,
+            onboardingDone: 0,
+            series3of10Completed: 0,
         }
     })
 
@@ -269,6 +292,8 @@ export function GameScreen() {
             if (data.onboarding_done) {
                 try { localStorage.setItem(ONBOARDING_KEY, '1') } catch {}
                 setOnboardingOpen(false)
+                // keep milestone inside stats too (for level requirements)
+                setStatsFromRemote({ onboardingDone: 1 })
             }
             progressLoadedRef.current = true
         } catch {}
@@ -328,7 +353,13 @@ export function GameScreen() {
     }
 
     const [levelsConfig, setLevelsConfig] = React.useState<LevelConfig[]>(() => ([
-        { level: 0, action: 'регистрация', how: 'Сделай: регистрация', unlocks: ['доступ к игре (без бонусного барабана)'], rewardW: 10000 },
+        { level: 0, action: 'Старт', how: 'Начальный уровень', unlocks: ['Доступ к игре'], rewardW: 0 },
+        { level: 1, action: 'Инструктаж / регистрация', how: 'Пройди инструктаж при первом входе.', unlocks: ['Доступ к игре'], rewardW: 10000 },
+        { level: 2, action: 'Сделать старт на барабане', how: 'Нажми “Старт” в любом режиме и дождись результата.', unlocks: ['Ежедневный бонус'], rewardW: 1000 },
+        { level: 3, action: 'Забрать ежедневный бонус', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['Бонусные задания'], rewardW: 1000 },
+        { level: 4, action: 'Выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['Рефералка'], rewardW: 1000 },
+        { level: 5, action: 'Пригласить 1 друга', how: 'Пригласи 1 друга — он должен появиться в списке друзей.', unlocks: ['Открывается накопитель'], rewardW: 1000, minInvites: 1 },
+        { level: 6, action: 'Сыграть 1 серию “3 из 10”', how: 'Переключи режим на “3 из 10” и дождись окна с выпавшими цифрами.', unlocks: ['Уровни продолжают расти от активности'], rewardW: 5000 },
     ]))
 
     React.useEffect(() => {
@@ -358,7 +389,24 @@ export function GameScreen() {
                         }
                     })
                     .sort((a, b) => a.level - b.level)
-                if (mapped.length) setLevelsConfig(mapped)
+                if (mapped.length) {
+                    const overrides: Record<number, LevelConfig> = {
+                        0: { level: 0, action: 'Старт', how: 'Начальный уровень', unlocks: ['Доступ к игре'], rewardW: 0 },
+                        1: { level: 1, action: 'Инструктаж / регистрация', how: 'Пройди инструктаж при первом входе.', unlocks: ['Доступ к игре'], rewardW: 10000 },
+                        2: { level: 2, action: 'Сделать старт на барабане', how: 'Нажми “Старт” в любом режиме и дождись результата.', unlocks: ['Ежедневный бонус'], rewardW: 1000 },
+                        3: { level: 3, action: 'Забрать ежедневный бонус', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['Бонусные задания'], rewardW: 1000 },
+                        4: { level: 4, action: 'Выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['Рефералка'], rewardW: 1000 },
+                        5: { level: 5, action: 'Пригласить 1 друга', how: 'Пригласи 1 друга — он должен появиться в списке друзей.', unlocks: ['Открывается накопитель'], rewardW: 1000, minInvites: 1 },
+                        6: { level: 6, action: 'Сыграть 1 серию “3 из 10”', how: 'Переключи режим на “3 из 10” и дождись окна с выпавшими цифрами.', unlocks: ['Уровни продолжают расти от активности'], rewardW: 5000 },
+                    }
+                    const base = mapped.map(l => overrides[l.level] ?? l)
+                    for (const k of Object.keys(overrides)) {
+                        const lvl = Number(k)
+                        if (!base.some(x => x.level === lvl)) base.push(overrides[lvl]!)
+                    }
+                    base.sort((a, b) => a.level - b.level)
+                    setLevelsConfig(base)
+                }
             })
             .catch(() => {})
     }, [])
@@ -373,12 +421,13 @@ export function GameScreen() {
 
         // explicit early levels
         if (targetLevel === 0) return true
-        if (targetLevel === 1) return s.spinsTotal >= 1
-        if (targetLevel === 2) return s.dailyClaims >= 1
-        if (targetLevel === 3) return s.tasksClaimed >= 1
-        if (targetLevel === 4) return s.invites >= 1
-        if (targetLevel === 5) return s.spins3of10 >= 1
-        if (targetLevel === 6) return s.spinsX2 >= 10
+        if (targetLevel === 1) return (s.onboardingDone || 0) >= 1
+        if (targetLevel === 2) return s.spinsTotal >= 1
+        if (targetLevel === 3) return s.dailyClaims >= 1
+        if (targetLevel === 4) return (s.tasksClaimed >= 1) || (s.bonusTasksClaimed >= 1)
+        if (targetLevel === 5) return s.invites >= 1
+        // Level 6 should be awarded when the 3/10 results window appears (series completed)
+        if (targetLevel === 6) return (s.series3of10Completed || 0) >= 1
         if (targetLevel === 7) return (s.boostersBought['Heart'] || 0) >= 1
         if (targetLevel === 8) return (s.boostersUsed['Heart'] || 0) >= 1
         if (targetLevel === 9) return s.spinsX5 >= 3
@@ -438,12 +487,15 @@ export function GameScreen() {
         if (!conf) return { current: 0, required: 0, text: '' }
         
         if (targetLevel === 0) return { current: 1, required: 1, text: '1/1' }
-        if (targetLevel === 1) return { current: s.spinsTotal, required: 1, text: `${s.spinsTotal}/1` }
-        if (targetLevel === 2) return { current: s.dailyClaims, required: 1, text: `${s.dailyClaims}/1` }
-        if (targetLevel === 3) return { current: s.tasksClaimed, required: 1, text: `${s.tasksClaimed}/1` }
-        if (targetLevel === 4) return { current: s.invites, required: 1, text: `${s.invites}/1` }
-        if (targetLevel === 5) return { current: s.spins3of10, required: 1, text: `${s.spins3of10}/1` }
-        if (targetLevel === 6) return { current: s.spinsX2, required: 10, text: `${s.spinsX2}/10` }
+        if (targetLevel === 1) return { current: (s.onboardingDone || 0), required: 1, text: `${Math.min(1, s.onboardingDone || 0)}/1` }
+        if (targetLevel === 2) return { current: s.spinsTotal, required: 1, text: `${s.spinsTotal}/1` }
+        if (targetLevel === 3) return { current: s.dailyClaims, required: 1, text: `${s.dailyClaims}/1` }
+        if (targetLevel === 4) {
+            const c = Math.max(s.tasksClaimed || 0, s.bonusTasksClaimed || 0)
+            return { current: c, required: 1, text: `${c}/1` }
+        }
+        if (targetLevel === 5) return { current: s.invites, required: 1, text: `${s.invites}/1` }
+        if (targetLevel === 6) return { current: (s.series3of10Completed || 0), required: 1, text: `${s.series3of10Completed || 0}/1` }
         if (targetLevel === 7) return { current: (s.boostersBought['Heart'] || 0), required: 1, text: `${s.boostersBought['Heart'] || 0}/1` }
         if (targetLevel === 8) return { current: (s.boostersUsed['Heart'] || 0), required: 1, text: `${s.boostersUsed['Heart'] || 0}/1` }
         if (targetLevel === 9) return { current: s.spinsX5, required: 3, text: `${s.spinsX5}/3` }
@@ -466,12 +518,38 @@ export function GameScreen() {
             }
             return
         }
-        const conf = levelsConfig.find(x => x.level === next)
-        const reward = conf?.rewardW || 0
-        saveBalances(balanceW + reward, balanceB, `Level up reward: lvl=${next}, +${reward} W`)
+        // Level is granted immediately; reward is claimed later in Levels panel.
         persistLevel(next)
         scheduleProgressSync()
-        setToast(`Уровень повышен до ${next}! +${reward} W`)
+        setToast(`Новый уровень: ${next}. Забери награду в “Уровни”`)
+        triggerHaptic('success')
+    }
+
+    function claimLevelReward(level: number) {
+        const lvl = Math.max(0, Math.min(50, Math.floor(level)))
+        if (lvl <= 0) return
+        if (lvl > playerLevelRef.current) {
+            setToast(lang === 'ru' ? 'Сначала достигни этого уровня' : 'Reach this level first')
+            return
+        }
+        if (lvl <= claimedLevel) {
+            setToast(lang === 'ru' ? 'Награда уже получена' : 'Reward already claimed')
+            return
+        }
+        if (lvl !== claimedLevel + 1) {
+            setToast(lang === 'ru' ? 'Сначала забери предыдущую награду' : 'Claim previous reward first')
+            return
+        }
+        const conf = levelsConfig.find(x => x.level === lvl)
+        const reward = conf?.rewardW || 0
+        if (reward > 0) {
+            saveBalances(balanceW + reward, balanceB, `Claim level reward: lvl=${lvl}, +${reward} W`)
+            setToast(lang === 'ru' ? `Награда получена: +${reward} W (уровень ${lvl})` : `Reward claimed: +${reward} W (level ${lvl})`)
+        } else {
+            setToast(lang === 'ru' ? `Награда уровня ${lvl} получена` : `Level ${lvl} reward claimed`)
+        }
+        setClaimedLevel(lvl)
+        try { localStorage.setItem(CLAIMED_LEVEL_KEY, String(lvl)) } catch {}
         triggerHaptic('success')
     }
 
@@ -532,6 +610,13 @@ export function GameScreen() {
         try { return localStorage.getItem(ONBOARDING_KEY) !== '1' } catch { return true }
     })
     const [onboardingAnimatingOut, setOnboardingAnimatingOut] = React.useState<boolean>(false)
+    // Ensure stats have onboardingDone when onboarding is already completed (for level requirements)
+    React.useEffect(() => {
+        if (!onboardingOpen && (levelStatsRef.current.onboardingDone || 0) < 1) {
+            try { bumpStats({ onboardingDone: 1 }) } catch {}
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onboardingOpen])
     const progressUserIdRef = React.useRef<number | null>(null)
     const [isGameBlocked, setIsGameBlocked] = React.useState<boolean>(false)
     React.useEffect(() => {
@@ -572,6 +657,7 @@ export function GameScreen() {
     const [pyramidResults, setPyramidResults] = React.useState<number[]>([]) // Все 3 результата вращений
     const pyramidResultsRef = React.useRef<number[]>([]) // Ref для синхронного доступа к результатам
     const pyramidBetRef = React.useRef<number>(0) // Сохраняем ставку для серии 3/10
+    const pyramidSelectedDigitRef = React.useRef<number>(pickedDigit) // фиксируем выбранную цифру на старте серии 3/10
     const pyramidLastResultRef = React.useRef<{ count: number, result: number } | null>(null) // Последний обработанный результат
     const pyramidSpinIdRef = React.useRef<number>(0) // Уникальный ID для каждого физического спина
     const pyramidProcessedSpinIdRef = React.useRef<number>(-1) // ID последнего обработанного спина
@@ -1477,6 +1563,8 @@ export function GameScreen() {
             }
             
             // Списываем ставку только один раз в начале (при первом нажатии на старт)
+            // Фиксируем выбранную цифру на старте серии, чтобы игрок не мог "случайно" сменить её во время авто-вращений
+            pyramidSelectedDigitRef.current = pickedDigit
             if (currency === 'W') {
                 saveBalances(balanceW - b, balanceB, `Pyramid mode: bet ${b} W deducted`)
             } else {
@@ -1611,7 +1699,7 @@ export function GameScreen() {
                 setPyramidSpinCount(0)
                 pyramidBetTakenRef.current = false
                 
-                const selectedNum = pickedDigit
+                const selectedNum = (typeof pyramidSelectedDigitRef.current === 'number') ? pyramidSelectedDigitRef.current : pickedDigit
                 const matches = newResults.filter(n => n === selectedNum).length
                 console.log(`[onSpinResult] Selected: ${selectedNum}, Matches: ${matches}`)
                 
@@ -1681,6 +1769,12 @@ export function GameScreen() {
                 
                 // Показываем результаты на барабане
                 setPyramidShowResults(true)
+
+                // Level milestone: level 6 is granted when results window appears (series completed)
+                try {
+                    const s = levelStatsRef.current
+                    bumpStats({ series3of10Completed: Math.max(1, Number(s.series3of10Completed || 0) + 1) })
+                } catch {}
                 
                 // Обновляем случайные бонусы при каждом спине
                 setRandomBonuses(generateRandomBonuses())
@@ -2266,6 +2360,8 @@ export function GameScreen() {
                             onFinish={() => {
                                 // Помечаем онбординг как завершённый
                                 try { localStorage.setItem(ONBOARDING_KEY, '1') } catch {}
+                                // фиксируем в stats, чтобы уровень 1 считался достигнутым по условию
+                                try { bumpStats({ onboardingDone: 1 }) } catch {}
                                 // Если игрок был на уровне 0 (регистрация), поднимаем до 1 уровня после того,
                                 // как он прочитал и принял условия в последнем шаге онбординга.
                                 if (playerLevel < 1) {
@@ -3192,10 +3288,9 @@ export function GameScreen() {
                         <div style={{position:'relative', width:'100%', height:'100%', overflowY:'auto', padding:'10px', boxSizing:'border-box'}}>
                             <LevelsPanel
                                 onClose={() => { setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
-                                onClaimLevel={(lvl) => {
-                                    tryClaimNextLevel(lvl)
-                                }}
+                                onClaimLevel={(lvl) => { claimLevelReward(lvl) }}
                                 playerLevel={playerLevel}
+                                claimedLevel={claimedLevel}
                                 stats={levelStats}
                                 levels={levelsConfig}
                                 isReady={isLevelRequirementMet}
@@ -3638,6 +3733,7 @@ function LevelsPanel({
     onClose,
     onClaimLevel,
     playerLevel,
+    claimedLevel,
     stats,
     levels,
     isReady,
@@ -3648,6 +3744,7 @@ function LevelsPanel({
     onClose: () => void
     onClaimLevel: (level: number) => void
     playerLevel: number
+    claimedLevel: number
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stats: any
     levels: Array<{ level: number, action: string, how: string, unlocks: string[], rewardW: number, minInvites?: number }>
@@ -3732,12 +3829,17 @@ function LevelsPanel({
         transition:'transform 200ms ease'
     }
 
-    // Показываем только следующие 3-5 уровней, которые можно выполнить
-    const availableLevels = levels
+    // 1) Сначала показываем награды за уже полученные уровни, которые ещё не забрали
+    const claimableLevels = levels
+        .filter(l => l.level > 0 && l.level <= playerLevel && l.level > claimedLevel)
+        .slice(0, 5)
+
+    // 2) Затем — следующие 3-5 уровней для прогресса
+    const upcomingLevels = levels
         .filter(l => l.level > playerLevel && l.level <= playerLevel + 5)
         .slice(0, 5)
 
-    const renderLevelTask = (level: number, action: string, progress: string, canClaim: boolean, done: boolean, rewardW: number, onClick: () => void) => (
+    const renderLevelTask = (level: number, action: string, progress: string, canClaim: boolean, done: boolean, rewardW: number, onClick: () => void, btnText?: string) => (
         <div 
             key={`level-${level}`}
             style={done ? taskCardDone : taskCard}
@@ -3788,7 +3890,7 @@ function LevelsPanel({
                     }
                 }}
             >
-                {t('get')}
+                {btnText || t('get')}
             </button>
         </div>
     )
@@ -3814,26 +3916,46 @@ function LevelsPanel({
                 {lang==='ru' ? `Твой уровень: ${playerLevel}` : `Your level: ${playerLevel}`}
             </div>
             <div style={{display:'grid', gap:12}}>
-                {availableLevels.length > 0 ? availableLevels.map((lv) => {
-                    const done = lv.level <= playerLevel
+                {claimableLevels.length > 0 && (
+                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, opacity:0.95}}>
+                        {lang === 'ru' ? 'Доступны награды за уровни:' : 'Rewards available:'}
+                    </div>
+                )}
+                {claimableLevels.map((lv) => {
+                    const canClaim = lv.level === claimedLevel + 1
+                    return renderLevelTask(
+                        lv.level,
+                        lv.action,
+                        lang === 'ru' ? 'Готово — забери награду' : 'Done — claim reward',
+                        canClaim,
+                        false,
+                        lv.rewardW,
+                        () => onClaimLevel(lv.level),
+                        lang === 'ru' ? 'Забрать' : 'Claim'
+                    )
+                })}
+
+                {upcomingLevels.length > 0 && (
+                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, opacity:0.95, marginTop:6}}>
+                        {lang === 'ru' ? 'Следующие уровни:' : 'Next levels:'}
+                    </div>
+                )}
+                {upcomingLevels.length > 0 ? upcomingLevels.map((lv) => {
                     const ready = isReady(lv.level)
                     const progress = getProgress(lv.level)
                     return renderLevelTask(
                         lv.level,
                         lv.action,
                         progress.text,
-                        ready && !done,
-                        done,
+                        false,
+                        false,
                         lv.rewardW,
-                        () => {
-                            if (ready && !done) {
-                                onClaimLevel(lv.level)
-                            }
-                        }
+                        () => { if (ready) onClaimLevel(lv.level) },
+                        lang === 'ru' ? 'Скоро' : 'Soon'
                     )
                 }) : (
                     <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, padding:20}}>
-                        {lang === 'ru' ? 'Все доступные уровни выполнены!' : 'All available levels completed!'}
+                        {lang === 'ru' ? 'Сейчас нет новых уровней.' : 'No new levels right now.'}
                     </div>
                 )}
             </div>
