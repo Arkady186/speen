@@ -3289,6 +3289,20 @@ export function GameScreen() {
                             <LevelsPanel
                                 onClose={() => { setLevelsAnimatingOut(true); setTimeout(()=>{ setLevelsOpen(false); setLevelsAnimatingOut(false) }, 300) }}
                                 onClaimLevel={(lvl) => { claimLevelReward(lvl) }}
+                                onGoTo={(lvl) => {
+                                    // quick navigation to complete current level task
+                                    const target = Math.max(0, Math.min(50, Math.floor(lvl)))
+                                    // close levels sheet first for cleaner UX
+                                    setLevelsAnimatingOut(true)
+                                    setTimeout(() => {
+                                        setLevelsOpen(false)
+                                        setLevelsAnimatingOut(false)
+                                        if (target === 3) { setDailyOpen(true); return }
+                                        if (target === 4) { setTasksOpen(true); return }
+                                        if (target === 5) { setInviteOpen(true); return }
+                                        if (target === 6) { setMode('pyramid'); setIsMenuOpen(false); setIsRightMenuOpen(false); return }
+                                    }, 260)
+                                }}
                                 playerLevel={playerLevel}
                                 claimedLevel={claimedLevel}
                                 stats={levelStats}
@@ -3732,6 +3746,7 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
 function LevelsPanel({
     onClose,
     onClaimLevel,
+    onGoTo,
     playerLevel,
     claimedLevel,
     stats,
@@ -3743,6 +3758,7 @@ function LevelsPanel({
 }: {
     onClose: () => void
     onClaimLevel: (level: number) => void
+    onGoTo?: (level: number) => void
     playerLevel: number
     claimedLevel: number
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3755,7 +3771,23 @@ function LevelsPanel({
 }) {
     const [infoOpen, setInfoOpen] = React.useState(false)
 
-    const wrap: React.CSSProperties = { background:'linear-gradient(180deg,#2a67b7 0%, #1a4b97 100%)', borderRadius:20, padding:16, boxShadow:'inset 0 0 0 3px #0b2f68', display:'grid', gap:12 }
+    const wrap: React.CSSProperties = {
+        background:'linear-gradient(180deg, rgba(41, 103, 183, 0.92) 0%, rgba(18, 55, 120, 0.92) 100%)',
+        borderRadius:24,
+        padding:16,
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.9), 0 18px 40px rgba(0,0,0,0.35)',
+        display:'grid',
+        gap:12,
+        position:'relative',
+        overflow:'hidden',
+    }
+    const glow: React.CSSProperties = {
+        position:'absolute',
+        inset:-80,
+        background:'radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.22) 0%, rgba(34, 197, 94, 0) 45%), radial-gradient(circle at 70% 10%, rgba(255, 210, 58, 0.18) 0%, rgba(255, 210, 58, 0) 40%), radial-gradient(circle at 60% 80%, rgba(107, 179, 255, 0.22) 0%, rgba(107, 179, 255, 0) 45%)',
+        pointerEvents:'none',
+        filter:'blur(2px)'
+    }
     const titleWrap: React.CSSProperties = { display:'flex', alignItems:'center', justifyContent:'center', gap:8, position:'relative' }
     const title: React.CSSProperties = { textAlign:'center', color:'#fff', fontWeight:900, fontSize:22, letterSpacing:1.2, textShadow:'0 2px 0 rgba(0,0,0,0.35)' }
     const infoBtn: React.CSSProperties = { 
@@ -3777,21 +3809,24 @@ function LevelsPanel({
         gridTemplateColumns:'1fr auto',
         alignItems:'center',
         gap:12,
-        background:'linear-gradient(180deg,#6bb3ff 0%, #2b66b9 100%)',
-        borderRadius:14,
-        boxShadow:'inset 0 0 0 3px #0b2f68, 0 4px 8px rgba(0,0,0,0.25)',
-        padding:14,
+        background:'linear-gradient(180deg, rgba(107,179,255,0.95) 0%, rgba(43,102,185,0.98) 100%)',
+        borderRadius:18,
+        boxShadow:'inset 0 0 0 3px rgba(11,47,104,0.95), 0 10px 20px rgba(0,0,0,0.25)',
+        padding:16,
         position:'relative',
         transition:'transform 120ms ease, boxShadow 120ms ease'
     }
     const taskCardDone: React.CSSProperties = {
         ...taskCard,
-        background:'linear-gradient(180deg, #4b5563 0%, #1f2937 100%)',
-        opacity:0.7
+        background:'linear-gradient(180deg, rgba(34,197,94,0.28) 0%, rgba(22,163,74,0.18) 100%)',
+        opacity:1
     }
     const taskInfo: React.CSSProperties = { display:'grid', gap:6 }
     const taskTitle: React.CSSProperties = { color:'#fff', fontWeight:900, fontSize:15, textShadow:'0 1px 2px rgba(0,0,0,0.35)' }
     const taskProgress: React.CSSProperties = { color:'#e8f1ff', opacity:0.9, fontSize:13, fontWeight:700 }
+    const taskHow: React.CSSProperties = { color:'#e8f1ff', opacity:0.92, fontSize:12, fontWeight:800, lineHeight:1.35 }
+    const progressBarWrap: React.CSSProperties = { height:10, borderRadius:999, background:'rgba(11,47,104,0.55)', boxShadow:'inset 0 0 0 2px rgba(11,47,104,0.85)' }
+    const progressBarFill = (p: number): React.CSSProperties => ({ height:'100%', width:`${Math.max(0, Math.min(100, p))}%`, borderRadius:999, background:'linear-gradient(90deg,#22c55e,#ffd23a)', boxShadow:'0 6px 16px rgba(34,197,94,0.35)' })
     const taskButton: React.CSSProperties = {
         padding:'10px 18px',
         borderRadius:10,
@@ -3809,6 +3844,18 @@ function LevelsPanel({
         background:'linear-gradient(180deg, #889bb9 0%, #64748b 100%)',
         cursor:'default',
         opacity:0.6
+    }
+    const taskButtonGhost: React.CSSProperties = {
+        padding:'10px 14px',
+        borderRadius:10,
+        border:'2px solid rgba(255,255,255,0.35)',
+        background:'rgba(255,255,255,0.12)',
+        color:'#fff',
+        fontWeight:900,
+        fontSize:13,
+        cursor:'pointer',
+        transition:'all 120ms ease',
+        boxShadow:'0 6px 14px rgba(0,0,0,0.18)'
     }
     const infoModal: React.CSSProperties = {
         position:'fixed', left:0, right:0, top:0, bottom:0,
@@ -3829,17 +3876,17 @@ function LevelsPanel({
         transition:'transform 200ms ease'
     }
 
-    // 1) Сначала показываем награды за уже полученные уровни, которые ещё не забрали
-    const claimableLevels = levels
-        .filter(l => l.level > 0 && l.level <= playerLevel && l.level > claimedLevel)
-        .slice(0, 5)
+    // We show exactly ONE "current" task: the next unclaimed level reward.
+    // This keeps the same task visible until the user presses "Claim", even if level already increased.
+    const currentTargetLevel = Math.max(1, Math.min(50, claimedLevel + 1))
+    const currentConf = levels.find(l => l.level === currentTargetLevel)
+    const progress = getProgress(currentTargetLevel)
+    const reached = playerLevel >= currentTargetLevel
+    const ready = isReady(currentTargetLevel)
+    const canClaimReward = reached && ready && currentTargetLevel === claimedLevel + 1
+    const pct = progress.required > 0 ? (progress.current / progress.required) * 100 : (ready ? 100 : 0)
 
-    // 2) Затем — следующие 3-5 уровней для прогресса
-    const upcomingLevels = levels
-        .filter(l => l.level > playerLevel && l.level <= playerLevel + 5)
-        .slice(0, 5)
-
-    const renderLevelTask = (level: number, action: string, progress: string, canClaim: boolean, done: boolean, rewardW: number, onClick: () => void, btnText?: string) => (
+    const renderLevelTask = (level: number, action: string, progressText: string, howText: string, canClaim: boolean, done: boolean, rewardW: number, onClick: () => void, btnText?: string, showCheckOnBtn?: boolean) => (
         <div 
             key={`level-${level}`}
             style={done ? taskCardDone : taskCard}
@@ -3870,34 +3917,49 @@ function LevelsPanel({
             )}
             <div style={taskInfo}>
                 <div style={taskTitle}>{lang === 'ru' ? `Уровень ${level}: ${action}` : `Level ${level}: ${action}`}</div>
-                <div style={taskProgress}>{progress}</div>
+                <div style={taskProgress}>{progressText}</div>
+                <div style={progressBarWrap}><div style={progressBarFill(pct)} /></div>
+                <div style={taskHow}>{howText}</div>
                 <div style={{color:'#ffe27a', fontSize:12, fontWeight:800, marginTop:2}}>{lang === 'ru' ? `Награда: +${rewardW} W` : `Reward: +${rewardW} W`}</div>
             </div>
-            <button 
-                disabled={!canClaim || done}
-                style={(!canClaim || done) ? taskButtonDisabled : taskButton}
-                onClick={onClick}
-                onMouseEnter={(e) => {
-                    if (canClaim && !done) {
-                        e.currentTarget.style.background = 'linear-gradient(180deg, #2dd977 0%, #16a34a 100%)'
-                        e.currentTarget.style.transform = 'scale(1.05)'
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    if (canClaim && !done) {
-                        e.currentTarget.style.background = 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)'
-                        e.currentTarget.style.transform = 'scale(1)'
-                    }
-                }}
-            >
-                {btnText || t('get')}
-            </button>
+            <div style={{display:'grid', gap:10, justifyItems:'end'}}>
+                {onGoTo && (
+                    <button
+                        style={taskButtonGhost}
+                        onClick={() => onGoTo(level)}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)' }}
+                    >
+                        {lang === 'ru' ? 'Перейти' : 'Go'}
+                    </button>
+                )}
+                <button 
+                    disabled={!canClaim || done}
+                    style={(!canClaim || done) ? taskButtonDisabled : taskButton}
+                    onClick={onClick}
+                    onMouseEnter={(e) => {
+                        if (canClaim && !done) {
+                            e.currentTarget.style.background = 'linear-gradient(180deg, #2dd977 0%, #16a34a 100%)'
+                            e.currentTarget.style.transform = 'scale(1.05)'
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        if (canClaim && !done) {
+                            e.currentTarget.style.background = 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)'
+                            e.currentTarget.style.transform = 'scale(1)'
+                        }
+                    }}
+                >
+                    {(btnText || t('get'))}{showCheckOnBtn ? ' ✓' : ''}
+                </button>
+            </div>
         </div>
     )
 
     return (
         <>
         <div style={wrap}>
+            <div style={glow} />
             <div style={{display:'grid', placeItems:'center', marginTop:4}}>
                 <img src="/press10.png" alt="levels" style={{width:110,height:110,objectFit:'contain',filter:'drop-shadow(0 8px 16px rgba(0,0,0,0.35))'}} />
             </div>
@@ -3916,46 +3978,27 @@ function LevelsPanel({
                 {lang==='ru' ? `Твой уровень: ${playerLevel}` : `Your level: ${playerLevel}`}
             </div>
             <div style={{display:'grid', gap:12}}>
-                {claimableLevels.length > 0 && (
-                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, opacity:0.95}}>
-                        {lang === 'ru' ? 'Доступны награды за уровни:' : 'Rewards available:'}
-                    </div>
-                )}
-                {claimableLevels.map((lv) => {
-                    const canClaim = lv.level === claimedLevel + 1
-                    return renderLevelTask(
-                        lv.level,
-                        lv.action,
-                        lang === 'ru' ? 'Готово — забери награду' : 'Done — claim reward',
-                        canClaim,
-                        false,
-                        lv.rewardW,
-                        () => onClaimLevel(lv.level),
-                        lang === 'ru' ? 'Забрать' : 'Claim'
-                    )
-                })}
-
-                {upcomingLevels.length > 0 && (
-                    <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, opacity:0.95, marginTop:6}}>
-                        {lang === 'ru' ? 'Следующие уровни:' : 'Next levels:'}
-                    </div>
-                )}
-                {upcomingLevels.length > 0 ? upcomingLevels.map((lv) => {
-                    const ready = isReady(lv.level)
-                    const progress = getProgress(lv.level)
-                    return renderLevelTask(
-                        lv.level,
-                        lv.action,
-                        progress.text,
-                        false,
-                        false,
-                        lv.rewardW,
-                        () => { if (ready) onClaimLevel(lv.level) },
-                        lang === 'ru' ? 'Скоро' : 'Soon'
-                    )
-                }) : (
+                {currentConf ? (
+                    <>
+                        <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:900, opacity:0.95}}>
+                            {lang === 'ru' ? 'Задание для следующей награды:' : 'Task for the next reward:'}
+                        </div>
+                        {renderLevelTask(
+                            currentTargetLevel,
+                            currentConf.action,
+                            progress.text,
+                            currentConf.how,
+                            canClaimReward,
+                            false,
+                            currentConf.rewardW,
+                            () => onClaimLevel(currentTargetLevel),
+                            canClaimReward ? (lang === 'ru' ? 'Забрать' : 'Claim') : (lang === 'ru' ? 'Не готово' : 'Not ready'),
+                            reached && ready
+                        )}
+                    </>
+                ) : (
                     <div style={{color:'#e8f1ff', textAlign:'center', fontWeight:800, padding:20}}>
-                        {lang === 'ru' ? 'Сейчас нет новых уровней.' : 'No new levels right now.'}
+                        {lang === 'ru' ? 'Пока нет заданий.' : 'No tasks yet.'}
                     </div>
                 )}
             </div>
