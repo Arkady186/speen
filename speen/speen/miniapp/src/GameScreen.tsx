@@ -147,6 +147,7 @@ export function GameScreen() {
 
     const LEVEL_KEY = 'player_level_v1'
     const STATS_KEY = 'level_stats_v1'
+    const BONUS_WHEEL_UNLOCK_LEVEL = 5 // Бонусный барабан открывается на 5 уровне
     const API_BASE = (((import.meta as any)?.env?.VITE_API_BASE || 'https://speen-server.onrender.com') as string).trim()
 
     const [playerLevel, setPlayerLevel] = React.useState<number>(() => {
