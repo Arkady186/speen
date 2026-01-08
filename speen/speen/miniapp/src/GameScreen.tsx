@@ -919,7 +919,7 @@ export function GameScreen() {
     }
 
     // Bonus wheel unlock gate: early levels play without bonus selection / sector rewards
-    const BONUS_WHEEL_UNLOCK_LEVEL = 4
+    // (declared once near LEVEL_KEY/STATS_KEY)
     
     // Состояние для дополнительных вращений (батарейка)
     const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
