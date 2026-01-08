@@ -257,9 +257,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
             setHighlightVisible(true)
             if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
             highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
-            // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
-            if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
-            innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
+            // ВАЖНО: бонусы остаются открытыми до следующего старта или смены выбора игроком
             // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
         }, duration * 1000 + 50)
     }
@@ -271,6 +269,9 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
 
     function handleSelectAt(evt: React.MouseEvent<HTMLDivElement>) {
         if (isSpinning || disableSelection) return
+        // Если игрок меняет выбор числа/сектора — снова скрываем бонусы (вопросительные знаки)
+        if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
+        setConcealInner(true)
         const rect = (evt.currentTarget as HTMLDivElement).getBoundingClientRect()
         const cx = rect.left + rect.width / 2
         const cy = rect.top + rect.height / 2
@@ -325,9 +326,7 @@ export const ImageWheel = React.forwardRef<ImageWheelRef, ImageWheelProps>(({ si
                     setHighlightVisible(true)
                     if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
                     highlightTimeoutRef.current = window.setTimeout(() => setHighlightVisible(false), 1500)
-                    // через 1-3 сек вернуть вопросительные знаки на центральном барабане (берём 2с как усреднённое)
-                    if (innerResetTimeoutRef.current) window.clearTimeout(innerResetTimeoutRef.current)
-                    innerResetTimeoutRef.current = window.setTimeout(() => setConcealInner(true), 2000)
+                    // ВАЖНО: бонусы остаются открытыми до следующего старта или смены выбора игроком
                     // НЕ сбрасываем вращение кнопки здесь - оно должно накапливаться между вращениями
                     // Сброс будет происходить только когда hideCenterButton станет false (завершение режима 3/10)
                 }}

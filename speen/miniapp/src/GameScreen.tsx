@@ -615,7 +615,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN новости',
             choose_bonus: 'Выбор бонусов',
             topup_stars: 'Пополнить за ⭐',
-            buy_bonus_1b: 'Купить бонусы за 1 B',
+            buy_bonus_1b: 'Купить бонусы за 1000 W',
             not_enough_W: 'Недостаточно W',
             not_enough_B: 'Недостаточно B',
             ton_loading: 'Загрузка TON Connect...',
@@ -670,7 +670,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN news',
             choose_bonus: 'Choose bonuses',
             topup_stars: 'Top up with ⭐',
-            buy_bonus_1b: 'Buy bonuses for 1 B',
+            buy_bonus_1b: 'Buy bonuses for 1000 W',
             not_enough_W: 'Not enough W',
             not_enough_B: 'Not enough B',
             ton_loading: 'Loading TON Connect...',
@@ -1411,7 +1411,9 @@ export function GameScreen() {
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
             const won = numCorrect
-            if (won) delta = b * getMultiplier(mode)
+            // ставка уже списана в onBeforeSpin -> при выигрыше возвращаем ставку + начисляем множитель
+            // x2 => 3*bet, x5 => 6*bet
+            if (won) delta = b * (getMultiplier(mode) + 1)
         } else {
             // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25% (старая логика, не используется в новом режиме)
             const center = pickedDigit
@@ -1588,17 +1590,27 @@ export function GameScreen() {
                     try {
                         const cloud = tg?.CloudStorage
                         if (cloud && u.id) {
-                            cloud.getItem('speen_balance_v1', (err: any, value: string | null) => {
-                                if (err || !value) return
-                                try {
-                                    const parsed = JSON.parse(value)
-                                    const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
-                                    const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
-                                    if (w != null && b != null) {
-                                        // Округляем до целых чисел при загрузке
-                                        saveBalances(Math.floor(w), Math.floor(b))
-                                    }
-                                } catch {}
+                            const uid = Number(u.id)
+                            const perUserKey = uid ? `speen_balance_v1_${uid}` : 'speen_balance_v1'
+                            cloud.getItem(perUserKey, (err: any, value: string | null) => {
+                                // fallback to legacy key once (migration)
+                                const handle = (raw: string | null) => {
+                                    if (!raw) return
+                                    try {
+                                        const parsed = JSON.parse(raw)
+                                        const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
+                                        const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
+                                        if (w != null && b != null) {
+                                            // Округляем до целых чисел при загрузке
+                                            saveBalances(Math.floor(w), Math.floor(b), 'CloudStorage load')
+                                        }
+                                    } catch {}
+                                }
+                                if (err || !value) {
+                                    cloud.getItem('speen_balance_v1', (_e2: any, legacy: string | null) => handle(legacy))
+                                    return
+                                }
+                                handle(value)
                             })
                             
                             // Проверка блокировки игры на нескольких устройствах
@@ -2499,17 +2511,18 @@ export function GameScreen() {
                             onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
-                            onPurchase={(title, priceB) => {
-                                // списываем B, добавляем в инвентарь покупок
-                                if (balanceB < priceB) { setToast('Недостаточно B'); return false }
-                                saveBalances(balanceW, balanceB - priceB)
+                            onPurchase={(title, priceW) => {
+                                // списываем W, добавляем в инвентарь покупок
+                                const cost = Math.max(0, Math.floor(Number(priceW) || 0))
+                                if (balanceW < cost) { setToast('Недостаточно W'); return false }
+                                saveBalances(balanceW - cost, balanceB, `Shop purchase: ${title} for ${cost} W`)
                                 try {
                                     const raw = localStorage.getItem('purchases') || '[]'
-                                    const list: Array<{title:string, priceB:number, ts:number}> = JSON.parse(raw)
-                                    list.push({ title, priceB, ts: Date.now() })
+                                    const list: Array<{title:string, priceW:number, ts:number}> = JSON.parse(raw)
+                                    list.push({ title, priceW: cost, ts: Date.now() })
                                     localStorage.setItem('purchases', JSON.stringify(list))
                                 } catch {}
-                                setToast(`Куплено: ${title} за ${priceB} B`)
+                                setToast(`Куплено: ${title} за ${cost} W`)
                                 return true
                             }}
                             onBuyStars={(stars, toB) => openStarsPurchase(stars, toB)}
@@ -2544,8 +2557,9 @@ export function GameScreen() {
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
                             onPurchase={(b) => {
-                                if (balanceB < 1) { setToast('Недостаточно B'); return }
-                                saveBalances(balanceW, balanceB - 1, `WheelShop purchase: bought bonus "${b}" for 1 B`)
+                                const cost = 1000
+                                if (balanceW < cost) { setToast('Недостаточно W'); return }
+                                saveBalances(balanceW - cost, balanceB, `WheelShop purchase: bought bonus "${b}" for ${cost} W`)
                                 try {
                                     const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                                     const inv: string[] = JSON.parse(invRaw)
@@ -2558,7 +2572,7 @@ export function GameScreen() {
                                     const prev = Number(s.boostersBought?.[b] || 0)
                                     bumpStats({ boostersBought: { [b]: prev + 1 } })
                                 } catch {}
-                                setToast(`Куплено: ${b} за 1 B`)
+                                setToast(`Куплено: ${b} за ${cost} W`)
                             }}
                         />
                     </div>

@@ -323,6 +323,10 @@ export function GameScreen() {
     function persistLevel(next: number) {
         const v = Math.max(0, Math.min(50, Math.floor(next)))
         localStorage.setItem(LEVEL_KEY, String(v))
+        try {
+            const uid = userIdRef.current
+            if (uid) localStorage.setItem(`${LEVEL_KEY}_${uid}`, String(v))
+        } catch {}
         setPlayerLevel(v)
         // sync to server (debounced)
         scheduleProgressSync()
@@ -336,7 +340,12 @@ export function GameScreen() {
                 boostersBought: patch.boostersBought ? { ...prev.boostersBought, ...patch.boostersBought } : prev.boostersBought,
                 boostersUsed: patch.boostersUsed ? { ...prev.boostersUsed, ...patch.boostersUsed } : prev.boostersUsed,
             }
-            try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
+            try {
+                const raw = JSON.stringify(next)
+                localStorage.setItem(STATS_KEY, raw)
+                const uid = userIdRef.current
+                if (uid) localStorage.setItem(`${STATS_KEY}_${uid}`, raw)
+            } catch {}
             // sync to server (debounced)
             scheduleProgressSync()
             return next
@@ -549,7 +558,11 @@ export function GameScreen() {
             setToast(lang === 'ru' ? `Награда уровня ${lvl} получена` : `Level ${lvl} reward claimed`)
         }
         setClaimedLevel(lvl)
-        try { localStorage.setItem(CLAIMED_LEVEL_KEY, String(lvl)) } catch {}
+        try {
+            localStorage.setItem(CLAIMED_LEVEL_KEY, String(lvl))
+            const uid = userIdRef.current
+            if (uid) localStorage.setItem(`${CLAIMED_LEVEL_KEY}_${uid}`, String(lvl))
+        } catch {}
         triggerHaptic('success')
     }
 
@@ -599,6 +612,8 @@ export function GameScreen() {
         }
     }, [])
     const [userId, setUserId] = React.useState<number | null>(null)
+    const userIdRef = React.useRef<number | null>(userId)
+    React.useEffect(() => { userIdRef.current = userId }, [userId])
     const [avatarUrl, setAvatarUrl] = React.useState<string>('')
     const [initials, setInitials] = React.useState<string>('')
     const [isMenuOpen, setIsMenuOpen] = React.useState<boolean>(false)
@@ -645,6 +660,86 @@ export function GameScreen() {
         return 10000
     })
     const [balanceB, setBalanceB] = React.useState<number>(() => Math.floor(Number(localStorage.getItem('balance_b') || '0'))) // Округляем до целого
+    const balanceWRef = React.useRef<number>(balanceW)
+    const balanceBRef = React.useRef<number>(balanceB)
+    React.useEffect(() => { balanceWRef.current = balanceW }, [balanceW])
+    React.useEffect(() => { balanceBRef.current = balanceB }, [balanceB])
+
+    // Per-user scoping helpers (fix: switching Telegram accounts on same device must not leak state)
+    const scopedKey = (base: string, uid: number | null) => (uid ? `${base}_${uid}` : base)
+
+    React.useEffect(() => {
+        if (!userId) return
+        // Load per-user balances/progress for the current Telegram user.
+        // IMPORTANT: do NOT fall back to legacy global keys here (they belong to a different Telegram account on the same device).
+        try {
+            const wRaw = localStorage.getItem(scopedKey('balance_w', userId))
+            const bRaw = localStorage.getItem(scopedKey('balance_b', userId))
+            const w = Math.floor(Number(wRaw ?? '0') || 0)
+            const b = Math.floor(Number(bRaw ?? '0') || 0)
+            const nextW = wRaw != null ? (w > 0 ? w : 10000) : 10000
+            const nextB = bRaw != null ? b : 0
+            setBalanceW(nextW)
+            setBalanceB(nextB)
+            balanceWRef.current = nextW
+            balanceBRef.current = nextB
+            // keep legacy keys in sync for the current session (UI uses them in some places)
+            localStorage.setItem('balance_w', String(nextW))
+            localStorage.setItem('balance_b', String(nextB))
+            // ensure per-user keys exist (so account switch doesn't reuse previous account state)
+            localStorage.setItem(scopedKey('balance_w', userId), String(nextW))
+            localStorage.setItem(scopedKey('balance_b', userId), String(nextB))
+        } catch {}
+
+        // Load per-user progress keys (level/stats/claimed/onboarding) if present
+        try {
+            const lvlRaw = localStorage.getItem(scopedKey(LEVEL_KEY, userId))
+            if (lvlRaw != null) {
+                const lvl = Math.max(0, Math.min(50, Math.floor(Number(lvlRaw) || 0)))
+                persistLevel(lvl)
+            }
+        } catch {}
+        try {
+            const statsRaw = localStorage.getItem(scopedKey(STATS_KEY, userId))
+            if (statsRaw) setStatsFromRemote(JSON.parse(statsRaw))
+        } catch {}
+        try {
+            const cRaw = localStorage.getItem(scopedKey(CLAIMED_LEVEL_KEY, userId))
+            if (cRaw != null) {
+                const c = Math.max(0, Math.floor(Number(cRaw) || 0))
+                setClaimedLevel(c)
+                localStorage.setItem(CLAIMED_LEVEL_KEY, String(c))
+            }
+        } catch {}
+        try {
+            const ob = localStorage.getItem(scopedKey(ONBOARDING_KEY, userId))
+            if (ob === '1') setOnboardingOpen(false)
+        } catch {}
+        try {
+            const invRaw = localStorage.getItem(scopedKey('bonuses_inv', userId))
+            localStorage.setItem('bonuses_inv', invRaw != null ? invRaw : '[]')
+            if (invRaw == null) localStorage.setItem(scopedKey('bonuses_inv', userId), '[]')
+        } catch {}
+        try {
+            const purchasesRaw = localStorage.getItem(scopedKey('purchases', userId))
+            localStorage.setItem('purchases', purchasesRaw != null ? purchasesRaw : '[]')
+            if (purchasesRaw == null) localStorage.setItem(scopedKey('purchases', userId), '[]')
+        } catch {}
+        try {
+            const dailyLast = localStorage.getItem(scopedKey('daily_last', userId))
+            const dailyStreak = localStorage.getItem(scopedKey('daily_streak', userId))
+            localStorage.setItem('daily_last', dailyLast != null ? dailyLast : '')
+            localStorage.setItem('daily_streak', dailyStreak != null ? dailyStreak : '0')
+            if (dailyLast == null) localStorage.setItem(scopedKey('daily_last', userId), '')
+            if (dailyStreak == null) localStorage.setItem(scopedKey('daily_streak', userId), '0')
+        } catch {}
+        try {
+            const spins = localStorage.getItem(scopedKey('task_spins', userId))
+            localStorage.setItem('task_spins', spins != null ? spins : '0')
+            if (spins == null) localStorage.setItem(scopedKey('task_spins', userId), '0')
+        } catch {}
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId])
     type GameMode = 'normal' | 'pyramid' | 'allin'
     const [mode, setMode] = React.useState<GameMode>('normal')
     const [currency, setCurrency] = React.useState<'W'|'B'>('W')
@@ -658,6 +753,7 @@ export function GameScreen() {
     const pyramidResultsRef = React.useRef<number[]>([]) // Ref для синхронного доступа к результатам
     const pyramidBetRef = React.useRef<number>(0) // Сохраняем ставку для серии 3/10
     const pyramidSelectedDigitRef = React.useRef<number>(pickedDigit) // фиксируем выбранную цифру на старте серии 3/10
+    const pyramidPlannedDigitsRef = React.useRef<number[] | null>(null) // планируем уникальные цифры для серии 3/10
     const pyramidLastResultRef = React.useRef<{ count: number, result: number } | null>(null) // Последний обработанный результат
     const pyramidSpinIdRef = React.useRef<number>(0) // Уникальный ID для каждого физического спина
     const pyramidProcessedSpinIdRef = React.useRef<number>(-1) // ID последнего обработанного спина
@@ -820,6 +916,9 @@ export function GameScreen() {
         const val = SECTOR_TO_BONUS[idx]
         return (typeof val === 'number' && val >= 0 ? val : -1) // -1 означает отсутствие бонуса
     }
+
+    // Bonus wheel unlock gate: early levels play without bonus selection / sector rewards
+    const BONUS_WHEEL_UNLOCK_LEVEL = 4
     
     // Состояние для дополнительных вращений (батарейка)
     const [extraSpinsRemaining, setExtraSpinsRemaining] = React.useState<number>(0)
@@ -940,7 +1039,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN новости',
             choose_bonus: 'Выбор бонусов',
             topup_stars: 'Пополнить за ⭐',
-            buy_bonus_1b: 'Купить бонусы за 1 B',
+            buy_bonus_1b: 'Купить бонусы за 1000 W',
             not_enough_W: 'Недостаточно W',
             not_enough_B: 'Недостаточно B',
             ton_loading: 'Загрузка TON Connect...',
@@ -995,7 +1094,7 @@ export function GameScreen() {
             news_title: '📰 WCOIN news',
             choose_bonus: 'Choose bonuses',
             topup_stars: 'Top up with ⭐',
-            buy_bonus_1b: 'Buy bonuses for 1 B',
+            buy_bonus_1b: 'Buy bonuses for 1000 W',
             not_enough_W: 'Not enough W',
             not_enough_B: 'Not enough B',
             ton_loading: 'Loading TON Connect...',
@@ -1145,25 +1244,35 @@ export function GameScreen() {
         const roundedB = Math.floor(nextB)
         
         // Логирование изменений баланса
-        const deltaW = roundedW - balanceW
-        const deltaB = roundedB - balanceB
+        const prevW = balanceWRef.current
+        const prevB = balanceBRef.current
+        const deltaW = roundedW - prevW
+        const deltaB = roundedB - prevB
         if (deltaW !== 0 || deltaB !== 0) {
             const stack = new Error().stack
             const caller = stack?.split('\n')[2]?.trim() || 'unknown'
             console.log(`[Balance Change] ${reason || 'Unknown reason'}`)
-            console.log(`  W: ${balanceW} → ${roundedW} (${deltaW > 0 ? '+' : ''}${deltaW})`)
-            console.log(`  B: ${balanceB} → ${roundedB} (${deltaB > 0 ? '+' : ''}${deltaB})`)
+            console.log(`  W: ${prevW} → ${roundedW} (${deltaW > 0 ? '+' : ''}${deltaW})`)
+            console.log(`  B: ${prevB} → ${roundedB} (${deltaB > 0 ? '+' : ''}${deltaB})`)
             console.log(`  Called from: ${caller}`)
             if (stack) {
                 console.log(`  Full stack:`, stack)
             }
         }
         
+        // update refs synchronously to avoid stale balance issues in same tick
+        balanceWRef.current = roundedW
+        balanceBRef.current = roundedB
         setBalanceW(roundedW)
         setBalanceB(roundedB)
         try {
             localStorage.setItem('balance_w', String(roundedW))
             localStorage.setItem('balance_b', String(roundedB))
+            const uid = userIdRef.current
+            if (uid) {
+                localStorage.setItem(`balance_w_${uid}`, String(roundedW))
+                localStorage.setItem(`balance_b_${uid}`, String(roundedB))
+            }
         } catch {}
         // Параллельно сохраняем баланс в CloudStorage Telegram, чтобы он был общим для телефона и ПК
         try {
@@ -1171,7 +1280,9 @@ export function GameScreen() {
             const cloud = tg?.CloudStorage
             if (cloud && userId) {
                 const payload = JSON.stringify({ balanceW: roundedW, balanceB: roundedB })
-                cloud.setItem('speen_balance_v1', payload, () => {})
+                const uid = userIdRef.current
+                const key = uid ? `speen_balance_v1_${uid}` : 'speen_balance_v1'
+                cloud.setItem(key, payload, () => {})
             }
         } catch {}
         // Отправляем данные в рейтинг (debounced через setTimeout)
@@ -1410,7 +1521,13 @@ export function GameScreen() {
                 // Генерируем уникальный ID для этого физического спина
                 pyramidSpinIdRef.current += 1
                 console.log(`[scheduleNextPyramidSpin] Generated spin ID: ${pyramidSpinIdRef.current}`)
-                wheelRef.current.spin()
+                const planned = pyramidPlannedDigitsRef.current
+                const plannedIdx = Math.max(0, Math.min(9, (planned && planned[nextSpinCount - 1] != null) ? planned[nextSpinCount - 1] : -1))
+                if (plannedIdx >= 0) {
+                    wheelRef.current.spin(plannedIdx)
+                } else {
+                    wheelRef.current.spin()
+                }
             } catch (err) {
                 console.error('[scheduleNextPyramidSpin] Auto spin error:', err)
             }
@@ -1438,7 +1555,12 @@ export function GameScreen() {
                     streakX2: m === 'normal' ? ((prev.streakX2 || 0) + 1) : 0,
                     streakX5: m === 'allin' ? ((prev.streakX5 || 0) + 1) : 0,
                 }
-                try { localStorage.setItem(STATS_KEY, JSON.stringify(next)) } catch {}
+                try {
+                    const raw = JSON.stringify(next)
+                    localStorage.setItem(STATS_KEY, raw)
+                    const uid = userIdRef.current
+                    if (uid) localStorage.setItem(`${STATS_KEY}_${uid}`, raw)
+                } catch {}
                 return next
             })
             // Сразу ставим задачу на синк прогресса, чтобы сервер знал о спинах
@@ -1457,6 +1579,9 @@ export function GameScreen() {
     }, [levelStats])
 
     function onBeforeSpin() {
+        const bonusWheelUnlocked = playerLevelRef.current >= BONUS_WHEEL_UNLOCK_LEVEL
+        const curW = balanceWRef.current
+        const curB = balanceBRef.current
         // Авто‑спин от батарейки: не списываем ставку и не требуем выбор бонусного сектора
         if (isExtraSpinRef.current) {
             isExtraSpinRef.current = false
@@ -1520,8 +1645,8 @@ export function GameScreen() {
                 setToast(t('pick_number')); 
                 return false 
             }
-            // В 3 из 10 бонусный сектор ОБЯЗАТЕЛЕН
-            if (selectedBonusSector == null) {
+            // В 3 из 10 бонусный сектор обязателен только после открытия бонус-барабана
+            if (bonusWheelUnlocked && selectedBonusSector == null) {
                 setToast('Выберите бонусный сектор перед началом');
                 return false
             }
@@ -1545,18 +1670,30 @@ export function GameScreen() {
                     }
                 } catch {}
             }
+            // Планируем уникальные цифры для серии 3/10 (исключаем дубли, чтобы не было конфликтов начисления)
+            try {
+                const maxSpins = pyramidMaxSpinsRef.current
+                const planned: number[] = []
+                while (planned.length < maxSpins) {
+                    const n = Math.floor(Math.random() * 10)
+                    if (!planned.includes(n)) planned.push(n)
+                }
+                pyramidPlannedDigitsRef.current = planned
+            } catch {
+                pyramidPlannedDigitsRef.current = null
+            }
             const { min, max } = getLimits(mode, currency)
             const b = Math.max(min, Math.min(max, Math.floor(bet)))
             if (b !== bet) setBet(b)
             
             // Проверяем баланс (только при первом запуске) - проверяем ДО списания
             if (currency === 'W') {
-                if (balanceW < b) { 
+                if (curW < b) { 
                     setToast(t('not_enough_W')); 
                     return false 
                 }
             } else {
-                if (balanceB < b) { 
+                if (curB < b) { 
                     setToast(t('not_enough_B')); 
                     return false 
                 }
@@ -1566,9 +1703,9 @@ export function GameScreen() {
             // Фиксируем выбранную цифру на старте серии, чтобы игрок не мог "случайно" сменить её во время авто-вращений
             pyramidSelectedDigitRef.current = pickedDigit
             if (currency === 'W') {
-                saveBalances(balanceW - b, balanceB, `Pyramid mode: bet ${b} W deducted`)
+                saveBalances(curW - b, curB, `Pyramid mode: bet ${b} W deducted`)
             } else {
-                saveBalances(balanceW, balanceB - b, `Pyramid mode: bet ${b} B deducted`)
+                saveBalances(curW, curB - b, `Pyramid mode: bet ${b} B deducted`)
             }
             
             // Отмечаем, что ставка для этой серии уже списана
@@ -1589,6 +1726,9 @@ export function GameScreen() {
             pyramidSpinIdRef.current += 1
             console.log(`[onBeforeSpin] First pyramid spin allowed, generated spin ID: ${pyramidSpinIdRef.current}`)
             recordSpinStart('pyramid', currency, b)
+            // Возвращаем индекс, чтобы ImageWheel зафиксировал выпадение (без дублей)
+            const planned0 = pyramidPlannedDigitsRef.current?.[0]
+            if (typeof planned0 === 'number') return planned0
             return true
         }
         
@@ -1602,25 +1742,25 @@ export function GameScreen() {
         const b = Math.max(min, Math.min(max, Math.floor(bet)))
         if (b !== bet) setBet(b)
         
-        // Для обычных режимов также обязательно требуем выбор бонусного сектора
-        if (selectedBonusSector == null) {
+        // Для обычных режимов требуем выбор бонусного сектора только после открытия бонус-барабана
+        if (bonusWheelUnlocked && selectedBonusSector == null) {
             setToast(lang === 'ru' ? 'Выберите бонус перед стартом' : 'Select bonus before start')
             return false
         }
         
         // Для обычных режимов списываем ставку сразу
         if (currency === 'W') {
-            if (balanceW < b) { 
+            if (curW < b) { 
                 setToast(t('not_enough_W')); 
                 return false 
             }
-            saveBalances(balanceW - b, balanceB, `${mode} mode: bet ${b} W deducted`)
+            saveBalances(curW - b, curB, `${mode} mode: bet ${b} W deducted`)
         } else {
-            if (balanceB < b) { 
+            if (curB < b) { 
                 setToast(t('not_enough_B')); 
                 return false 
             }
-            saveBalances(balanceW, balanceB - b, `${mode} mode: bet ${b} B deducted`)
+            saveBalances(curW, curB - b, `${mode} mode: bet ${b} B deducted`)
         }
         recordSpinStart(mode, currency, b)
         return true
@@ -1700,27 +1840,22 @@ export function GameScreen() {
                 pyramidBetTakenRef.current = false
                 
                 const selectedNum = (typeof pyramidSelectedDigitRef.current === 'number') ? pyramidSelectedDigitRef.current : pickedDigit
-                const matches = newResults.filter(n => n === selectedNum).length
-                console.log(`[onSpinResult] Selected: ${selectedNum}, Matches: ${matches}`)
+                const hitIndex = newResults.indexOf(selectedNum) // -1 if not hit; otherwise 0..3
+                console.log(`[onSpinResult] Selected: ${selectedNum}, hitIndex: ${hitIndex}`)
                 
                 // Вычисляем выигрыш:
-                //  - за первое совпадение: +200% от ставки (x2)
-                //  - за второе: +50% от ставки
-                //  - за третье: +25% от ставки
-                //  - за четвёртое (с батарейкой): +100% от ставки (если угадана на 4-м вращении)
+                // ВАЖНО: в режиме 3/10 цифры должны быть уникальными (без дублей).
+                // Поэтому "выигрыш" зависит от ПОЗИЦИИ угадывания:
+                //  - 1-е вращение: 200% от ставки (итого x2)
+                //  - 2-е вращение: 150% от ставки (итого x1.5)
+                //  - 3-е вращение: 125% от ставки (итого x1.25)
+                //  - 4-е вращение (с батарейкой): 200% от ставки (итого x2)
                 const pyramidBet = pyramidBetRef.current
                 let totalWin = 0
-                const fourthDigitMatches = pyramidBatteryExtraSpinRef.current && newResults.length === 4 && newResults[3] === selectedNum
-                
-                // Если угадана цифра на 4-м вращении с батарейкой - награда 100% (даже если были угаданы до этого)
-                if (fourthDigitMatches) {
-                    totalWin = Math.floor(pyramidBet * 1.0)  // +100% за угаданную на 4-м вращении
-                } else {
-                    // Обычная логика для первых 3-х вращений
-                    if (matches >= 1) totalWin += Math.floor(pyramidBet * 2.0)  // +200%
-                    if (matches >= 2) totalWin += Math.floor(pyramidBet * 0.5)   // +50%
-                    if (matches >= 3) totalWin += Math.floor(pyramidBet * 0.25)  // +25%
-                }
+                if (hitIndex === 0) totalWin = Math.floor(pyramidBet * 2.0)
+                else if (hitIndex === 1) totalWin = Math.floor(pyramidBet * 1.5)
+                else if (hitIndex === 2) totalWin = Math.floor(pyramidBet * 1.25)
+                else if (hitIndex === 3) totalWin = Math.floor(pyramidBet * 2.0)
                 
                 // Применяем активный бонус из инвентаря для режима pyramid
                 let bonusMultiplier = 1
@@ -1758,9 +1893,9 @@ export function GameScreen() {
                 
                 if (totalWin > 0) {
                     if (currency === 'W') {
-                        saveBalances(balanceW + totalWin, balanceB, `Pyramid mode win: ${selectedNum} matches, totalWin=${totalWin}`)
+                        saveBalances(balanceWRef.current + totalWin, balanceBRef.current, `Pyramid mode win: selected=${selectedNum}, hitIndex=${hitIndex}, totalWin=${totalWin}`)
                     } else {
-                        saveBalances(balanceW, balanceB + totalWin, `Pyramid mode win: ${selectedNum} matches, totalWin=${totalWin}`)
+                        saveBalances(balanceWRef.current, balanceBRef.current + totalWin, `Pyramid mode win: selected=${selectedNum}, hitIndex=${hitIndex}, totalWin=${totalWin}`)
                     }
                     setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
                 } else {
@@ -1788,14 +1923,15 @@ export function GameScreen() {
         }
 
         // Стандартная логика для обычных режимов
+        const bonusWheelUnlocked = playerLevelRef.current >= BONUS_WHEEL_UNLOCK_LEVEL
         const numCorrect = String(pickedDigit) === label
         const sectorBonusIdx = getSectorBonusIndex(index)
-        const bonusCorrect = selectedBonusSector != null && selectedBonusSector === index
+        const bonusCorrect = bonusWheelUnlocked && selectedBonusSector != null && selectedBonusSector === index
 
         // ВАЖНО: базовые балансы здесь уже должны быть "после списания ставки" (onBeforeSpin).
         // Денежный бонус сектора выдаём ТОЛЬКО если игрок угадал бонусный сектор.
-        let currentBalanceW = balanceW
-        let currentBalanceB = balanceB
+        let currentBalanceW = balanceWRef.current
+        let currentBalanceB = balanceBRef.current
         const sectorBonus = sectorBonuses.length > index ? sectorBonuses[index] : null
         let sectorMoneyAmount =
             bonusCorrect && sectorBonus && sectorBonus.type === 'money'
@@ -1818,8 +1954,8 @@ export function GameScreen() {
         }
 
         if (hasSectorMoney) {
-            if (currency === 'W') currentBalanceW = balanceW + sectorMoneyAmount
-            else currentBalanceB = balanceB + sectorMoneyAmount
+            if (currency === 'W') currentBalanceW = balanceWRef.current + sectorMoneyAmount
+            else currentBalanceB = balanceBRef.current + sectorMoneyAmount
             console.log(`[onSpinResult] bonusCorrect=true -> sector money bonus applied: ${sectorMoneyAmount} ${currency} (sector ${index}${rocketMultiplier > 1 ? ', Rocket x2' : ''})`)
         }
 
@@ -1846,7 +1982,10 @@ export function GameScreen() {
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
             const won = numCorrect
-            if (won) delta = b * getMultiplier(mode)
+            // ВАЖНО: ставка уже списана в onBeforeSpin, поэтому при выигрыше
+            // возвращаем ставку + начисляем выигрыш по множителю.
+            // Пример: x2 => 3*bet (итого +200% к ставке), x5 => 6*bet.
+            if (won) delta = b * (getMultiplier(mode) + 1)
         } else {
             // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25% (старая логика, не используется в новом режиме)
             const center = pickedDigit
@@ -2070,17 +2209,27 @@ export function GameScreen() {
                     try {
                         const cloud = tg?.CloudStorage
                         if (cloud && u.id) {
-                            cloud.getItem('speen_balance_v1', (err: any, value: string | null) => {
-                                if (err || !value) return
-                                try {
-                                    const parsed = JSON.parse(value)
-                                    const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
-                                    const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
-                                    if (w != null && b != null) {
-                                        // Округляем до целых чисел при загрузке
-                                        saveBalances(Math.floor(w), Math.floor(b))
-                                    }
-                                } catch {}
+                            const uid = Number(u.id)
+                            const perUserKey = uid ? `speen_balance_v1_${uid}` : 'speen_balance_v1'
+                            cloud.getItem(perUserKey, (err: any, value: string | null) => {
+                                const handle = (raw: string | null) => {
+                                    if (!raw) return
+                                    try {
+                                        const parsed = JSON.parse(raw)
+                                        const w = typeof parsed?.balanceW === 'number' ? parsed.balanceW : null
+                                        const b = typeof parsed?.balanceB === 'number' ? parsed.balanceB : null
+                                        if (w != null && b != null) {
+                                            // Округляем до целых чисел при загрузке
+                                            saveBalances(Math.floor(w), Math.floor(b), 'CloudStorage load')
+                                        }
+                                    } catch {}
+                                }
+                                if (err || !value) {
+                                    // fallback to legacy key (migration)
+                                    cloud.getItem('speen_balance_v1', (_e2: any, legacy: string | null) => handle(legacy))
+                                    return
+                                }
+                                handle(value)
                             })
                             
                             // Проверка блокировки игры на нескольких устройствах
@@ -2565,11 +2714,11 @@ export function GameScreen() {
                                         }
                                     }}
                                      onOpenBonuses={() => setBonusesOpen(true)}
-                                     selectedBonusIndex={selectedBonusSector}
-                                     onSelectBonusSector={(idx: number) => { setSelectedBonusSector(idx) }}
+                                     selectedBonusIndex={(playerLevel >= BONUS_WHEEL_UNLOCK_LEVEL) ? selectedBonusSector : null}
+                                     onSelectBonusSector={(playerLevel >= BONUS_WHEEL_UNLOCK_LEVEL) ? ((idx: number) => { setSelectedBonusSector(idx) }) : undefined}
                                      hideCenterButton={mode === 'pyramid' && pyramidSpinCount > 0 && pyramidSpinCount <= 3}
                                      disableSelection={mode === 'pyramid' && pyramidSpinCount > 0}
-                                     sectorBonuses={sectorBonuses}
+                                     sectorBonuses={(playerLevel >= BONUS_WHEEL_UNLOCK_LEVEL) ? sectorBonuses : []}
                                      selectedBonusImage={selectedBonusBucket !== null && selectedBonusBucket >= 0 ? BONUS_IMAGES[selectedBonusBucket] : null} />
                              </div>
                         </div>
