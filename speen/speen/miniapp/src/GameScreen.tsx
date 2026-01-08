@@ -2149,7 +2149,11 @@ export function GameScreen() {
         
         // задачи: учёт спинов
         try {
-            const spins = Number(localStorage.getItem('task_spins') || '0') + 1
+            const uid = userIdRef.current
+            const key = scopedKey('task_spins', uid)
+            const spins = Number(localStorage.getItem(key) || localStorage.getItem('task_spins') || '0') + 1
+            localStorage.setItem(key, String(spins))
+            // keep legacy key for UI components that still read it
             localStorage.setItem('task_spins', String(spins))
             // 50 спинов -> +1000 W
             if (spins === 50) {
@@ -3249,7 +3253,7 @@ export function GameScreen() {
                         >
                             <div style={inviteGrabBar} />
                         </div>
-                        <TasksPanel t={t} lang={lang} onClose={() => { triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
+                        <TasksPanel t={t} lang={lang} userId={userId} onClose={() => { triggerHaptic('impact'); setTasksAnimatingOut(true); setTimeout(()=>{ setTasksOpen(false); setTasksAnimatingOut(false) }, 300) }} onShare5={() => {
                             try {
                                 const tg = (window as any).Telegram?.WebApp
                                 const url = window.location.href
@@ -3680,26 +3684,30 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     )
 }
 
-function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+function TasksPanel({ onClose, onShare5, onReward, t, lang, userId }: { onClose: () => void, onShare5: () => void, onReward: (rw: {W?:number,B?:number}) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en', userId: number | null }){
     const [infoOpen, setInfoOpen] = React.useState(false)
-    const spins = Number(localStorage.getItem('task_spins') || '0')
+    const k = (base: string) => (userId ? `${base}_${userId}` : base)
+    const spins = Number(localStorage.getItem(k('task_spins')) || localStorage.getItem('task_spins') || '0')
     const loginStreak = (()=>{
         try {
             const today = new Date().toDateString()
-            const last = localStorage.getItem('task_last_login')
-            let streak = Number(localStorage.getItem('task_streak') || '0')
+            const last = localStorage.getItem(k('task_last_login'))
+            let streak = Number(localStorage.getItem(k('task_streak')) || '0')
             if (last !== today) {
                 if (last) streak = (new Date(today).getTime() - new Date(last).getTime()) <= 86400000*2 ? streak + 1 : 1
                 else streak = 1
+                localStorage.setItem(k('task_last_login'), today)
+                localStorage.setItem(k('task_streak'), String(streak))
+                // keep legacy keys for any older UI reads
                 localStorage.setItem('task_last_login', today)
                 localStorage.setItem('task_streak', String(streak))
             }
             return streak
         } catch { return 1 }
     })()
-    const sharedCount = Number(localStorage.getItem('task_shared') || '0')
+    const sharedCount = Number(localStorage.getItem(k('task_shared')) || localStorage.getItem('task_shared') || '0')
     function claim(name: string, reward: {W?:number, B?:number}){
-        const key = `task_done_${name}`
+        const key = k(`task_done_${name}`)
         if (localStorage.getItem(key) === '1') return
         onReward(reward)
         try { localStorage.setItem(key,'1') } catch {}
@@ -3779,10 +3787,10 @@ function TasksPanel({ onClose, onShare5, onReward, t, lang }: { onClose: () => v
         transition:'transform 200ms ease'
     }
 
-    const spin50Done = (localStorage.getItem('task_done_spin50') === '1')
-    const spin100Done = (localStorage.getItem('task_done_spin100') === '1')
-    const streak7Done = (localStorage.getItem('task_done_streak7') === '1')
-    const share5Done = (localStorage.getItem('task_done_share5') === '1')
+    const spin50Done = (localStorage.getItem(k('task_done_spin50')) === '1')
+    const spin100Done = (localStorage.getItem(k('task_done_spin100')) === '1')
+    const streak7Done = (localStorage.getItem(k('task_done_streak7')) === '1')
+    const share5Done = (localStorage.getItem(k('task_done_share5')) === '1')
 
     const renderTask = (title: string, progress: string, canClaim: boolean, done: boolean, onClick: () => void) => (
         <div 
