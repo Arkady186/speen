@@ -703,8 +703,50 @@ export function GameScreen() {
     React.useEffect(() => {
         if (!userId) return
         // Load per-user balances/progress for the current Telegram user.
-        // IMPORTANT: do NOT fall back to legacy global keys here (they belong to a different Telegram account on the same device).
+        // Also MIGRATE legacy global keys -> per-user keys once, but only for the "legacy owner" user.
+        const LEGACY_OWNER_KEY = 'speen_legacy_owner_uid_v1'
+        const LAST_UID_KEY = 'speen_last_uid_v1'
+        const uidStr = String(userId)
+        try { localStorage.setItem(LAST_UID_KEY, uidStr) } catch {}
+
+        let legacyOwner: string | null = null
+        try { legacyOwner = localStorage.getItem(LEGACY_OWNER_KEY) } catch {}
+        // If we don't know who owns legacy keys yet, assume the first user after upgrade owns them.
+        if (!legacyOwner) {
+            try {
+                const hasLegacy =
+                    localStorage.getItem('balance_w') != null ||
+                    localStorage.getItem('balance_b') != null ||
+                    localStorage.getItem(LEVEL_KEY) != null ||
+                    localStorage.getItem(STATS_KEY) != null ||
+                    localStorage.getItem(CLAIMED_LEVEL_KEY) != null ||
+                    localStorage.getItem(ONBOARDING_KEY) != null ||
+                    localStorage.getItem('bonuses_inv') != null ||
+                    localStorage.getItem('purchases') != null ||
+                    localStorage.getItem('daily_last') != null ||
+                    localStorage.getItem('daily_streak') != null ||
+                    localStorage.getItem('task_spins') != null
+                if (hasLegacy) {
+                    localStorage.setItem(LEGACY_OWNER_KEY, uidStr)
+                    legacyOwner = uidStr
+                }
+            } catch {}
+        }
+        const canMigrateLegacy = legacyOwner === uidStr
+
+        const migrateStr = (legacyKey: string, perUserKey: string) => {
+            if (!canMigrateLegacy) return
+            try {
+                const existing = localStorage.getItem(perUserKey)
+                if (existing != null) return
+                const legacyVal = localStorage.getItem(legacyKey)
+                if (legacyVal == null) return
+                localStorage.setItem(perUserKey, legacyVal)
+            } catch {}
+        }
         try {
+            migrateStr('balance_w', scopedKey('balance_w', userId))
+            migrateStr('balance_b', scopedKey('balance_b', userId))
             const wRaw = localStorage.getItem(scopedKey('balance_w', userId))
             const bRaw = localStorage.getItem(scopedKey('balance_b', userId))
             const w = Math.floor(Number(wRaw ?? '0') || 0)
@@ -725,6 +767,7 @@ export function GameScreen() {
 
         // Load per-user progress keys (level/stats/claimed/onboarding) if present
         try {
+            migrateStr(LEVEL_KEY, scopedKey(LEVEL_KEY, userId))
             const lvlRaw = localStorage.getItem(scopedKey(LEVEL_KEY, userId))
             if (lvlRaw != null) {
                 const lvl = Math.max(0, Math.min(50, Math.floor(Number(lvlRaw) || 0)))
@@ -732,10 +775,12 @@ export function GameScreen() {
             }
         } catch {}
         try {
+            migrateStr(STATS_KEY, scopedKey(STATS_KEY, userId))
             const statsRaw = localStorage.getItem(scopedKey(STATS_KEY, userId))
             if (statsRaw) setStatsFromRemote(JSON.parse(statsRaw))
         } catch {}
         try {
+            migrateStr(CLAIMED_LEVEL_KEY, scopedKey(CLAIMED_LEVEL_KEY, userId))
             const cRaw = localStorage.getItem(scopedKey(CLAIMED_LEVEL_KEY, userId))
             if (cRaw != null) {
                 const c = Math.max(0, Math.floor(Number(cRaw) || 0))
@@ -744,20 +789,25 @@ export function GameScreen() {
             }
         } catch {}
         try {
+            migrateStr(ONBOARDING_KEY, scopedKey(ONBOARDING_KEY, userId))
             const ob = localStorage.getItem(scopedKey(ONBOARDING_KEY, userId))
             if (ob === '1') setOnboardingOpen(false)
         } catch {}
         try {
+            migrateStr('bonuses_inv', scopedKey('bonuses_inv', userId))
             const invRaw = localStorage.getItem(scopedKey('bonuses_inv', userId))
             localStorage.setItem('bonuses_inv', invRaw != null ? invRaw : '[]')
             if (invRaw == null) localStorage.setItem(scopedKey('bonuses_inv', userId), '[]')
         } catch {}
         try {
+            migrateStr('purchases', scopedKey('purchases', userId))
             const purchasesRaw = localStorage.getItem(scopedKey('purchases', userId))
             localStorage.setItem('purchases', purchasesRaw != null ? purchasesRaw : '[]')
             if (purchasesRaw == null) localStorage.setItem(scopedKey('purchases', userId), '[]')
         } catch {}
         try {
+            migrateStr('daily_last', scopedKey('daily_last', userId))
+            migrateStr('daily_streak', scopedKey('daily_streak', userId))
             const dailyLast = localStorage.getItem(scopedKey('daily_last', userId))
             const dailyStreak = localStorage.getItem(scopedKey('daily_streak', userId))
             localStorage.setItem('daily_last', dailyLast != null ? dailyLast : '')
@@ -766,10 +816,20 @@ export function GameScreen() {
             if (dailyStreak == null) localStorage.setItem(scopedKey('daily_streak', userId), '0')
         } catch {}
         try {
+            migrateStr('task_spins', scopedKey('task_spins', userId))
             const spins = localStorage.getItem(scopedKey('task_spins', userId))
             localStorage.setItem('task_spins', spins != null ? spins : '0')
             if (spins == null) localStorage.setItem(scopedKey('task_spins', userId), '0')
         } catch {}
+        // Migrate bonus task completion flags (used for level progression) if needed
+        if (canMigrateLegacy) {
+            try {
+                const taskNames = ['spin50', 'spin100', 'streak7', 'share5'] as const
+                for (const name of taskNames) {
+                    migrateStr(`task_done_${name}`, scopedKey(`task_done_${name}`, userId))
+                }
+            } catch {}
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId])
     type GameMode = 'normal' | 'pyramid' | 'allin'
@@ -1695,6 +1755,10 @@ export function GameScreen() {
                     if (bonusIndex !== -1 && bonusName === 'Battery') {
                         inv.splice(bonusIndex, 1)
                         localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        try {
+                            const uid = userIdRef.current
+                            if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                        } catch {}
                         pyramidMaxSpinsRef.current = 4
                         pyramidBatteryExtraSpinRef.current = true
                         setSelectedBonusBucket(null)
@@ -1909,6 +1973,10 @@ export function GameScreen() {
                             // Удаляем бонус из инвентаря после использования
                             inv.splice(bonusIndex, 1)
                             localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                            try {
+                                const uid = userIdRef.current
+                                if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                            } catch {}
                             
                             // Сбрасываем выбранный бонус после использования
                             setSelectedBonusBucket(null)
@@ -2001,6 +2069,10 @@ export function GameScreen() {
                 const bonusName = BONUS_LABELS[idxSafe] || `Бонус ${idxSafe}`
                 inv.push(bonusName)
                 localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                try {
+                    const uid = userIdRef.current
+                    if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                } catch {}
                 const bonusNames: Record<string, string> = {
                     'Heart': 'Сердце',
                     'Battery': 'Батарейка',
@@ -2075,6 +2147,10 @@ export function GameScreen() {
                     if (bonusName !== 'Battery' || numCorrect) {
                         inv.splice(bonusIndex, 1)
                         localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        try {
+                            const uid = userIdRef.current
+                            if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                        } catch {}
                     }
                     
                     // Сбрасываем выбранный бонус после использования (кроме батарейки при проигрыше - сбросим в onSpinResult)
@@ -2124,6 +2200,10 @@ export function GameScreen() {
                     if (batteryIndex !== -1) {
                         inv.splice(batteryIndex, 1)
                         localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        try {
+                            const uid = userIdRef.current
+                            if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                        } catch {}
                         console.log('[onSpinResult] Battery removed from inventory before extra spin')
                     }
                     setSelectedBonusBucket(null) // Сбрасываем выбранный бонус
@@ -3214,17 +3294,32 @@ export function GameScreen() {
                             onClose={() => { setShopAnimatingOut(true); setTimeout(()=>{ setShopOpen(false); setShopAnimatingOut(false) }, 300) }}
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
-                            onPurchase={(title, priceB) => {
-                                // списываем B, добавляем в инвентарь покупок
-                                if (balanceB < priceB) { setToast('Недостаточно B'); return false }
-                                saveBalances(balanceW, balanceB - priceB)
+                            onPurchase={(title) => {
+                                // списываем W, добавляем в инвентарь бонусов + покупок
+                                const cost = 1000
+                                if (balanceWRef.current < cost) { setToast('Недостаточно W'); return false }
+                                saveBalances(balanceWRef.current - cost, balanceBRef.current, `Shop purchase: ${title} for ${cost} W`)
                                 try {
                                     const raw = localStorage.getItem('purchases') || '[]'
-                                    const list: Array<{title:string, priceB:number, ts:number}> = JSON.parse(raw)
-                                    list.push({ title, priceB, ts: Date.now() })
+                                    const list: Array<{title:string, priceW:number, ts:number}> = JSON.parse(raw)
+                                    list.push({ title, priceW: cost, ts: Date.now() })
                                     localStorage.setItem('purchases', JSON.stringify(list))
+                                    try {
+                                        const uid = userIdRef.current
+                                        if (uid) localStorage.setItem(scopedKey('purchases', uid), JSON.stringify(list))
+                                    } catch {}
                                 } catch {}
-                                setToast(`Куплено: ${title} за ${priceB} B`)
+                                try {
+                                    const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                                    const inv: string[] = JSON.parse(invRaw)
+                                    inv.push(title)
+                                    localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                    try {
+                                        const uid = userIdRef.current
+                                        if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                                    } catch {}
+                                } catch {}
+                                setToast(`Куплено: ${title} за ${cost} W`)
                                 return true
                             }}
                             onBuyStars={(stars, toB) => openStarsPurchase(stars, toB)}
@@ -3259,15 +3354,20 @@ export function GameScreen() {
                             bonusLabels={BONUS_LABELS}
                             bonusImages={BONUS_IMAGES}
                             onPurchase={(b) => {
-                                if (balanceB < 1) { setToast('Недостаточно B'); return }
-                                saveBalances(balanceW, balanceB - 1, `WheelShop purchase: bought bonus "${b}" for 1 B`)
+                                const cost = 1000
+                                if (balanceWRef.current < cost) { setToast('Недостаточно W'); return }
+                                saveBalances(balanceWRef.current - cost, balanceBRef.current, `WheelShop purchase: bought bonus "${b}" for ${cost} W`)
                                 try {
                                     const invRaw = localStorage.getItem('bonuses_inv') || '[]'
                                     const inv: string[] = JSON.parse(invRaw)
                                     inv.push(b)
                                     localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                    try {
+                                        const uid = userIdRef.current
+                                        if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                                    } catch {}
                                 } catch {}
-                                setToast(`Куплено: ${b} за 1 B`)
+                                setToast(`Куплено: ${b} за ${cost} W`)
                             }}
                         />
                     </div>
@@ -3398,6 +3498,7 @@ export function GameScreen() {
                         <DailyBonus
                             t={t}
                             lang={lang}
+                            userId={userId}
                             onClose={() => { setDailyAnimatingOut(true); setTimeout(()=>{ setDailyOpen(false); setDailyAnimatingOut(false) }, 300) }}
                             onClaim={(amount) => {
                                 saveBalances(balanceW + amount, balanceB)
@@ -3407,8 +3508,9 @@ export function GameScreen() {
                                     const s = levelStatsRef.current
                                     let addCycle = 0
                                     try {
-                                        const streak = Number(localStorage.getItem('daily_streak') || '0') || 0
-                                        const last = localStorage.getItem('daily_last') || ''
+                                        const uid = userIdRef.current
+                                        const streak = Number(localStorage.getItem(scopedKey('daily_streak', uid)) || localStorage.getItem('daily_streak') || '0') || 0
+                                        const last = localStorage.getItem(scopedKey('daily_last', uid)) || localStorage.getItem('daily_last') || ''
                                         if (streak >= 7 && last) addCycle = 1
                                     } catch {}
                                     bumpStats({
@@ -3524,16 +3626,17 @@ function Coin(){
     )
 }
 
-function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClaim: (amount: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en' }){
+function DailyBonus({ onClose, onClaim, t, lang, userId }: { onClose: () => void, onClaim: (amount: number) => void, t: (k:string, vars?: Record<string, any>) => string, lang: 'ru'|'en', userId: number | null }){
     // 7-дневная цепочка, сбрасывается при пропуске дня
     const rewards = [250, 500, 1000, 2500, 5000, 7500, 10000]
     const todayStr = () => new Date().toDateString()
     const yestStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return d.toDateString() }
+    const k = (base: string) => (userId ? `${base}_${userId}` : base)
 
     const [state, setState] = React.useState(() => {
         try {
-            const last = localStorage.getItem('daily_last') || ''
-            const streak = Math.max(0, Math.min(7, Number(localStorage.getItem('daily_streak') || '0') || 0))
+            const last = localStorage.getItem(k('daily_last')) || localStorage.getItem('daily_last') || ''
+            const streak = Math.max(0, Math.min(7, Number(localStorage.getItem(k('daily_streak')) || localStorage.getItem('daily_streak') || '0') || 0))
             const claimedToday = last === todayStr()
             let current = 1
             if (claimedToday) current = Math.min(7, streak) // уже получили сегодня
@@ -3546,7 +3649,12 @@ function DailyBonus({ onClose, onClaim, t, lang }: { onClose: () => void, onClai
     const [infoOpen, setInfoOpen] = React.useState(false)
 
     function save(last: string, streak: number){
-        try { localStorage.setItem('daily_last', last); localStorage.setItem('daily_streak', String(streak)) } catch {}
+        try {
+            localStorage.setItem('daily_last', last)
+            localStorage.setItem('daily_streak', String(streak))
+            localStorage.setItem(k('daily_last'), last)
+            localStorage.setItem(k('daily_streak'), String(streak))
+        } catch {}
     }
 
     function handleClaim(day: number){
@@ -4717,7 +4825,7 @@ function WheelShopPanel({ onClose, bonusLabels, bonusImages, onPurchase, t, lang
                             }}
                         >
                             <Coin />
-                            <span>1 B</span>
+                            <span>1000 W</span>
                         </button>
                     </div>
                     )
