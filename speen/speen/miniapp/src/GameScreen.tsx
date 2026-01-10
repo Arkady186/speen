@@ -363,13 +363,17 @@ export function GameScreen() {
     }
 
     const [levelsConfig, setLevelsConfig] = React.useState<LevelConfig[]>(() => ([
-        { level: 0, action: 'Старт', how: 'Начальный уровень', unlocks: ['Доступ к игре'], rewardW: 0 },
-        { level: 1, action: 'Инструктаж / регистрация', how: 'Пройди инструктаж при первом входе.', unlocks: ['Доступ к игре'], rewardW: 10000 },
-        { level: 2, action: 'Сделать старт на барабане', how: 'Нажми “Старт” в любом режиме и дождись результата.', unlocks: ['Ежедневный бонус'], rewardW: 1000 },
-        { level: 3, action: 'Забрать ежедневный бонус', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['Бонусные задания'], rewardW: 1000 },
-        { level: 4, action: 'Выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['Рефералка'], rewardW: 1000 },
-        { level: 5, action: 'Пригласить 1 друга', how: 'Пригласи 1 друга — он должен появиться в списке друзей.', unlocks: ['Открывается накопитель'], rewardW: 1000, minInvites: 1 },
-        { level: 6, action: 'Сыграть 1 серию “3 из 10”', how: 'Переключи режим на “3 из 10” и дождись окна с выпавшими цифрами.', unlocks: ['Уровни продолжают расти от активности'], rewardW: 5000 },
+        { level: 0, action: 'регистрация', how: 'Стартовый уровень после регистрации.', unlocks: ['доступ к игре (без бонусного барабана)'], rewardW: 10000 },
+        { level: 1, action: 'сыграть одну игру в любом режиме', how: 'Сыграй 1 игру (x2 / x5 / 3/10).', unlocks: ['доступ к ежедневным заданиям'], rewardW: 1000 },
+        { level: 2, action: 'выполнить ежедневное задание (забрать бонус за вход)', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['доступ к бонусным заданиям'], rewardW: 1000 },
+        { level: 3, action: 'выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['доступ к рефералке'], rewardW: 1000 },
+        { level: 4, action: 'пригласить 1 друга', how: 'Пригласи 1 друга — он должен появиться в списке друзей.', unlocks: ['активация актив. счёта'], rewardW: 1000 },
+        { level: 5, action: 'сыграть режим 3/10', how: 'Сыграй 1 серию “3 из 10”.', unlocks: ['активация бонусного барабана'], rewardW: 5000, minInvites: 1 },
+        { level: 6, action: 'сыграть десять игр подряд в режиме х2', how: 'Сыграй 10 игр подряд в режиме x2.', unlocks: ['активация магазина'], rewardW: 1000, minInvites: 1 },
+        { level: 7, action: 'Купить бустер "сердце"', how: 'Купи бустер “сердце”.', unlocks: ['доступ к покупке бустера "батарейка"'], rewardW: 1000, minInvites: 1 },
+        { level: 8, action: 'Сыграть игру используя бустер "сердце"', how: 'Сыграй игру, выбрав “сердце”.', unlocks: ['доступ к покупке бустера "ракета"'], rewardW: 1000, minInvites: 1 },
+        { level: 9, action: 'сыграть три игры подряд в режиме х5', how: 'Сыграй 3 игры подряд в режиме x5.', unlocks: ['подъём актив.счёта'], rewardW: 1000, minInvites: 1 },
+        { level: 10, action: 'пригласить +1 друга', how: 'Пригласи ещё 1 друга.', unlocks: ['активация рейтинга игроков'], rewardW: 5000, minInvites: 1 },
     ]))
 
     React.useEffect(() => {
@@ -400,22 +404,7 @@ export function GameScreen() {
                     })
                     .sort((a, b) => a.level - b.level)
                 if (mapped.length) {
-                    const overrides: Record<number, LevelConfig> = {
-                        0: { level: 0, action: 'Старт', how: 'Начальный уровень', unlocks: ['Доступ к игре'], rewardW: 0 },
-                        1: { level: 1, action: 'Инструктаж / регистрация', how: 'Пройди инструктаж при первом входе.', unlocks: ['Доступ к игре'], rewardW: 10000 },
-                        2: { level: 2, action: 'Сделать старт на барабане', how: 'Нажми “Старт” в любом режиме и дождись результата.', unlocks: ['Ежедневный бонус'], rewardW: 1000 },
-                        3: { level: 3, action: 'Забрать ежедневный бонус', how: 'Открой “Заходи каждый день” и нажми “Получить”.', unlocks: ['Бонусные задания'], rewardW: 1000 },
-                        4: { level: 4, action: 'Выполнить любое бонусное задание', how: 'Открой “Получай WCOIN” и забери награду за любое задание.', unlocks: ['Рефералка'], rewardW: 1000 },
-                        5: { level: 5, action: 'Пригласить 1 друга', how: 'Пригласи 1 друга — он должен появиться в списке друзей.', unlocks: ['Открывается накопитель'], rewardW: 1000, minInvites: 1 },
-                        6: { level: 6, action: 'Сыграть 1 серию “3 из 10”', how: 'Переключи режим на “3 из 10” и дождись окна с выпавшими цифрами.', unlocks: ['Уровни продолжают расти от активности'], rewardW: 5000 },
-                    }
-                    const base = mapped.map(l => overrides[l.level] ?? l)
-                    for (const k of Object.keys(overrides)) {
-                        const lvl = Number(k)
-                        if (!base.some(x => x.level === lvl)) base.push(overrides[lvl]!)
-                    }
-                    base.sort((a, b) => a.level - b.level)
-                    setLevelsConfig(base)
+                    setLevelsConfig(mapped)
                 }
             })
             .catch(() => {})
@@ -431,34 +420,40 @@ export function GameScreen() {
 
         // explicit early levels
         if (targetLevel === 0) return true
-        if (targetLevel === 1) return (s.onboardingDone || 0) >= 1
-        if (targetLevel === 2) return s.spinsTotal >= 1
-        if (targetLevel === 3) return s.dailyClaims >= 1
-        if (targetLevel === 4) {
-            // Primary requirement: claim any bonus task reward ("Получай WCOIN")
-            if ((s.tasksClaimed >= 1) || (s.bonusTasksClaimed >= 1)) return true
-
-            // Fallback: if player already completed ALL available bonus tasks (no free tasks left),
-            // but stats weren't bumped (legacy accounts / old versions), allow auto-advance 3 -> 4.
+        // Level 1: play 1 game in any mode
+        if (targetLevel === 1) return s.spinsTotal >= 1
+        // Level 2: claim daily bonus at least once
+        if (targetLevel === 2) return s.dailyClaims >= 1
+        // Level 3: claim any bonus task reward (Получай WCOIN)
+        if (targetLevel === 3) {
+            if ((s.tasksClaimed || 0) >= 1 || (s.bonusTasksClaimed || 0) >= 1) return true
+            // fallback for legacy: tasks done but stats not bumped
             try {
                 const uid = userIdRef.current
                 const k = (base: string) => (uid ? `${base}_${uid}` : base)
                 const taskNames = ['spin50', 'spin100', 'streak7', 'share5'] as const
-                const allDone = taskNames.every(name => {
+                const anyDone = taskNames.some(name => {
                     const perUser = localStorage.getItem(k(`task_done_${name}`))
                     const legacy = localStorage.getItem(`task_done_${name}`)
                     return (perUser === '1') || (legacy === '1')
                 })
-                if (allDone) return true
+                if (anyDone) return true
             } catch {}
             return false
         }
-        if (targetLevel === 5) return s.invites >= 1
-        // Level 6 should be awarded when the 3/10 results window appears (series completed)
-        if (targetLevel === 6) return (s.series3of10Completed || 0) >= 1
+        // Level 4: invite 1 friend
+        if (targetLevel === 4) return s.invites >= 1
+        // Level 5: complete a 3/10 series (results window appeared)
+        if (targetLevel === 5) return (s.series3of10Completed || 0) >= 1
+        // Level 6: 10 games in a row in x2
+        if (targetLevel === 6) return (s.streakX2 || 0) >= 10
+        // Level 7: buy Heart
         if (targetLevel === 7) return (s.boostersBought['Heart'] || 0) >= 1
+        // Level 8: use Heart
         if (targetLevel === 8) return (s.boostersUsed['Heart'] || 0) >= 1
-        if (targetLevel === 9) return s.spinsX5 >= 3
+        // Level 9: 3 games in a row in x5
+        if (targetLevel === 9) return (s.streakX5 || 0) >= 3
+        // Level 10: invite +1 friend (i.e., total 2)
         if (targetLevel === 10) return s.invites >= 2
 
         // ---- Excel-based levels 11..50 ----
@@ -515,36 +510,80 @@ export function GameScreen() {
         if (!conf) return { current: 0, required: 0, text: '' }
         
         if (targetLevel === 0) return { current: 1, required: 1, text: '1/1' }
-        if (targetLevel === 1) return { current: (s.onboardingDone || 0), required: 1, text: `${Math.min(1, s.onboardingDone || 0)}/1` }
-        if (targetLevel === 2) return { current: s.spinsTotal, required: 1, text: `${s.spinsTotal}/1` }
-        if (targetLevel === 3) return { current: s.dailyClaims, required: 1, text: `${s.dailyClaims}/1` }
-        if (targetLevel === 4) {
+        if (targetLevel === 1) return { current: s.spinsTotal, required: 1, text: `${Math.min(1, s.spinsTotal)}/1` }
+        if (targetLevel === 2) return { current: s.dailyClaims, required: 1, text: `${Math.min(1, s.dailyClaims)}/1` }
+        if (targetLevel === 3) {
             let c = Math.max(s.tasksClaimed || 0, s.bonusTasksClaimed || 0)
             if (c < 1) {
                 try {
                     const uid = userIdRef.current
                     const k = (base: string) => (uid ? `${base}_${uid}` : base)
                     const taskNames = ['spin50', 'spin100', 'streak7', 'share5'] as const
-                    const allDone = taskNames.every(name => {
+                    const anyDone = taskNames.some(name => {
                         const perUser = localStorage.getItem(k(`task_done_${name}`))
                         const legacy = localStorage.getItem(`task_done_${name}`)
                         return (perUser === '1') || (legacy === '1')
                     })
-                    if (allDone) c = 1
+                    if (anyDone) c = 1
                 } catch {}
             }
-            return { current: c, required: 1, text: `${c}/1` }
+            return { current: c, required: 1, text: `${Math.min(1, c)}/1` }
         }
-        if (targetLevel === 5) return { current: s.invites, required: 1, text: `${s.invites}/1` }
-        if (targetLevel === 6) return { current: (s.series3of10Completed || 0), required: 1, text: `${s.series3of10Completed || 0}/1` }
-        if (targetLevel === 7) return { current: (s.boostersBought['Heart'] || 0), required: 1, text: `${s.boostersBought['Heart'] || 0}/1` }
-        if (targetLevel === 8) return { current: (s.boostersUsed['Heart'] || 0), required: 1, text: `${s.boostersUsed['Heart'] || 0}/1` }
-        if (targetLevel === 9) return { current: s.spinsX5, required: 3, text: `${s.spinsX5}/3` }
-        if (targetLevel === 10) return { current: s.invites, required: 2, text: `${s.invites}/2` }
-        
-        // Для уровней 11-50 используем общую логику
-        const required = Math.max(10, targetLevel * 5)
-        return { current: s.spinsTotal, required, text: `${s.spinsTotal}/${required}` }
+        if (targetLevel === 4) return { current: s.invites, required: 1, text: `${Math.min(1, s.invites)}/1` }
+        if (targetLevel === 5) return { current: (s.series3of10Completed || 0), required: 1, text: `${Math.min(1, s.series3of10Completed || 0)}/1` }
+        if (targetLevel === 6) return { current: (s.streakX2 || 0), required: 10, text: `${Math.min(10, s.streakX2 || 0)}/10` }
+        if (targetLevel === 7) return { current: (s.boostersBought['Heart'] || 0), required: 1, text: `${Math.min(1, s.boostersBought['Heart'] || 0)}/1` }
+        if (targetLevel === 8) return { current: (s.boostersUsed['Heart'] || 0), required: 1, text: `${Math.min(1, s.boostersUsed['Heart'] || 0)}/1` }
+        if (targetLevel === 9) return { current: (s.streakX5 || 0), required: 3, text: `${Math.min(3, s.streakX5 || 0)}/3` }
+        if (targetLevel === 10) return { current: s.invites, required: 2, text: `${Math.min(2, s.invites)}/2` }
+
+        // Excel-based progress 11..50
+        switch (targetLevel) {
+            case 11: return { current: (s.boostersBought['Battery'] || 0), required: 1, text: `${Math.min(1, s.boostersBought['Battery'] || 0)}/1` }
+            case 12: return { current: (s.boostersUsed['Battery'] || 0), required: 1, text: `${Math.min(1, s.boostersUsed['Battery'] || 0)}/1` }
+            case 13: return { current: s.daily7Cycles, required: 1, text: `${Math.min(1, s.daily7Cycles)}/1` }
+            case 14: return { current: s.tasksClaimedB, required: 1, text: `${Math.min(1, s.tasksClaimedB)}/1` }
+            case 15: return { current: s.spinsX2B, required: 10, text: `${Math.min(10, s.spinsX2B)}/10` }
+            case 16: return { current: (s.boostersBought['Rocket'] || 0), required: 1, text: `${Math.min(1, s.boostersBought['Rocket'] || 0)}/1` }
+            case 17: return { current: (s.boostersUsed['Rocket'] || 0), required: 1, text: `${Math.min(1, s.boostersUsed['Rocket'] || 0)}/1` }
+            case 18: return { current: s.invites, required: 3, text: `${Math.min(3, s.invites)}/3` }
+            case 19: return { current: s.tasksClaimedB, required: 5, text: `${Math.min(5, s.tasksClaimedB)}/5` }
+            case 20: return { current: s.spinsX5WithBooster, required: 1, text: `${Math.min(1, s.spinsX5WithBooster)}/1` }
+            case 21: return { current: s.spinsX5B, required: 10, text: `${Math.min(10, s.spinsX5B)}/10` }
+            case 22: return { current: s.winsX2, required: 3, text: `${Math.min(3, s.winsX2)}/3` }
+            case 23: return { current: Math.min(1, (s.boostersUsed['Heart'] || 0)) + Math.min(1, s.spins3of10), required: 2, text: `${Math.min(1, (s.boostersUsed['Heart'] || 0)) + Math.min(1, s.spins3of10)}/2` }
+            case 24: return { current: s.invites, required: 4, text: `${Math.min(4, s.invites)}/4` }
+            case 25: return { current: s.spins3of10B, required: 1, text: `${Math.min(1, s.spins3of10B)}/1` }
+            case 26: return { current: s.exchangedBtoW_totalW, required: 10000, text: `${Math.min(10000, s.exchangedBtoW_totalW)}/10000` }
+            case 27: return { current: s.winsX5, required: 3, text: `${Math.min(3, s.winsX5)}/3` }
+            case 28: return { current: Math.min(1, (s.boostersUsed['Battery'] || 0)) + Math.min(1, s.spins3of10), required: 2, text: `${Math.min(1, (s.boostersUsed['Battery'] || 0)) + Math.min(1, s.spins3of10)}/2` }
+            case 29: return { current: s.daily7Cycles, required: 2, text: `${Math.min(2, s.daily7Cycles)}/2` }
+            case 30: return { current: s.invites, required: 5, text: `${Math.min(5, s.invites)}/5` }
+            case 31: return { current: s.spinsBetAtLeast10000B, required: 1, text: `${Math.min(1, s.spinsBetAtLeast10000B)}/1` }
+            case 32: return { current: s.wins3of10, required: 3, text: `${Math.min(3, s.wins3of10)}/3` }
+            case 33: return { current: Math.min(1, (s.boostersUsed['Rocket'] || 0)) + Math.min(1, s.spins3of10), required: 2, text: `${Math.min(1, (s.boostersUsed['Rocket'] || 0)) + Math.min(1, s.spins3of10)}/2` }
+            case 34: return { current: s.tasksClaimedB, required: 10, text: `${Math.min(10, s.tasksClaimedB)}/10` }
+            case 35: return { current: s.spins3of10B, required: 3, text: `${Math.min(3, s.spins3of10B)}/3` }
+            case 36: return { current: s.exchangedWtoB_times, required: 1, text: `${Math.min(1, s.exchangedWtoB_times)}/1` }
+            case 37: return { current: s.spinsX2B, required: 3, text: `${Math.min(3, s.spinsX2B)}/3` }
+            case 38: return { current: s.invites, required: 6, text: `${Math.min(6, s.invites)}/6` }
+            case 39: return { current: s.tasksClaimedB, required: 10, text: `${Math.min(10, s.tasksClaimedB)}/10` }
+            case 40: return { current: s.exchangedBtoW_totalW, required: 20000, text: `${Math.min(20000, s.exchangedBtoW_totalW)}/20000` }
+            case 41: return { current: s.daily7Cycles, required: 3, text: `${Math.min(3, s.daily7Cycles)}/3` }
+            case 42: return { current: s.spinsX5B, required: 3, text: `${Math.min(3, s.spinsX5B)}/3` }
+            case 43: return { current: s.purchasedBTotal, required: 10000, text: `${Math.min(10000, s.purchasedBTotal)}/10000` }
+            case 44: return { current: s.invites, required: 7, text: `${Math.min(7, s.invites)}/7` }
+            case 45: return { current: s.spins3of10B, required: 3, text: `${Math.min(3, s.spins3of10B)}/3` }
+            case 46: return { current: s.tasksClaimedB, required: 15, text: `${Math.min(15, s.tasksClaimedB)}/15` }
+            case 47: return { current: s.winsX2B, required: 3, text: `${Math.min(3, s.winsX2B)}/3` }
+            case 48: return { current: s.winsX5B, required: 3, text: `${Math.min(3, s.winsX5B)}/3` }
+            case 49: return { current: s.wins3of10B, required: 3, text: `${Math.min(3, s.wins3of10B)}/3` }
+            case 50: return { current: s.purchasedBTotal, required: 100000, text: `${Math.min(100000, s.purchasedBTotal)}/100000` }
+            default: {
+                const required = Math.max(10, targetLevel * 5)
+                return { current: s.spinsTotal, required, text: `${Math.min(required, s.spinsTotal)}/${required}` }
+            }
+        }
     }
 
     function tryClaimNextLevel(targetLevel?: number) {
@@ -1759,6 +1798,11 @@ export function GameScreen() {
                             const uid = userIdRef.current
                             if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
                         } catch {}
+                        // level stats: boosters used (Battery in 3/10)
+                        try {
+                            const s = levelStatsRef.current
+                            bumpStats({ boostersUsed: { Battery: (s.boostersUsed?.Battery || 0) + 1 } })
+                        } catch {}
                         pyramidMaxSpinsRef.current = 4
                         pyramidBatteryExtraSpinRef.current = true
                         setSelectedBonusBucket(null)
@@ -1968,7 +2012,7 @@ export function GameScreen() {
                                 // Ракета - умножает выигрыш на 4 (x4)
                                 bonusMultiplier = 4
                             }
-                            // Сердце и Батарейка не работают в режиме pyramid (только при проигрыше)
+                            // Сердце: если серия проиграна — возвращаем ставку (работает в 3/10)
                             
                             // Удаляем бонус из инвентаря после использования
                             inv.splice(bonusIndex, 1)
@@ -1980,6 +2024,11 @@ export function GameScreen() {
                             
                             // Сбрасываем выбранный бонус после использования
                             setSelectedBonusBucket(null)
+                            // level stats: boosters used
+                            try {
+                                const s = levelStatsRef.current
+                                bumpStats({ boostersUsed: { [bonusName]: (s.boostersUsed?.[bonusName] || 0) + 1 } })
+                            } catch {}
                                                     }
                     } catch {}
                 }
@@ -1998,8 +2047,41 @@ export function GameScreen() {
                         saveBalances(balanceWRef.current, balanceBRef.current + totalWin, `Pyramid mode win: selected=${selectedNum}, hitIndex=${hitIndex}, totalWin=${totalWin}`)
                     }
                     setToast(`Выигрыш! Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}. +${totalWin} ${currency}`)
+                    // win counters for 3/10
+                    try {
+                        const s = levelStatsRef.current
+                        bumpStats({
+                            wins3of10: (s.wins3of10 || 0) + (currency === 'W' ? 1 : 0),
+                            wins3of10B: (s.wins3of10B || 0) + (currency === 'B' ? 1 : 0),
+                        })
+                    } catch {}
                 } else {
                     setToast(`Проигрыш. Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}`)
+                    // Heart in 3/10: if selected and present — refund bet on full loss (also counts as "used")
+                    try {
+                        if (selectedBonusBucket != null) {
+                            const invRaw = localStorage.getItem('bonuses_inv') || '[]'
+                            const inv: string[] = JSON.parse(invRaw)
+                            const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
+                            const bonusIndex = inv.indexOf(bonusName)
+                            if (bonusIndex !== -1 && bonusName === 'Heart') {
+                                inv.splice(bonusIndex, 1)
+                                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                                try {
+                                    const uid = userIdRef.current
+                                    if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                                } catch {}
+                                if (currency === 'W') saveBalances(balanceWRef.current + pyramidBet, balanceBRef.current, 'Heart (3/10): refund bet on loss')
+                                else saveBalances(balanceWRef.current, balanceBRef.current + pyramidBet, 'Heart (3/10): refund bet on loss')
+                                setToast(`Сердце спасло! Ставка возвращена. (+${pyramidBet} ${currency})`)
+                                setSelectedBonusBucket(null)
+                                try {
+                                    const s = levelStatsRef.current
+                                    bumpStats({ boostersUsed: { [bonusName]: (s.boostersUsed?.[bonusName] || 0) + 1 } })
+                                } catch {}
+                            }
+                        }
+                    } catch {}
                 }
                 
                 // Показываем результаты на барабане
@@ -2151,6 +2233,11 @@ export function GameScreen() {
                             const uid = userIdRef.current
                             if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
                         } catch {}
+                        // level stats: boosters used (Heart/Rocket or Battery on win)
+                        try {
+                            const s = levelStatsRef.current
+                            bumpStats({ boostersUsed: { [bonusName]: (s.boostersUsed?.[bonusName] || 0) + 1 } })
+                        } catch {}
                     }
                     
                     // Сбрасываем выбранный бонус после использования (кроме батарейки при проигрыше - сбросим в onSpinResult)
@@ -2170,6 +2257,16 @@ export function GameScreen() {
             if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
             else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
             setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x4 Ракета)' : ''}`)
+            // win counters
+            try {
+                const s = levelStatsRef.current
+                bumpStats({
+                    winsX2: (s.winsX2 || 0) + (mode === 'normal' && currency === 'W' ? 1 : 0),
+                    winsX5: (s.winsX5 || 0) + (mode === 'allin' && currency === 'W' ? 1 : 0),
+                    winsX2B: (s.winsX2B || 0) + (mode === 'normal' && currency === 'B' ? 1 : 0),
+                    winsX5B: (s.winsX5B || 0) + (mode === 'allin' && currency === 'B' ? 1 : 0),
+                })
+            } catch {}
         } else {
             // Проигрыш
             // Если игрок угадал бонусный сектор и там был денежный приз — начисляем его даже при промахе по цифре.
@@ -2207,6 +2304,11 @@ export function GameScreen() {
                         console.log('[onSpinResult] Battery removed from inventory before extra spin')
                     }
                     setSelectedBonusBucket(null) // Сбрасываем выбранный бонус
+                    // level stats: boosters used (Battery)
+                    try {
+                        const s = levelStatsRef.current
+                        bumpStats({ boostersUsed: { Battery: (s.boostersUsed?.Battery || 0) + 1 } })
+                    } catch {}
                 } catch (e) {
                     console.error('[onSpinResult] Failed to remove battery from inventory', e)
                 }
@@ -3319,6 +3421,12 @@ export function GameScreen() {
                                         if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
                                     } catch {}
                                 } catch {}
+                                // level stats: boosters bought
+                                try {
+                                    const s = levelStatsRef.current
+                                    const name = String(title || '')
+                                    bumpStats({ boostersBought: { [name]: (s.boostersBought?.[name] || 0) + 1 } })
+                                } catch {}
                                 setToast(`Куплено: ${title} за ${cost} W`)
                                 return true
                             }}
@@ -3366,6 +3474,12 @@ export function GameScreen() {
                                         const uid = userIdRef.current
                                         if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
                                     } catch {}
+                                } catch {}
+                                // level stats: boosters bought
+                                try {
+                                    const s = levelStatsRef.current
+                                    const name = String(b || '')
+                                    bumpStats({ boostersBought: { [name]: (s.boostersBought?.[name] || 0) + 1 } })
                                 } catch {}
                                 setToast(`Куплено: ${b} за ${cost} W`)
                             }}
