@@ -434,7 +434,25 @@ export function GameScreen() {
         if (targetLevel === 1) return (s.onboardingDone || 0) >= 1
         if (targetLevel === 2) return s.spinsTotal >= 1
         if (targetLevel === 3) return s.dailyClaims >= 1
-        if (targetLevel === 4) return (s.tasksClaimed >= 1) || (s.bonusTasksClaimed >= 1)
+        if (targetLevel === 4) {
+            // Primary requirement: claim any bonus task reward ("Получай WCOIN")
+            if ((s.tasksClaimed >= 1) || (s.bonusTasksClaimed >= 1)) return true
+
+            // Fallback: if player already completed ALL available bonus tasks (no free tasks left),
+            // but stats weren't bumped (legacy accounts / old versions), allow auto-advance 3 -> 4.
+            try {
+                const uid = userIdRef.current
+                const k = (base: string) => (uid ? `${base}_${uid}` : base)
+                const taskNames = ['spin50', 'spin100', 'streak7', 'share5'] as const
+                const allDone = taskNames.every(name => {
+                    const perUser = localStorage.getItem(k(`task_done_${name}`))
+                    const legacy = localStorage.getItem(`task_done_${name}`)
+                    return (perUser === '1') || (legacy === '1')
+                })
+                if (allDone) return true
+            } catch {}
+            return false
+        }
         if (targetLevel === 5) return s.invites >= 1
         // Level 6 should be awarded when the 3/10 results window appears (series completed)
         if (targetLevel === 6) return (s.series3of10Completed || 0) >= 1
@@ -501,7 +519,20 @@ export function GameScreen() {
         if (targetLevel === 2) return { current: s.spinsTotal, required: 1, text: `${s.spinsTotal}/1` }
         if (targetLevel === 3) return { current: s.dailyClaims, required: 1, text: `${s.dailyClaims}/1` }
         if (targetLevel === 4) {
-            const c = Math.max(s.tasksClaimed || 0, s.bonusTasksClaimed || 0)
+            let c = Math.max(s.tasksClaimed || 0, s.bonusTasksClaimed || 0)
+            if (c < 1) {
+                try {
+                    const uid = userIdRef.current
+                    const k = (base: string) => (uid ? `${base}_${uid}` : base)
+                    const taskNames = ['spin50', 'spin100', 'streak7', 'share5'] as const
+                    const allDone = taskNames.every(name => {
+                        const perUser = localStorage.getItem(k(`task_done_${name}`))
+                        const legacy = localStorage.getItem(`task_done_${name}`)
+                        return (perUser === '1') || (legacy === '1')
+                    })
+                    if (allDone) c = 1
+                } catch {}
+            }
             return { current: c, required: 1, text: `${c}/1` }
         }
         if (targetLevel === 5) return { current: s.invites, required: 1, text: `${s.invites}/1` }
