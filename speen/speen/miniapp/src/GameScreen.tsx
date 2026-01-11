@@ -2168,10 +2168,10 @@ export function GameScreen() {
         let delta = 0
         if (mode === 'normal' || mode === 'allin') {
             const won = numCorrect
-            // ВАЖНО: ставка уже списана в onBeforeSpin, поэтому при выигрыше
-            // возвращаем ставку + начисляем выигрыш по множителю.
-            // Пример: x2 => 3*bet (итого +200% к ставке), x5 => 6*bet.
-            if (won) delta = b * (getMultiplier(mode) + 1)
+            // ВАЖНО: ставка уже списана в onBeforeSpin.
+            // Поэтому при выигрыше начисляем ИТОГОВУЮ выплату: bet * multiplier.
+            // Пример: x2 => 2*bet (итого баланс: -bet + 2*bet = +bet), x5 => 5*bet.
+            if (won) delta = b * getMultiplier(mode)
         } else {
             // pyramid: center 2x, cw neighbor +50%, ccw neighbor +25% (старая логика, не используется в новом режиме)
             const center = pickedDigit
