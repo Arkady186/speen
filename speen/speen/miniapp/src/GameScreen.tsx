@@ -1059,6 +1059,7 @@ export function GameScreen() {
     const batteryUsedRef = React.useRef<boolean>(false) // Флаг использования батарейки (для удаления из инвентаря после спина)
     const pyramidMaxSpinsRef = React.useRef<number>(3) // 3/10, с батарейкой — 4
     const pyramidBatteryExtraSpinRef = React.useRef<boolean>(false) // Флаг батарейки для режима 3/10
+    const pyramidHeartActiveRef = React.useRef<boolean>(false) // Сердце для режима 3/10: вернуть ставку при полном проигрыше серии
     
     // Состояние для сохранения ставки при проигрыше (сердце)
     const [heartBonusActive, setHeartBonusActive] = React.useState<boolean>(false)
@@ -1785,6 +1786,7 @@ export function GameScreen() {
             // Батарейка как бустер в 3/10: даёт 4-е вращение (итог — 4 цифры). Используем её сразу при старте серии.
             pyramidMaxSpinsRef.current = 3
             pyramidBatteryExtraSpinRef.current = false
+            pyramidHeartActiveRef.current = false
             if (selectedBonusBucket != null) {
                 try {
                     const invRaw = localStorage.getItem('bonuses_inv') || '[]'
@@ -1807,6 +1809,22 @@ export function GameScreen() {
                         pyramidBatteryExtraSpinRef.current = true
                         setSelectedBonusBucket(null)
                         setToast('Батарейка активирована: 4-е вращение в режиме 3/10')
+                    } else if (bonusIndex !== -1 && bonusName === 'Heart') {
+                        // Сердце в 3/10: применяем на серию сразу (чтобы не "висло" в UI), а возврат ставки делаем в конце при полном проигрыше
+                        inv.splice(bonusIndex, 1)
+                        localStorage.setItem('bonuses_inv', JSON.stringify(inv))
+                        try {
+                            const uid = userIdRef.current
+                            if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
+                        } catch {}
+                        pyramidHeartActiveRef.current = true
+                        setSelectedBonusBucket(null)
+                        // level stats: boosters used (Heart in 3/10) — фиксируем использование на старте серии
+                        try {
+                            const s = levelStatsRef.current
+                            bumpStats({ boostersUsed: { Heart: (s.boostersUsed?.Heart || 0) + 1 } })
+                        } catch {}
+                        setToast('Сердце активировано: ставка вернётся при проигрыше серии 3/10')
                     }
                 } catch {}
             }
@@ -2009,8 +2027,8 @@ export function GameScreen() {
                         if (bonusIndex !== -1) {
                             // Бонус найден в инвентаре, применяем его
                             if (bonusName === 'Rocket') {
-                                // Ракета - умножает выигрыш на 4 (x4)
-                                bonusMultiplier = 4
+                                // Ракета - удваивает выигрыш (x2)
+                                bonusMultiplier = 2
                             }
                             // Сердце: если серия проиграна — возвращаем ставку (работает в 3/10)
                             
@@ -2057,31 +2075,13 @@ export function GameScreen() {
                     } catch {}
                 } else {
                     setToast(`Проигрыш. Выбрано: ${selectedNum}, Выпало: ${newResults.join(', ')}`)
-                    // Heart in 3/10: if selected and present — refund bet on full loss (also counts as "used")
-                    try {
-                        if (selectedBonusBucket != null) {
-                            const invRaw = localStorage.getItem('bonuses_inv') || '[]'
-                            const inv: string[] = JSON.parse(invRaw)
-                            const bonusName = BONUS_LABELS[selectedBonusBucket] || ''
-                            const bonusIndex = inv.indexOf(bonusName)
-                            if (bonusIndex !== -1 && bonusName === 'Heart') {
-                                inv.splice(bonusIndex, 1)
-                                localStorage.setItem('bonuses_inv', JSON.stringify(inv))
-                                try {
-                                    const uid = userIdRef.current
-                                    if (uid) localStorage.setItem(scopedKey('bonuses_inv', uid), JSON.stringify(inv))
-                                } catch {}
-                                if (currency === 'W') saveBalances(balanceWRef.current + pyramidBet, balanceBRef.current, 'Heart (3/10): refund bet on loss')
-                                else saveBalances(balanceWRef.current, balanceBRef.current + pyramidBet, 'Heart (3/10): refund bet on loss')
-                                setToast(`Сердце спасло! Ставка возвращена. (+${pyramidBet} ${currency})`)
-                                setSelectedBonusBucket(null)
-                                try {
-                                    const s = levelStatsRef.current
-                                    bumpStats({ boostersUsed: { [bonusName]: (s.boostersUsed?.[bonusName] || 0) + 1 } })
-                                } catch {}
-                            }
-                        }
-                    } catch {}
+                    // Heart in 3/10: refund bet on full loss (series end)
+                    if (pyramidHeartActiveRef.current) {
+                        pyramidHeartActiveRef.current = false
+                        if (currency === 'W') saveBalances(balanceWRef.current + pyramidBet, balanceBRef.current, 'Heart (3/10): refund bet on full loss')
+                        else saveBalances(balanceWRef.current, balanceBRef.current + pyramidBet, 'Heart (3/10): refund bet on full loss')
+                        setToast(`Сердце спасло! Ставка возвращена. (+${pyramidBet} ${currency})`)
+                    }
                 }
                 
                 // Показываем результаты на барабане
@@ -2100,6 +2100,9 @@ export function GameScreen() {
                 // Сбрасываем ref результатов для следующей серии
                 pyramidResultsRef.current = []
                 pyramidBatteryExtraSpinRef.current = false
+                pyramidHeartActiveRef.current = false
+                // На всякий случай сбрасываем выбор бустера после завершения серии (чтобы не "висло" в UI)
+                setSelectedBonusBucket(null)
             }
             return
         }
@@ -2207,9 +2210,9 @@ export function GameScreen() {
                 if (bonusIndex !== -1) {
                     // Бонус найден в инвентаре
                     if (bonusName === 'Rocket') {
-                        // Ракета - умножает выигрыш на 4 (x4) (только при выигрыше)
+                        // Ракета - удваивает выигрыш (x2) (только при выигрыше)
                         if (numCorrect && delta > 0) {
-                            bonusMultiplier = 4
+                            bonusMultiplier = 2
                         }
                         // Бонусный сектор уже обработан выше (удвоен, если был Rocket)
                     } else if (bonusName === 'Heart') {
@@ -2254,9 +2257,9 @@ export function GameScreen() {
             // Применяем множитель только один раз
             const finalDelta = bonusMultiplier > 1 ? delta * bonusMultiplier : delta
             
-            if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
-            else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x4' : 'none'})`)
-            setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x4 Ракета)' : ''}`)
+            if (currency === 'W') saveBalances(currentBalanceW + finalDelta, currentBalanceB, `Win: ${finalDelta} W (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
+            else saveBalances(currentBalanceW, currentBalanceB + finalDelta, `Win: ${finalDelta} B (bet=${b}, multiplier=${getMultiplier(mode)}, bonus=${bonusMultiplier > 1 ? 'Rocket x2' : 'none'})`)
+            setToast(`Победа! +${finalDelta} ${currency}${bonusMultiplier > 1 ? ' (x2 Ракета)' : ''}`)
             // win counters
             try {
                 const s = levelStatsRef.current
